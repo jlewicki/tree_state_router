@@ -1,4 +1,4 @@
 library tree_state_router;
 
-export 'src/router.dart';
-export 'src/router_delegate.dart';
+export 'src/router_config.dart';
+export 'src/routes.dart';

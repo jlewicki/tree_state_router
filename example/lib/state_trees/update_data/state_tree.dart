@@ -15,6 +15,7 @@ enum Messages {
   decrement,
 }
 
+/// A state tree with a single data state that keeps track of a counter.
 StateTreeBuilder countingStateTree() {
   var b = StateTreeBuilder(
     initialChild: States.counting,

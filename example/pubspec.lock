@@ -180,10 +180,10 @@ packages:
     dependency: "direct main"
     description:
       name: tree_state_machine
-      sha256: "4c8d36dc6a239e284f26409a4cbffab71529fc2b742bab7dab968ae2d49a7569"
+      sha256: "97430b55767a1c2c6278bdf03efcfaba737fb54f14dc8c07f2bb0efe16ed477e"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0-dev.3"
+    version: "3.0.0-dev.4"
   tree_state_router:
     dependency: "direct main"
     description:

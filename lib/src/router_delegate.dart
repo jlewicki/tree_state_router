@@ -18,9 +18,9 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
   }) : _logger = logger;
 
   /// The list of routes that can be displayed by this router delegate.
-  final TreeStateRouterConfig routerConfig;
+  final TreeStateRouting routerConfig;
 
-  late final List<TreeStateRoute> routes = routerConfig.routes;
+  List<TreeStateRoute> get _routes => routerConfig.routes;
 
   /// If `true`, this router delegate will display an [ErrorWidget] when the
   /// [TreeStateMachine.failedMessages] stream emits an event.
@@ -29,7 +29,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
   final bool displayStateMachineErrors;
 
   final Logger _logger;
-  late final Map<StateKey, TreeStateRoute> _routeMap = _mapRoutes(routes);
+  late final Map<StateKey, TreeStateRoute> _routeMap = _mapRoutes(_routes);
 
   // Used to create Page<Object> when routes are unopinionated about which Page type to use.
   PageBuilder? _pageBuilder;
@@ -195,7 +195,7 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
   /// The [TreeStateMachine] that provides the state transition  notifications to this router.
   final TreeStateMachine stateMachine;
 
-  CurrentState? _currentState;
+  //CurrentState? _currentState;
 
   /// The key used for retrieving the current navigator.
   @override
@@ -203,29 +203,30 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
 
   @override
   Widget build(BuildContext context) {
-    if (_currentState != null) {
-      _logger.fine('Creating pages for active states ${_currentState!.activeStates.join(',')}');
+    var curState = stateMachine.currentState;
+    if (curState != null) {
+      _logger.fine('Creating pages for active states ${curState.activeStates.join(',')}');
     }
 
-    var pages = _currentState != null
-        ? _buildActivePages(context, _currentState!).toList()
+    var pages = curState != null
+        ? _buildActivePages(context, curState).toList()
         // build() may be called before the setNewRoutePath future completes, so we display a loading
         // indicator while that is in progress
         : [if (stateMachine.isStarting) _createLoadingPage(context)];
 
     if (pages.isEmpty) {
-      pages = [_createEmptyRoutesErrorPage(context, _currentState?.activeStates ?? [])];
+      pages = [_createEmptyRoutesErrorPage(context, curState?.activeStates ?? [])];
     }
 
-    return _buildNavigatorWidget(pages, _currentState, provideCurrentState: _currentState != null);
+    return _buildNavigatorWidget(pages, curState, provideCurrentState: curState != null);
   }
 
   @override
   Future<void> setNewRoutePath(TreeStateRouteInfo configuration) async {
     if (stateMachine.isStarted) {
-      // await _currentState!.post(RoutingMessage(configuration.currentState));
+      throw UnsupportedError('Routing after the state machine has started is not yet supported.');
     } else {
-      _currentState = await stateMachine.start(at: configuration.currentState);
+      await stateMachine.start(at: configuration.currentState);
     }
   }
 

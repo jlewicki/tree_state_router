@@ -12,7 +12,7 @@ void main() {
   runApp(const MainApp());
 }
 
-final router = TreeStateRouterConfig(
+final router = TreeStateRouting(
   stateMachine: TreeStateMachine(simpleStateTree()),
   defaultLayout: (_, content) => Scaffold(
     body: StateTreeInspector(

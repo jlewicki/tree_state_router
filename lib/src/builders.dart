@@ -168,7 +168,7 @@ class DataTreeStateBuilderState extends State<BaseDataTreeStateBuilder> {
   StreamSubscription? _activeDescendantSubscription;
   List<dynamic>? _stateDataList;
   AsyncError? _error;
-  late final Logger _logger = Logger('_TreeStateBuilderState.${widget.stateKey}');
+  late final Logger _log = Logger('$runtimeType.${widget.stateKey}');
 
   @override
   void didUpdateWidget(BaseDataTreeStateBuilder oldWidget) {
@@ -235,7 +235,7 @@ class DataTreeStateBuilderState extends State<BaseDataTreeStateBuilder> {
         setState(() => _error = AsyncError(err, stackTrace));
       },
       onDone: () => {
-        _logger.finer(
+        _log.finer(
             'CombineLatestDone for data streams ${widget._stateDataResolvers.map((e) => e.stateKey.toString()).join(', ')}')
       },
     );
@@ -250,7 +250,9 @@ class DataTreeStateBuilderState extends State<BaseDataTreeStateBuilder> {
     var resolvers = widget._stateDataResolvers;
     if (otherResolvers.length == widget._stateDataResolvers.length) {
       for (var i = 0; i < otherResolvers.length; i++) {
-        if (otherResolvers[i] != resolvers[i]) return false;
+        if (otherResolvers[i] != resolvers[i]) {
+          return false;
+        }
       }
       return true;
     }

@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tree_state_router/src/pages/pages.dart';
 
 class MaterialTreeStatePage extends MaterialPage<void> {
-  const MaterialTreeStatePage(Widget child)
-      : super(
-          child: child,
-        );
+  const MaterialTreeStatePage({super.key, required super.child});
 }
 
-PageBuilder materialPageBuilder = (_, content) => MaterialTreeStatePage(content);
+PageBuilder materialPageBuilder = (buildFor, content) => MaterialTreeStatePage(child: content);

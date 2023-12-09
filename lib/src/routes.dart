@@ -57,8 +57,7 @@ class TreeStateRoute {
     this.stateKey, {
     this.routePageBuilder,
     this.routeBuilder,
-  }) : assert((routeBuilder != null ? 1 : 0) + (routePageBuilder != null ? 1 : 0) != 1,
-            "One of routeBuilder or routePageBuilder must be specified");
+  });
 
   /// The state key identifying the tree state associated with this route.
   final StateKey stateKey;

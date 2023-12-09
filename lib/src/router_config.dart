@@ -22,15 +22,15 @@ typedef DefaultLayoutBuilder = Widget Function(PageBuildFor buildFor, Widget pag
 typedef DefaultPageBuilder = Page<void> Function(PageBuildFor buildFor, Widget pageContent);
 
 ///
-class TreeStateRouterConfig implements RouterConfig<TreeStateRouteInfo> {
-  TreeStateRouterConfig({
+class TreeStateRouting implements RouterConfig<TreeStateRouteInfo> {
+  TreeStateRouting({
     required this.stateMachine,
     required this.routes,
     this.defaultLayout,
     this.defaultPageBuilder,
   });
 
-  /// The state machine providing the tree states that are routed by this [TreeStateRouterConfig].
+  /// The state machine providing the tree states that are routed by this [TreeStateRouting].
   final TreeStateMachine stateMachine;
 
   /// The list of routes that can be materialized by this router.  Each route should correspond to a
@@ -53,23 +53,23 @@ class TreeStateRouterConfig implements RouterConfig<TreeStateRouteInfo> {
   /// {@macro DefaultPageBuilder}
   final DefaultPageBuilder? defaultPageBuilder;
 
-  /// The [RouterDelegate] used by [TreeStateRouterConfig].
+  /// The [RouterDelegate] used by [TreeStateRouting].
   @override
   late final routerDelegate = TreeStateRouterDelegate(
     stateMachine: stateMachine,
     routerConfig: this,
   );
 
-  /// The [RootBackButtonDispatcher] used by [TreeStateRouterConfig].
+  /// The [RootBackButtonDispatcher] used by [TreeStateRouting].
   @override
   final BackButtonDispatcher? backButtonDispatcher = RootBackButtonDispatcher();
 
-  /// The [RouteInformationParser] used by [TreeStateRouterConfig].
+  /// The [RouteInformationParser] used by [TreeStateRouting].
   @override
   late final RouteInformationParser<TreeStateRouteInfo>? routeInformationParser =
       TreeStateRouteInformationParser(stateMachine.rootNode.key);
 
-  /// The [RouteInformationProvider] used by [TreeStateRouterConfig].
+  /// The [RouteInformationProvider] used by [TreeStateRouting].
   @override
   late final routeInformationProvider = PlatformRouteInformationProvider(
     initialRouteInformation: RouteInformation(

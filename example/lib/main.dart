@@ -16,7 +16,7 @@ final treeBuilder = simpleStateTree();
 final stateMachine = TreeStateMachine(treeBuilder);
 final router = TreeStateRouterConfig(
   stateMachine: stateMachine,
-  defaultLayout: (_, content) => Scaffold(body: content),
+  defaultLayout: (_, content) => Scaffold(body: StateTreeInspector(child: content)),
   routes: [
     TreeStateRoute(SimpleStates.enterText, routeBuilder: enterTextPage),
   ],

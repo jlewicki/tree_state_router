@@ -7,7 +7,6 @@ import 'package:tree_state_router/src/pages/material.dart';
 import 'package:tree_state_router/src/pages/pages.dart';
 import 'package:tree_state_router/src/parser.dart';
 import 'package:tree_state_router/src/provider.dart';
-import 'package:tree_state_router/src/routing_extensions.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
 abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRouteInfo>
@@ -146,7 +145,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
       error = ErrorWidget.withDetails(
           message: 'No tree state routes are available to display any of the active states: '
               '${activeStates.map((s) => '"$s"').join(', ')}.\n\n'
-              'Make sure to add a route that can display one of the states to the $runtimeType.');
+              'Make sure to add a route that can display one of the active states to the $runtimeType.');
       return true;
     }());
     error = Center(child: error);
@@ -184,6 +183,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
 /// a [TreeStatePage] that corresponds to the an active state of the state machine.  If a page is
 /// available, it is displayed by the [Navigator] returned by [build].
 class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
+  // TODO: make this delegate rebuild when routing config changes
   TreeStateRouterDelegate({
     required this.stateMachine,
     required super.routerConfig,
@@ -223,7 +223,7 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
   @override
   Future<void> setNewRoutePath(TreeStateRouteInfo configuration) async {
     if (stateMachine.isStarted) {
-      await _currentState!.post(RoutingMessage(configuration.currentState));
+      // await _currentState!.post(RoutingMessage(configuration.currentState));
     } else {
       _currentState = await stateMachine.start(at: configuration.currentState);
     }

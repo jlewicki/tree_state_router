@@ -4,19 +4,19 @@ import 'package:tree_state_machine/tree_builders.dart';
 //
 // State keys
 //
-class SimpleStates {
-  static const enterText = StateKey('simple_enterText');
-  static const showUppercase = DataStateKey<String>('simple_showUppercase');
-  static const showLowercase = DataStateKey<String>('simple_showLowercase');
-  static const finished = StateKey('simple_finished');
+class States {
+  static const enterText = StateKey('enterText');
+  static const showUppercase = DataStateKey<String>('showUppercase');
+  static const showLowercase = DataStateKey<String>('showLowercase');
+  static const finished = StateKey('finished');
 }
-
-typedef _S = SimpleStates;
 
 //
 // Messages
 //
-enum Messages { finish }
+enum Messages {
+  finish,
+}
 
 class ToUppercase {
   ToUppercase(this.text);
@@ -32,33 +32,35 @@ class ToLowercase {
 /// states.
 StateTreeBuilder simpleStateTree() {
   var b = StateTreeBuilder(
-    initialChild: _S.enterText,
+    initialChild: States.enterText,
     logName: 'simple',
     label: 'Simple State Tree',
   );
 
-  b.state(_S.enterText, (b) {
-    b.onMessage<ToUppercase>((b) => b.goTo(_S.showUppercase, payload: (ctx) => ctx.message.text));
-    b.onMessage<ToLowercase>((b) => b.goTo(_S.showLowercase, payload: (ctx) => ctx.message.text));
+  b.state(States.enterText, (b) {
+    b.onMessage<ToUppercase>(
+        (b) => b.goTo(States.showUppercase, payload: (ctx) => ctx.message.text));
+    b.onMessage<ToLowercase>(
+        (b) => b.goTo(States.showLowercase, payload: (ctx) => ctx.message.text));
   });
 
   b.dataState<String>(
-    _S.showUppercase,
+    States.showUppercase,
     InitialData.run((ctx) => (ctx.payload as String).toUpperCase()),
     (b) {
-      b.onMessageValue(Messages.finish, (b) => b.goTo(SimpleStates.finished));
+      b.onMessageValue(Messages.finish, (b) => b.goTo(States.finished));
     },
   );
 
   b.dataState<String>(
-    _S.showLowercase,
+    States.showLowercase,
     InitialData.run((ctx) => (ctx.payload as String).toLowerCase()),
     (b) {
-      b.onMessageValue(Messages.finish, (b) => b.goTo(SimpleStates.finished));
+      b.onMessageValue(Messages.finish, (b) => b.goTo(States.finished));
     },
   );
 
-  b.finalState(_S.finished, emptyFinalState);
+  b.finalState(States.finished, emptyFinalState);
 
   return b;
 }

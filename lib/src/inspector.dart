@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:tree_state_router/src/provider.dart';
 
+/// A widget that displays diagnostic information about a tree state machine.
+///
+/// The state machine is obtained with [TreeStateMachineProvider.of], and consequently find the
+/// closest machine in the ancestor hierarchy.
 class StateTreeInspector extends StatelessWidget {
   const StateTreeInspector({super.key, required this.child});
 

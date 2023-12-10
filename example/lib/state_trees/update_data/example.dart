@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
-import 'package:tree_state_router_examples/state_trees/update_data/pages.dart';
-import 'package:tree_state_router_examples/state_trees/update_data/state_tree.dart';
+import 'pages.dart';
+import 'state_tree.dart';
 
 void main() {
   _initLogging();

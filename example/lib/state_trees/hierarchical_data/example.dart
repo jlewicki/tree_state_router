@@ -13,7 +13,7 @@ void main() {
 }
 
 final router = TreeStateRouter(
-  stateMachine: TreeStateMachine(simpleStateTree()),
+  stateMachine: TreeStateMachine(hierarchicalDataStateTree()),
   defaultScaffolding: (_, pageContent) => Scaffold(
     body: StateTreeInspector(
       child: Center(
@@ -22,10 +22,8 @@ final router = TreeStateRouter(
     ),
   ),
   routes: [
-    TreeStateRoute(States.enterText, routeBuilder: enterTextPage),
-    DataTreeStateRoute(States.showLowercase, routeBuilder: toLowercasePage),
-    DataTreeStateRoute(States.showUppercase, routeBuilder: toUppercasePage),
-    TreeStateRoute(States.finished, routeBuilder: finishedPage),
+    DataTreeStateRoute(States.child1, routeBuilder: child1Page),
+    DataTreeStateRoute(States.child2, routeBuilder: child2Page),
   ],
 );
 

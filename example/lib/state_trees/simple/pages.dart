@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:tree_state_router/tree_state_router.dart';
-
 import 'state_tree.dart';
 
 Widget enterTextPage(

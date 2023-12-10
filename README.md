@@ -14,15 +14,15 @@ place in a [tree_state_machine](https://pub.dev/packages/tree_state_machine)
 ## Getting started
 
 The `tree_state_router` package assumes you are using the `tree_state_machine` package, and would like to provide 
-visuals for the active states in a `TreeStateMachine`, transitioning betewen pages as the active states change.
+visuals for the states in a `TreeStateMachine`, transitioning between pages as the active states change.
 
-Once a state machine has been created, it can be passed to a `TreeStateRouter`, along with a collection of 
+Once a `TreeStateMachine` has been created, it can be passed to a `TreeStateRouter`, along with a collection of 
 `TreeStateRoute`s that indicate how states in the state machine should be displayed. 
 
-Each route specifies a builder function that is called to produce the `Widget` that displays the state, along with an 
-accessor for the `CurrentState` of the state machine. The current state can be used to post messages to the state 
-machine in response to user input, potentially triggering a transition to a new state. The `TreeStateRouter` detects the
-state transition, and displays to the corresponding route. 
+Each route specifies a builder function that is called to produce a `Widget` that displays a particular tree state. 
+The function is passed an accessor for the `CurrentState` of the state machine, which can be used to post messages to 
+the state machine in response to user input, potentially triggering a transition to a new tree state. The 
+`TreeStateRouter` detects the transition, and navigates to the `TreeStateRoute` corresponding to the new state. 
 
 The following example ilustrates these steps.
 ```dart
@@ -54,7 +54,7 @@ StateTreeBuilder simpleStateTree() {
   return b;
 }
 
-// Define a router with routes for states in the state tree
+// Define a router with routes for each state in the state tree
 final router = TreeStateRouter(
   stateMachine: TreeStateMachine(simpleStateTree()),
   defaultScaffolding: (_, pageContent) => Scaffold(body: pageContent),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tree_state_router/src/provider.dart';
+import 'package:tree_state_router/tree_state_router.dart';
 
 /// A widget that displays diagnostic information about a tree state machine.
 ///

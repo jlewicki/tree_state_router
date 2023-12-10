@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/async.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_router/src/provider.dart';
+import 'package:tree_state_router/tree_state_router.dart';
 
 /// A function that constructs widget that visualizes an active tree state in a state machine.
 ///

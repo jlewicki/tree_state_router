@@ -14,10 +14,10 @@ void main() {
 
 final router = TreeStateRouter(
   stateMachine: TreeStateMachine(simpleStateTree()),
-  defaultScaffolding: (_, content) => Scaffold(
+  defaultScaffolding: (_, pageContent) => Scaffold(
     body: StateTreeInspector(
       child: Center(
-        child: content,
+        child: pageContent,
       ),
     ),
   ),

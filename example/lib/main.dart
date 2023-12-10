@@ -2,33 +2,64 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:tree_state_machine/tree_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
-import 'package:tree_state_router_examples/state_trees/simple/simple_state_tree.dart';
-import 'package:tree_state_router_examples/state_trees/simple/simple_state_tree_pages.dart';
 
 void main() {
   _initLogging();
   runApp(const MainApp());
 }
 
-final router = TreeStateRouting(
+// Define a simple state tree with 2 states
+class States {
+  static const state1 = StateKey('state1');
+  static const state2 = StateKey('state2');
+}
+
+class AMessage {}
+
+StateTreeBuilder simpleStateTree() {
+  var b = StateTreeBuilder(initialChild: States.state1);
+  b.state(States.state1, (b) {
+    b.onMessage<AMessage>((b) => b.goTo(States.state2));
+  });
+  b.state(States.state2, emptyState);
+  return b;
+}
+
+// Define a router with routes for states in the state tree
+final router = TreeStateRouter(
   stateMachine: TreeStateMachine(simpleStateTree()),
-  defaultLayout: (_, content) => Scaffold(
-    body: StateTreeInspector(
-      child: Center(
-        child: content,
-      ),
-    ),
-  ),
+  defaultScaffolding: (_, pageContent) => Scaffold(body: pageContent),
   routes: [
-    TreeStateRoute(States.enterText, routeBuilder: enterTextPage),
-    DataTreeStateRoute(States.showLowercase, routeBuilder: toLowercasePage),
-    DataTreeStateRoute(States.showUppercase, routeBuilder: toUppercasePage),
-    TreeStateRoute(States.finished, routeBuilder: finishedPage),
+    TreeStateRoute(
+      States.state1,
+      routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('This is state 1'),
+              ElevatedButton(
+                onPressed: () => stateCtx.currentState.post(AMessage()),
+                child: const Text('Send a message'),
+              )
+            ],
+          ),
+        );
+      },
+    ),
+    TreeStateRoute(
+      States.state2,
+      routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
+        return const Center(child: Text('This is state 2'));
+      },
+    ),
   ],
 );
 
+// Create a router based Material app with the TreeStateRouter
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 

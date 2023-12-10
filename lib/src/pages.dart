@@ -5,7 +5,7 @@ import 'package:tree_state_router/tree_state_router.dart';
 
 /// Describes the reason a page is being built.
 ///
-/// If necessary, the [TreeStateRouting.defaultLayout] or [TreeStateRouting.defaultPageBuilder]
+/// If necessary, the [TreeStateRouter.defaultScaffolding] or [TreeStateRouter.defaultPageBuilder]
 /// functions can match against the subclasses of [PageBuildFor] in order to customize their results
 /// based on the specific reason a page is built.
 sealed class PageBuildFor {}

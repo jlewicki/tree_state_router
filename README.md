@@ -13,32 +13,86 @@ place in a [tree_state_machine](https://pub.dev/packages/tree_state_machine)
 
 ## Getting started
 
-The `tree_state_router` package assumes you are using the `tree_state_machine` package, and would like to provide visuals for the active states in a `TreeStateMachine`, transitioning betewen pages as the active states change.
+The `tree_state_router` package assumes you are using the `tree_state_machine` package, and would like to provide 
+visuals for the active states in a `TreeStateMachine`, transitioning betewen pages as the active states change.
 
+Once a state machine has been created, it can be passed to a `TreeStateRouter`, along with a collection of 
+`TreeStateRoute`s that indicate how states in the state machine should be displayed. 
 
+Each route specifies a builder function that is called to produce the `Widget` that displays the state, along with an 
+accessor for the `CurrentState` of the state machine. The current state can be used to post messages to the state 
+machine in response to user input, potentially triggering a transition to a new state. The `TreeStateRouter` detects the
+state transition, and displays to the corresponding route. 
+
+The following example ilustrates these steps.
 ```dart
-import 'package:tree_state_machine/tree_state_builders.dart';
+
+import 'package:flutter/material.dart';
+import 'package:tree_state_machine/tree_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
+void main() {
+  _initLogging();
+  runApp(const MainApp());
+}
 
-var treeStateRouting = TreeStateRouting(
-  stateMachine: TreeStateMachine(buildAStateTree())
+// Define a simple state tree with 2 states
+class States {
+  static const state1 = StateKey('state1');
+  static const state2 = StateKey('state2');
+}
+
+class AMessage {}
+
+StateTreeBuilder simpleStateTree() {
+  var b = StateTreeBuilder(initialChild: States.state1);
+  b.state(States.state1, (b) {
+    b.onMessage<AMessage>((b) => b.goTo(States.state2));
+  });
+  b.state(States.state2, emptyState);
+  return b;
+}
+
+// Define a router with routes for states in the state tree
+final router = TreeStateRouter(
+  stateMachine: TreeStateMachine(simpleStateTree()),
+  defaultScaffolding: (_, pageContent) => Scaffold(body: pageContent),
   routes: [
     TreeStateRoute(
-      State.state1, 
+      States.state1,
       routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
-         return Center(child: Text('This is state 1'));
-      }
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('This is state 1'),
+              ElevatedButton(
+                onPressed: () => stateCtx.currentState.post(AMessage()),
+                child: const Text('Send a message'),
+              )
+            ],
+          ),
+        );
+      },
+    ),
+    TreeStateRoute(
+      States.state2,
+      routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
+        return const Center(child: Text('This is state 2'));
+      },
     ),
   ],
 );
 
-class MyApp extends StatelessWidget {
+// Create a router based Material app with the TreeStateRouter
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      routerConfig: treeStateRouting,
+      routerConfig: router,
     );
   }
 }

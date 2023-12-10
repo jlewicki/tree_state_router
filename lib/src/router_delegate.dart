@@ -19,7 +19,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
   }) : _logger = logger;
 
   /// The list of routes that can be displayed by this router delegate.
-  final TreeStateRouting routerConfig;
+  final TreeStateRouter routerConfig;
 
   List<TreeStateRoute> get _routes => routerConfig.routes;
 
@@ -133,8 +133,8 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
   }
 
   Widget _withDefaultScaffolding(PageBuildFor buildFor, Widget content) {
-    return routerConfig.defaultLayout != null
-        ? routerConfig.defaultLayout!.call(buildFor, content)
+    return routerConfig.defaultScaffolding != null
+        ? routerConfig.defaultScaffolding!.call(buildFor, content)
         : content;
   }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_router/src/pages/pages.dart';
+import 'package:tree_state_router/src/pages.dart';
 import 'package:tree_state_router/src/parser.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
 import 'package:tree_state_router/src/routes.dart';
@@ -22,15 +22,15 @@ typedef DefaultLayoutBuilder = Widget Function(PageBuildFor buildFor, Widget pag
 typedef DefaultPageBuilder = Page<void> Function(PageBuildFor buildFor, Widget pageContent);
 
 ///
-class TreeStateRouting implements RouterConfig<TreeStateRouteInfo> {
-  TreeStateRouting({
+class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
+  TreeStateRouter({
     required this.stateMachine,
     required this.routes,
-    this.defaultLayout,
+    this.defaultScaffolding,
     this.defaultPageBuilder,
   });
 
-  /// The state machine providing the tree states that are routed by this [TreeStateRouting].
+  /// The state machine providing the tree states that are routed by this [TreeStateRouter].
   final TreeStateMachine stateMachine;
 
   /// The list of routes that can be materialized by this router.  Each route should correspond to a
@@ -48,28 +48,28 @@ class TreeStateRouting implements RouterConfig<TreeStateRouteInfo> {
   ///   defaultLayout: (_, pageContent) => Scaffold(child: pageContent),
   /// })
   /// ```
-  final DefaultLayoutBuilder? defaultLayout;
+  final DefaultLayoutBuilder? defaultScaffolding;
 
   /// {@macro DefaultPageBuilder}
   final DefaultPageBuilder? defaultPageBuilder;
 
-  /// The [RouterDelegate] used by [TreeStateRouting].
+  /// The [RouterDelegate] used by [TreeStateRouter].
   @override
   late final routerDelegate = TreeStateRouterDelegate(
     stateMachine: stateMachine,
     routerConfig: this,
   );
 
-  /// The [RootBackButtonDispatcher] used by [TreeStateRouting].
+  /// The [RootBackButtonDispatcher] used by [TreeStateRouter].
   @override
   final BackButtonDispatcher? backButtonDispatcher = RootBackButtonDispatcher();
 
-  /// The [RouteInformationParser] used by [TreeStateRouting].
+  /// The [RouteInformationParser] used by [TreeStateRouter].
   @override
   late final RouteInformationParser<TreeStateRouteInfo>? routeInformationParser =
       TreeStateRouteInformationParser(stateMachine.rootNode.key);
 
-  /// The [RouteInformationProvider] used by [TreeStateRouting].
+  /// The [RouteInformationProvider] used by [TreeStateRouter].
   @override
   late final routeInformationProvider = PlatformRouteInformationProvider(
     initialRouteInformation: RouteInformation(

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
-import 'package:tree_state_router_examples/state_trees/update_data/pages.dart';
-import 'package:tree_state_router_examples/state_trees/update_data/state_tree.dart';
+import 'package:tree_state_router_examples/state_trees/simple/state_tree.dart';
+import 'package:tree_state_router_examples/state_trees/simple/pages.dart';
 
 void main() {
   _initLogging();
@@ -13,7 +13,7 @@ void main() {
 }
 
 final router = TreeStateRouter(
-  stateMachine: TreeStateMachine(countingStateTree()),
+  stateMachine: TreeStateMachine(simpleStateTree()),
   defaultScaffolding: (_, content) => Scaffold(
     body: StateTreeInspector(
       child: Center(
@@ -22,7 +22,10 @@ final router = TreeStateRouter(
     ),
   ),
   routes: [
-    DataTreeStateRoute(States.counting, routeBuilder: countingPage),
+    TreeStateRoute(States.enterText, routeBuilder: enterTextPage),
+    DataTreeStateRoute(States.showLowercase, routeBuilder: toLowercasePage),
+    DataTreeStateRoute(States.showUppercase, routeBuilder: toUppercasePage),
+    TreeStateRoute(States.finished, routeBuilder: finishedPage),
   ],
 );
 

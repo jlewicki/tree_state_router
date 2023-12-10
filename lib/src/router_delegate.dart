@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_router/src/pages/material.dart';
-import 'package:tree_state_router/src/pages/pages.dart';
+import 'package:tree_state_router/src/pages.dart';
 import 'package:tree_state_router/src/parser.dart';
 import 'package:tree_state_router/src/provider.dart';
 import 'package:tree_state_router/tree_state_router.dart';
@@ -150,7 +151,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     }());
     error = Center(child: error);
     return _pageBuilderForAppType(context).call(
-      BuildForError(),
+      const BuildForError(),
       error,
     );
   }
@@ -167,7 +168,19 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
   }
 
   PageBuilder _inferPageBuilder(BuildContext context) {
-    // TODO: lookup app type like go_router does.
+    // May be null during testing
+    Element? elem = context is Element ? context : null;
+    if (elem != null) {
+      if (elem.findAncestorWidgetOfExactType<MaterialApp>() != null) {
+        _logger.info('Resolved MaterialApp. Will use MaterialPage pages.');
+        return materialPageBuilder;
+      } else if (elem.findAncestorWidgetOfExactType<CupertinoApp>() != null) {
+        _logger.info('Resolved CupertinoApp. Will use CupertinoPage pages.');
+        return cupertinoPageBuilder;
+      }
+    }
+
+    _logger.info('Unable to resolve application type. Defaulting to MaterialPage pages.');
     return materialPageBuilder;
   }
 }
@@ -194,8 +207,6 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
 
   /// The [TreeStateMachine] that provides the state transition  notifications to this router.
   final TreeStateMachine stateMachine;
-
-  //CurrentState? _currentState;
 
   /// The key used for retrieving the current navigator.
   @override
@@ -233,7 +244,7 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
   Page _createLoadingPage(BuildContext context) {
     var pageBuilder = _pageBuilderForAppType(context);
     return pageBuilder.call(
-        BuildForLoading(),
+        const BuildForLoading(),
         const Center(
           child: Text('Loading'),
         ));

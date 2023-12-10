@@ -38,7 +38,6 @@ class TreeStateMachineProvider extends StatelessWidget {
 
 class _InheritedStateMachineInfo extends InheritedWidget {
   const _InheritedStateMachineInfo({
-    super.key,
     required this.currentState,
     required super.child,
   });

@@ -57,7 +57,10 @@ class TreeStateRoute {
     this.stateKey, {
     this.routePageBuilder,
     this.routeBuilder,
-  });
+  })  : assert(routePageBuilder != null || routeBuilder != null,
+            "One of routePageBuilder or routeBuilder must be provided"),
+        assert(!(routePageBuilder != null && routeBuilder != null),
+            "Only one of routePageBuilder or routeBuilder can be provided");
 
   /// The state key identifying the tree state associated with this route.
   final StateKey stateKey;
@@ -110,13 +113,4 @@ TreeStateRouteBuilder? _adaptDataRouteBuilder1<D>(
       },
     );
   };
-}
-
-extension _CurrentStateExtension on CurrentState {
-  D dataValueOrThrow<D>([DataStateKey<D>? stateKey]) {
-    var val = dataValue<D>(stateKey);
-    return val ??
-        (throw StateError(
-            "'Unable to find data value of type $D in active states ${activeStates.join(',')}"));
-  }
 }

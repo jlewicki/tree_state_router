@@ -33,7 +33,6 @@ import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
 void main() {
-  _initLogging();
   runApp(const MainApp());
 }
 

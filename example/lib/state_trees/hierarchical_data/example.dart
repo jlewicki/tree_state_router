@@ -22,8 +22,8 @@ final router = TreeStateRouter(
     ),
   ),
   routes: [
-    DataTreeStateRoute(States.child1, routeBuilder: child1Page),
-    DataTreeStateRoute(States.child2, routeBuilder: child2Page),
+    DataTreeStateRoute2(States.child1, dataRouteBuilder: child1Page),
+    DataTreeStateRoute2(States.child2, dataRouteBuilder: child2Page),
   ],
 );
 

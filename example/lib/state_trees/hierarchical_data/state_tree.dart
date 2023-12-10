@@ -13,6 +13,11 @@ class States {
 //
 // Messages
 //
+class UpdateParentData {
+  UpdateParentData(this.newValue);
+  final String newValue;
+}
+
 class UpdateChildData {
   UpdateChildData(this.newValue);
   final String newValue;
@@ -44,7 +49,11 @@ StateTreeBuilder hierarchicalDataStateTree() {
   var b = StateTreeBuilder.withDataRoot<ParentData>(
     States.parent,
     InitialData(() => ParentData('This is the parent value')),
-    emptyState,
+    (b) {
+      b.onMessage<UpdateParentData>(
+        (b) => b.stay(action: b.act.updateOwnData((ctx) => ParentData(ctx.message.newValue))),
+      );
+    },
     InitialChild(States.child1),
     logName: 'hierarchicalData',
     label: 'Hierarchical Data State Tree',

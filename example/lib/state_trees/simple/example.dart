@@ -23,8 +23,8 @@ final router = TreeStateRouter(
   ),
   routes: [
     TreeStateRoute(States.enterText, routeBuilder: enterTextPage),
-    DataTreeStateRoute(States.showLowercase, routeBuilder: toLowercasePage),
-    DataTreeStateRoute(States.showUppercase, routeBuilder: toUppercasePage),
+    DataTreeStateRoute(States.showLowercase, dataRouteBuilder: toLowercasePage),
+    DataTreeStateRoute(States.showUppercase, dataRouteBuilder: toUppercasePage),
     TreeStateRoute(States.finished, routeBuilder: finishedPage),
   ],
 );

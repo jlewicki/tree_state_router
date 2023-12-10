@@ -22,7 +22,7 @@ final router = TreeStateRouter(
     ),
   ),
   routes: [
-    DataTreeStateRoute(States.counting, routeBuilder: countingPage),
+    DataTreeStateRoute(States.counting, dataRouteBuilder: countingPage),
   ],
 );
 

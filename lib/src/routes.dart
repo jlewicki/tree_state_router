@@ -44,6 +44,21 @@ typedef DataTreeStateRouteBuilder<D> = Widget Function(
   D data,
 );
 
+typedef DataTreeStateRouteBuilder2<D, DAnc> = Widget Function(
+  BuildContext context,
+  TreeStateRoutingContext stateContext,
+  D data,
+  DAnc ancestorData,
+);
+
+typedef DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
+  BuildContext context,
+  TreeStateRoutingContext stateContext,
+  D data,
+  DAnc1 ancestorData1,
+  DAnc2 ancestorData2,
+);
+
 /// A route associated with a state in a state tree, which is used to visually display the tree
 /// state in a [Navigator] widget.
 ///
@@ -87,30 +102,53 @@ class TreeStateRoute {
 class DataTreeStateRoute<D> extends TreeStateRoute {
   DataTreeStateRoute(
     DataStateKey<D> super.stateKey, {
-    DataTreeStateRouteBuilder<D>? routeBuilder,
+    DataTreeStateRouteBuilder<D>? dataRouteBuilder,
   }) : super(
-          routeBuilder: _adaptDataRouteBuilder1(stateKey, routeBuilder),
+            routeBuilder: dataRouteBuilder == null
+                ? null
+                : (context, stateContext) {
+                    return DataTreeStateBuilder<D>(
+                      stateKey: stateKey,
+                      builder: (context, _, stateData) {
+                        return dataRouteBuilder.call(context, stateContext, stateData);
+                      },
+                    );
+                  });
+}
+
+class DataTreeStateRoute2<D, DAnc> extends TreeStateRoute {
+  DataTreeStateRoute2(
+    DataStateKey<D> super.stateKey, {
+    DataTreeStateRouteBuilder2<D, DAnc>? dataRouteBuilder,
+  }) : super(
+          routeBuilder: dataRouteBuilder == null
+              ? null
+              : (context, stateContext) {
+                  return DataTreeStateBuilder2<D, DAnc>(
+                    stateKey: stateKey,
+                    builder: (context, _, stateData, ancData) {
+                      return dataRouteBuilder.call(context, stateContext, stateData, ancData);
+                    },
+                  );
+                },
         );
 }
 
-TreeStateRouteBuilder? _adaptDataRouteBuilder1<D>(
-  DataStateKey<D> stateKey,
-  DataTreeStateRouteBuilder<D>? dataRouteBuilder,
-) {
-  if (dataRouteBuilder == null) {
-    return null;
-  }
-
-  return (context, stateContext) {
-    // Wrap the route content with a DataTreeStateBuilder which will rebuild the route content
-    // when the state data changes.
-    // TODO: is this too heavy handed?  Do we want to rebuild the entire route if just a small part
-    // needs to be updated?
-    return DataTreeStateBuilder<D>(
-      stateKey: stateKey,
-      builder: (context, _, stateData) {
-        return dataRouteBuilder.call(context, stateContext, stateData);
-      },
-    );
-  };
+class DataTreeStateRoute3<D, DAnc, DAnc2> extends TreeStateRoute {
+  DataTreeStateRoute3(
+    DataStateKey<D> super.stateKey, {
+    DataTreeStateRouteBuilder3<D, DAnc, DAnc2>? dataRouteBuilder,
+  }) : super(
+          routeBuilder: dataRouteBuilder == null
+              ? null
+              : (context, stateContext) {
+                  return DataTreeStateBuilder3<D, DAnc, DAnc2>(
+                    stateKey: stateKey,
+                    builder: (context, _, stateData, ancData, ancData2) {
+                      return dataRouteBuilder.call(
+                          context, stateContext, stateData, ancData, ancData2);
+                    },
+                  );
+                },
+        );
 }

@@ -8,6 +8,13 @@ import '../../helpers/helpers.dart';
 import 'state_tree.dart';
 import 'pages.dart';
 
+//
+// This example demonstrates accessing and updating state and ancestor state data in a route for
+// a leaf state.
+//
+// Each route displays all relevant state data belonging to active states, whether it belongs to the
+// state for the route, or one of its ancestor states.
+//
 void main() {
   _initLogging();
   runApp(const MainApp());

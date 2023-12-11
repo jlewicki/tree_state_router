@@ -6,6 +6,10 @@ import 'package:tree_state_machine/tree_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
+//
+// This example demonstrates a routing for a simple state machine with two states. State transitions
+// occur in response to user input.
+//
 void main() {
   _initLogging();
   runApp(const MainApp());

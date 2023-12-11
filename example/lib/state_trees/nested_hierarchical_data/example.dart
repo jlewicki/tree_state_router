@@ -8,6 +8,14 @@ import '../../helpers/helpers.dart';
 import 'state_tree.dart';
 import 'pages.dart';
 
+//
+// This example demonstrates accessing and updating state and ancestor state data with nested
+// routers.
+//
+// The top level route for the parent state displays and updates the parent state data, and
+// presents child states using a nested router. The parent route in this case can be thought of a
+// kind of 'layout' or 'shell' route in this case.
+//
 void main() {
   _initLogging();
   runApp(const MainApp());

@@ -7,6 +7,9 @@ import 'package:tree_state_router/tree_state_router.dart';
 import 'pages.dart';
 import 'state_tree.dart';
 
+//
+// This example demonstrates accessing and updating state and state data.
+//
 void main() {
   _initLogging();
   runApp(const MainApp());

@@ -7,6 +7,9 @@ import 'package:tree_state_router/tree_state_router.dart';
 import 'state_tree.dart';
 import 'pages.dart';
 
+//
+// This example demonstrates a routing for a relatively simple, non-hierarchical, state machine.
+//
 void main() {
   _initLogging();
   runApp(const MainApp());

@@ -11,10 +11,16 @@ import 'package:tree_state_router/src/widgets/state_machine_events.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
 class TreeStateRouterDelegateConfig {
-  TreeStateRouterDelegateConfig(this.routes, {this.defaultPageBuilder, this.defaultScaffolding});
+  TreeStateRouterDelegateConfig(
+    this.routes, {
+    this.defaultPageBuilder,
+    this.defaultScaffolding,
+    this.enableTransitions = true,
+  });
   final List<TreeStateRoute> routes;
   final DefaultScaffoldingBuilder? defaultScaffolding;
   final DefaultPageBuilder? defaultPageBuilder;
+  final bool enableTransitions;
 }
 
 abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRouteInfo>
@@ -52,6 +58,9 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
       key: navigatorKey,
       pages: pages,
       onPopPage: _onPopPage,
+      transitionDelegate: config.enableTransitions
+          ? const DefaultTransitionDelegate()
+          : const _NoTransitionsTransitionDelegate(),
     );
 
     if (currentState != null) {
@@ -324,4 +333,59 @@ class NestedTreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
       notifyListeners();
     }
   }
+}
+
+/// Overrides [resolve] to so that calls to [RouteTransitionRecord] that trigger animations are
+/// rediirected to ones that do not. None of the core logic in DefaultTransitionDelegate (which is a
+/// little tricky) is altered.
+class _NoTransitionsTransitionDelegate extends DefaultTransitionDelegate {
+  const _NoTransitionsTransitionDelegate();
+  @override
+  Iterable<RouteTransitionRecord> resolve({
+    required List<RouteTransitionRecord> newPageRouteHistory,
+    required Map<RouteTransitionRecord?, RouteTransitionRecord> locationToExitingPageRoute,
+    required Map<RouteTransitionRecord?, List<RouteTransitionRecord>> pageRouteToPagelessRoutes,
+  }) {
+    var records = super.resolve(
+      newPageRouteHistory: newPageRouteHistory.map(_NoTransitionRouteTransitionRecord.new).toList(),
+      locationToExitingPageRoute: locationToExitingPageRoute,
+      pageRouteToPagelessRoutes: pageRouteToPagelessRoutes,
+    );
+    // DefaultTransitionDelegate assumes records are _RouteEntry, so we need to unwrap
+    // _NoTransitionRouteTransitionRecord before returning the results.
+    return records.map((r) => r is _NoTransitionRouteTransitionRecord ? r.inner : r);
+  }
+}
+
+/// Wraps a [RouteTransitionRecord] and redirects calls that trigger animations to calls that do not.
+class _NoTransitionRouteTransitionRecord implements RouteTransitionRecord {
+  _NoTransitionRouteTransitionRecord(this.inner);
+
+  final RouteTransitionRecord inner;
+
+  @override
+  bool get isWaitingForEnteringDecision => inner.isWaitingForEnteringDecision;
+
+  @override
+  bool get isWaitingForExitingDecision => inner.isWaitingForExitingDecision;
+
+  @override
+  void markForAdd() => inner.markForAdd();
+
+  @override
+  // No animation.
+  void markForPush() => inner.markForAdd();
+
+  @override
+  void markForComplete([result]) => inner.markForComplete(result);
+
+  @override
+  // No animation.
+  void markForPop([result]) => inner.markForComplete(result);
+
+  @override
+  void markForRemove() => inner.markForRemove();
+
+  @override
+  Route get route => inner.route;
 }

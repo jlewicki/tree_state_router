@@ -5,11 +5,21 @@ import 'package:tree_state_router/src/parser.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
 import 'package:tree_state_router/src/routes.dart';
 
-/// {@template DefaultLayoutBuilder}
+/// {@template DefaultScaffoldingBuilder}
 /// A function that can adorn the content of a route page, adding common layout or scaffolding.
 ///
 /// The function is provided a [buildFor] indicating the reason the page is being built, and
 /// the [pageContent] to display in the page.
+///
+/// For example, this can be used to wrap the content of each page of a tree state router in a
+/// Material Scaffold widget:
+///
+/// ```dart
+/// TreeStateRouterConfig( {
+///   // ...
+///   defaultLayout: (_, pageContent) => Scaffold(child: pageContent),
+/// });
+/// ```
 /// {@endtemplate}
 typedef DefaultScaffoldingBuilder = Widget Function(PageBuildFor buildFor, Widget pageContent);
 
@@ -21,13 +31,15 @@ typedef DefaultScaffoldingBuilder = Widget Function(PageBuildFor buildFor, Widge
 /// {@endtemplate}
 typedef DefaultPageBuilder = Page<void> Function(PageBuildFor buildFor, Widget pageContent);
 
-///
+/// Routing information that describes how to display states in a [TreeStateMachine], and triggers
+/// routing navigation in response to state transitions within the state machine.
 class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   TreeStateRouter({
     required this.stateMachine,
     required this.routes,
     this.defaultScaffolding,
     this.defaultPageBuilder,
+    this.enableTransitions = true,
   });
 
   /// The state machine providing the tree states that are routed by this [TreeStateRouter].
@@ -37,26 +49,26 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   /// a state in the [stateMachine].
   final List<TreeStateRoute> routes;
 
-  /// {@macro DefaultLayoutBuilder}
-  ///
-  /// For example, this can be used to wrap the content of each page of this router in a Material
-  /// Scaffold widget:
-  ///
-  /// ```dart
-  /// TreeStateRouterConfig( {
-  ///   // ...
-  ///   defaultLayout: (_, pageContent) => Scaffold(child: pageContent),
-  /// })
-  /// ```
+  /// {@macro DefaultScaffoldingBuilder}
   final DefaultScaffoldingBuilder? defaultScaffolding;
 
   /// {@macro DefaultPageBuilder}
   final DefaultPageBuilder? defaultPageBuilder;
 
+  /// Indicates if page transitions within the router should be animated.
+  ///
+  /// If enabled, the particular animations that occur are determined by the [Page]s associated with
+  /// the routes that are undergoing a transition.
+  ///
+  /// See [TreeStateRoute.routePageBuilder] and [TreeStateRouter.defaultPageBuilder] for details on
+  /// choosing a [Page] type.
+  final bool enableTransitions;
+
   late final _routerDelegateConfig = TreeStateRouterDelegateConfig(
     routes,
     defaultPageBuilder: defaultPageBuilder,
     defaultScaffolding: defaultScaffolding,
+    enableTransitions: enableTransitions,
   );
 
   /// The [RouterDelegate] used by [TreeStateRouter].

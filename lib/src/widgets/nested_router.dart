@@ -11,11 +11,13 @@ class NestedStateTreeRouter extends StatelessWidget {
     required this.routes,
     this.defaultPageBuilder,
     this.defaultScaffolding,
+    this.enableTransitions = true,
   });
 
   final List<TreeStateRoute> routes;
   final DefaultScaffoldingBuilder? defaultScaffolding;
   final DefaultPageBuilder? defaultPageBuilder;
+  final bool enableTransitions;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +27,7 @@ class NestedStateTreeRouter extends StatelessWidget {
           routes,
           defaultPageBuilder: defaultPageBuilder,
           defaultScaffolding: defaultScaffolding,
+          enableTransitions: enableTransitions,
         ),
       ),
     );

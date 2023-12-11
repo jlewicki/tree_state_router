@@ -255,7 +255,7 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
 
 /// A [RouterDelegate] that indented for use with a nested [Eo].
 ///
-/// An application configures [LayoutTreeStateRouterDelegate] that indicate how individual states in
+/// An application configures [NestedTreeStateRouterDelegate] that indicate how individual states in
 /// the state machine should be visualized. This router does not need to be with a state machine
 /// instance. because this router delegate is intended to be nested within an ancestor router configured
 /// with a [TreeStateRouterDelegate]. This router will share the same state machine instance with
@@ -264,8 +264,8 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
 /// As state transitions occur within the parent state machine, this router delegate will determine
 /// if there is a [TreeStateRoute] that corresponds to the an active state of the state machine. If a
 /// route is available, it is displayed by the [Navigator] returned by [build].
-class LayoutTreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
-  LayoutTreeStateRouterDelegate({
+class NestedTreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
+  NestedTreeStateRouterDelegate({
     required super.config,
     super.displayStateMachineErrors,
     this.supportsFinalPage = true,

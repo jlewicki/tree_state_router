@@ -20,7 +20,7 @@ class NestedStateTreeRouter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Router(
-      routerDelegate: LayoutTreeStateRouterDelegate(
+      routerDelegate: NestedTreeStateRouterDelegate(
         config: TreeStateRouterDelegateConfig(
           routes,
           defaultPageBuilder: defaultPageBuilder,

@@ -5,30 +5,16 @@ import 'package:tree_state_router/src/parser.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
 import 'package:tree_state_router/src/routes.dart';
 
-/// {@template DefaultScaffoldingBuilder}
 /// A function that can adorn the content of a route page, adding common layout or scaffolding.
 ///
 /// The function is provided a [buildFor] indicating the reason the page is being built, and
 /// the [pageContent] to display in the page.
-///
-/// For example, this can be used to wrap the content of each page of a tree state router in a
-/// Material Scaffold widget:
-///
-/// ```dart
-/// TreeStateRouterConfig( {
-///   // ...
-///   defaultLayout: (_, pageContent) => Scaffold(child: pageContent),
-/// });
-/// ```
-/// {@endtemplate}
 typedef DefaultScaffoldingBuilder = Widget Function(PageBuildFor buildFor, Widget pageContent);
 
-/// {@template DefaultPageBuilder}
 /// A function that can create a [Page] to display the content of a route.
 ///
 /// The function is provided a [buildFor] indicating the reason the page is being built, and
 /// the [pageContent] to display in the page.
-/// {@endtemplate}
 typedef DefaultPageBuilder = Page<void> Function(PageBuildFor buildFor, Widget pageContent);
 
 /// Routing information that describes how to display states in a [TreeStateMachine], and triggers
@@ -49,12 +35,33 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   /// a state in the [stateMachine].
   final List<TreeStateRoute> routes;
 
-  /// {@macro DefaultScaffoldingBuilder}
+  /// {@template defaultScaffolding}
+  /// A function that can adorn the content of a route page, adding common layout or scaffolding.
+  ///
+  /// The function is provided a `buildFor` indicating the reason the page is being built, and
+  /// the `pageContent` to display in the page.
+  /// {@endtemplate}
+  ///
+  /// For example, this can be used to wrap the content of each page of a tree state router in a
+  /// Material Scaffold widget:
+  ///
+  /// ```dart
+  /// TreeStateRouterConfig( {
+  ///   // ...
+  ///   defaultLayout: (_, pageContent) => Scaffold(child: pageContent),
+  /// });
+  /// ```
   final DefaultScaffoldingBuilder? defaultScaffolding;
 
-  /// {@macro DefaultPageBuilder}
+  /// {@template defaultPageBuilder}
+  /// A function that can create a [Page] to display the content of a route.
+  ///
+  /// The function is provided a `buildFor` indicating the reason the page is being built, and
+  /// the `pageContent` to display in the page.
+  /// {@endtemplate}
   final DefaultPageBuilder? defaultPageBuilder;
 
+  /// {@template enableTransitions}
   /// Indicates if page transitions within the router should be animated.
   ///
   /// If enabled, the particular animations that occur are determined by the [Page]s associated with
@@ -62,6 +69,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   ///
   /// See [TreeStateRoute.routePageBuilder] and [TreeStateRouter.defaultPageBuilder] for details on
   /// choosing a [Page] type.
+  /// {@endtemplate}
   final bool enableTransitions;
 
   late final _routerDelegateConfig = TreeStateRouterDelegateConfig(

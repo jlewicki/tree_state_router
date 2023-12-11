@@ -14,9 +14,16 @@ class NestedStateTreeRouter extends StatelessWidget {
     this.enableTransitions = true,
   });
 
+  /// The list of routes that can be materialized by this router.
   final List<TreeStateRoute> routes;
+
+  /// {@macro defaultScaffolding}
   final DefaultScaffoldingBuilder? defaultScaffolding;
+
+  /// {@macro defaultPageBuilder}
   final DefaultPageBuilder? defaultPageBuilder;
+
+  /// {@macro enableTransitions}
   final bool enableTransitions;
 
   @override

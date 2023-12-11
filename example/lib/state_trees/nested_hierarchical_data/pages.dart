@@ -11,7 +11,7 @@ Widget parentPage(
   var textForParent = "";
 
   return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
+    mainAxisSize: MainAxisSize.min,
     children: <Widget>[
       Container(
         padding: const EdgeInsets.all(8.0),
@@ -30,7 +30,7 @@ Widget parentPage(
           ],
         ),
       ),
-      Expanded(
+      IntrinsicHeight(
         child: NestedStateTreeRouter(
           routes: [
             DataTreeStateRoute(States.child1, dataRouteBuilder: child1Page),
@@ -46,7 +46,7 @@ Widget child1Page(BuildContext ctx, TreeStateRoutingContext stateCtx, Child1Data
   var textForChild1 = "";
 
   return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
+    mainAxisSize: MainAxisSize.min,
     children: <Widget>[
       Container(
         padding: const EdgeInsets.all(8.0),
@@ -77,7 +77,7 @@ Widget child2Page(BuildContext ctx, TreeStateRoutingContext stateCtx, Child2Data
   var textForChild2 = "";
 
   return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
+    mainAxisSize: MainAxisSize.min,
     children: <Widget>[
       Container(
         padding: const EdgeInsets.all(8.0),

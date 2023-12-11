@@ -11,7 +11,7 @@ import 'package:tree_state_router/src/routes.dart';
 /// The function is provided a [buildFor] indicating the reason the page is being built, and
 /// the [pageContent] to display in the page.
 /// {@endtemplate}
-typedef DefaultLayoutBuilder = Widget Function(PageBuildFor buildFor, Widget pageContent);
+typedef DefaultScaffoldingBuilder = Widget Function(PageBuildFor buildFor, Widget pageContent);
 
 /// {@template DefaultPageBuilder}
 /// A function that can create a [Page] to display the content of a route.
@@ -48,16 +48,22 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   ///   defaultLayout: (_, pageContent) => Scaffold(child: pageContent),
   /// })
   /// ```
-  final DefaultLayoutBuilder? defaultScaffolding;
+  final DefaultScaffoldingBuilder? defaultScaffolding;
 
   /// {@macro DefaultPageBuilder}
   final DefaultPageBuilder? defaultPageBuilder;
 
+  late final _routerDelegateConfig = TreeStateRouterDelegateConfig(
+    routes,
+    defaultPageBuilder: defaultPageBuilder,
+    defaultScaffolding: defaultScaffolding,
+  );
+
   /// The [RouterDelegate] used by [TreeStateRouter].
   @override
   late final routerDelegate = TreeStateRouterDelegate(
+    config: _routerDelegateConfig,
     stateMachine: stateMachine,
-    routerConfig: this,
   );
 
   /// The [RootBackButtonDispatcher] used by [TreeStateRouter].

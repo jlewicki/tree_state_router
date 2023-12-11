@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
-import '../../helpers/helpers.dart';
 import 'state_tree.dart';
 import 'pages.dart';
 
@@ -15,10 +14,9 @@ void main() {
 
 final router = TreeStateRouter(
   stateMachine: TreeStateMachine(hierarchicalDataStateTree()),
-  defaultScaffolding: defaultScaffolding,
+  defaultScaffolding: (_, pageContent) => Scaffold(body: pageContent),
   routes: [
-    DataTreeStateRoute2(States.child1, dataRouteBuilder: child1Page),
-    DataTreeStateRoute2(States.child2, dataRouteBuilder: child2Page),
+    DataTreeStateRoute(States.parent, dataRouteBuilder: parentPage),
   ],
 );
 

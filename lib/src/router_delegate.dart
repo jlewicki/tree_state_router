@@ -10,18 +10,23 @@ import 'package:tree_state_router/src/widgets/state_machine_error.dart';
 import 'package:tree_state_router/src/widgets/state_machine_events.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
+class TreeStateRouterDelegateConfig {
+  TreeStateRouterDelegateConfig(this.routes, {this.defaultPageBuilder, this.defaultScaffolding});
+  final List<TreeStateRoute> routes;
+  final DefaultScaffoldingBuilder? defaultScaffolding;
+  final DefaultPageBuilder? defaultPageBuilder;
+}
+
 abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRouteInfo>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
   BaseTreeStateRouterDelegate({
-    required this.routerConfig,
+    required this.config,
     required Logger logger,
     this.displayStateMachineErrors = false,
   }) : _logger = logger;
 
-  /// The list of routes that can be displayed by this router delegate.
-  final TreeStateRouter routerConfig;
-
-  List<TreeStateRoute> get _routes => routerConfig.routes;
+  /// Configuration information for this router delegate describing the available routed.
+  final TreeStateRouterDelegateConfig config;
 
   /// If `true`, this router delegate will display an [ErrorWidget] when the
   /// [TreeStateMachine.failedMessages] stream emits an event.
@@ -31,6 +36,9 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
 
   final Logger _logger;
   late final Map<StateKey, TreeStateRoute> _routeMap = _mapRoutes(_routes);
+  List<TreeStateRoute> get _routes => config.routes;
+  DefaultScaffoldingBuilder? get _defaultScaffolding => config.defaultScaffolding;
+  DefaultPageBuilder? get _defaultPageBuilder => config.defaultPageBuilder;
 
   // Used to create Page<Object> when routes are unopinionated about which Page type to use.
   PageBuilder? _pageBuilder;
@@ -122,7 +130,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
       return route.routePageBuilder!.call(context, TreeStateRoutingContext(currentState));
     } else if (route.routeBuilder != null) {
       var content = route.routeBuilder!.call(context, TreeStateRoutingContext(currentState));
-      var pageBuilder = routerConfig.defaultPageBuilder ?? _pageBuilderForAppType(context);
+      var pageBuilder = _defaultPageBuilder ?? _pageBuilderForAppType(context);
       var buildFor = BuildForTreeState(route.stateKey);
       return pageBuilder(buildFor, _withDefaultScaffolding(buildFor, content));
     }
@@ -133,9 +141,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
   }
 
   Widget _withDefaultScaffolding(PageBuildFor buildFor, Widget content) {
-    return routerConfig.defaultScaffolding != null
-        ? routerConfig.defaultScaffolding!.call(buildFor, content)
-        : content;
+    return _defaultScaffolding != null ? _defaultScaffolding!.call(buildFor, content) : content;
   }
 
   @protected
@@ -188,18 +194,14 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
 // A [RouterDelegate] that receives routing information from the state transitions of a
 /// [TreeStateMachine].
 ///
-/// An application configures [StateTreeRouterDelegate] with a [stateMachine], and a list of
-/// [TreeStatePage]s that indicate how individual states in the state machine should be
-/// visualized.
-///
-/// As state transitions occur within the state machine, the router delegate will determine there is
-/// a [TreeStatePage] that corresponds to the an active state of the state machine.  If a page is
+/// As state transitions occur within the state machine, the router delegate will determine if there
+/// are [TreeStateRoute]s that correspond to a active state of the state machine.  If a route is
 /// available, it is displayed by the [Navigator] returned by [build].
 class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
   // TODO: make this delegate rebuild when routing config changes
   TreeStateRouterDelegate({
     required this.stateMachine,
-    required super.routerConfig,
+    required super.config,
     super.displayStateMachineErrors,
   }) : super(
           logger: Logger('StateTreeRouterDelegate'),
@@ -248,5 +250,78 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
         const Center(
           child: Text('Loading'),
         ));
+  }
+}
+
+/// A [RouterDelegate] that indented for use with a nested [Eo].
+///
+/// An application configures [LayoutTreeStateRouterDelegate] that indicate how individual states in
+/// the state machine should be visualized. This router does not need to be with a state machine
+/// instance. because this router delegate is intended to be nested within an ancestor router configured
+/// with a [TreeStateRouterDelegate]. This router will share the same state machine instance with
+/// the ancestor [TreeStateRouterDelegate].
+///
+/// As state transitions occur within the parent state machine, this router delegate will determine
+/// if there is a [TreeStateRoute] that corresponds to the an active state of the state machine. If a
+/// route is available, it is displayed by the [Navigator] returned by [build].
+class LayoutTreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
+  LayoutTreeStateRouterDelegate({
+    required super.config,
+    super.displayStateMachineErrors,
+    this.supportsFinalPage = true,
+  }) : super(
+          logger: Logger('ChildTreeStateRouterDelegate'),
+        );
+
+  /// If `true` (the default), an error page will be displayed if the state machine reaches a final
+  /// state, and there is no page in the pages list that can display that state.
+  final bool supportsFinalPage;
+
+  /// The key used for retrieving the current navigator.
+  @override
+  final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'ChildTreeStateRouterDelegate');
+
+  @override
+  Future<void> setNewRoutePath(TreeStateRouteInfo configuration) {
+    throw UnsupportedError('Setting route paths is not currently supported');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var stateMachineInfo = TreeStateMachineProvider.of(context);
+    if (stateMachineInfo == null) {
+      var message = 'Unable to find tree state machine in widget tree';
+      _logger.warning(message);
+      return ErrorWidget.withDetails(message: message);
+    }
+
+    var currentState = stateMachineInfo.currentState;
+    var activeStates = currentState.activeStates;
+    var pages = _buildActivePages(context, currentState).toList();
+    if (pages.isEmpty) {
+      if (currentState.stateMachine.isDone && !supportsFinalPage) {
+        // If the current state machine is running as a nested machine, then there is likely a
+        // Router with a NestedStateTreeRouterDelegate higher in the widget tree, which will render
+        // a different page when the nested state machine finishes. In this case, a developer will
+        // probably not add a page for the final state to this router delegate (since after all it
+        // will never be displayed), so to avoid emitting warnings just use a transient page with
+        // no visible content.
+        pages = [MaterialPage(child: Container())];
+      } else {
+        _logger.warning(
+          'No pages available to display active states ${currentState.activeStates.join(',')}',
+        );
+        pages = [_createEmptyRoutesErrorPage(context, activeStates)];
+      }
+    }
+
+    return _buildNavigatorWidget(pages, currentState, provideCurrentState: false);
+  }
+
+  @override
+  void _onTransition(CurrentState currentState, Transition transition) {
+    if (!transition.isToFinalState || supportsFinalPage) {
+      notifyListeners();
+    }
   }
 }

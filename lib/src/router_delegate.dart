@@ -49,10 +49,15 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
   // Used to create Page<Object> when routes are unopinionated about which Page type to use.
   PageBuilder? _pageBuilder;
 
+  Page<void> _dialogPageBuilder(PageBuildFor buildFor, Widget pageContent) {
+    return _PopupPage(pageContent);
+  }
+
   Widget _buildNavigatorWidget(
     List<Page> pages,
     CurrentState? currentState, {
     required bool provideCurrentState,
+    List<TreeStateRoute> popupRoutes = const [],
   }) {
     Widget widget = Navigator(
       key: navigatorKey,
@@ -82,6 +87,13 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     return widget;
   }
 
+  Iterable<TreeStateRoute> _findRoutesFor(Iterable<StateKey> keys) {
+    return keys
+        .map((stateKey) => MapEntry<StateKey, TreeStateRoute?>(stateKey, _routeMap[stateKey]))
+        .where((entry) => entry.value != null)
+        .map((entry) => entry.value!);
+  }
+
   /// Calculates the stack of routes that should display the current state of the state tree.
   ///
   /// Currently this returns a collection of 0 or 1 pages, but once a history feature is added to
@@ -91,12 +103,15 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     /// Return the deepest page that maps to an active state. By deepest, we mean the page that
     /// maps to a state as far as possible from the root state. This gives the current leaf state
     /// priority in determining the page to display, followed by its parent state, etc.
-    var activeRoute = currentState.activeStates.reversed
-        .map((stateKey) => MapEntry<StateKey, TreeStateRoute?>(stateKey, _routeMap[stateKey]))
-        .where((entry) => entry.value != null)
-        .map((entry) => entry.value!)
-        .firstOrNull;
-    return activeRoute != null ? [_buildRoutePage(activeRoute, context, currentState)] : [];
+    var activeRoutes = _findRoutesFor(currentState.activeStates.reversed).toList();
+
+    var navigatorRoutes = activeRoutes.take(1);
+    if (activeRoutes.isNotEmpty && activeRoutes.first.isPopup) {
+      assert(_transition != null);
+      navigatorRoutes = _findRoutesFor(_transition!.exitPath).followedBy(navigatorRoutes);
+    }
+
+    return navigatorRoutes.map((r) => _buildRoutePage(r, context, currentState));
   }
 
   @protected
@@ -117,8 +132,10 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     return ErrorWidget.withDetails(message: msg);
   }
 
+  Transition? _transition;
   @protected
   void _onTransition(CurrentState currentState, Transition transition) {
+    _transition = transition;
     notifyListeners();
   }
 
@@ -139,8 +156,10 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
       return route.routePageBuilder!.call(context, TreeStateRoutingContext(currentState));
     } else if (route.routeBuilder != null) {
       var content = route.routeBuilder!.call(context, TreeStateRoutingContext(currentState));
-      var pageBuilder = _defaultPageBuilder ?? _pageBuilderForAppType(context);
-      var buildFor = BuildForTreeState(route.stateKey);
+      var pageBuilder = route.isPopup
+          ? _dialogPageBuilder
+          : _defaultPageBuilder ?? _pageBuilderForAppType(context);
+      var buildFor = BuildForRoute(route);
       return pageBuilder(buildFor, _withDefaultScaffolding(buildFor, content));
     }
 
@@ -175,7 +194,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     var map = <StateKey, TreeStateRoute>{};
     for (var page in pages) {
       if (map.containsKey(page.stateKey)) {
-        throw ArgumentError('Duplicate pages defined for state ${page.stateKey}', 'pages');
+        throw ArgumentError('Duplicate routes defined for state \'${page.stateKey}\'', 'pages');
       }
       map[page.stateKey] = page;
     }
@@ -197,6 +216,16 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
 
     _logger.info('Unable to resolve application type. Defaulting to MaterialPage pages.');
     return materialPageBuilder;
+  }
+}
+
+class _PopupPage extends Page<void> {
+  _PopupPage(this.popupContent);
+  final Widget popupContent;
+
+  @override
+  Route<void> createRoute(BuildContext context) {
+    return DialogRoute(context: context, builder: (c) => popupContent, settings: this);
   }
 }
 
@@ -227,7 +256,7 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
   Widget build(BuildContext context) {
     var curState = stateMachine.currentState;
     if (curState != null) {
-      _logger.fine('Creating pages for active states ${curState.activeStates.join(',')}');
+      _logger.fine('Creating pages for active states ${curState.activeStates.join(', ')}');
     }
 
     var pages = curState != null

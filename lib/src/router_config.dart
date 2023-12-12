@@ -26,7 +26,17 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
     this.defaultScaffolding,
     this.defaultPageBuilder,
     this.enableTransitions = true,
-  });
+  }) : assert((() {
+          routes.fold(<StateKey>{}, (keys, route) {
+            if (keys.contains(route.stateKey)) {
+              throw AssertionError(
+                  "There is more than one route for state '${route.stateKey}' defined");
+            }
+            keys.add(route.stateKey);
+            return keys;
+          });
+          return true;
+        }()));
 
   /// The state machine providing the tree states that are routed by this [TreeStateRouter].
   final TreeStateMachine stateMachine;

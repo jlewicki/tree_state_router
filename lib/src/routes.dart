@@ -68,14 +68,41 @@ typedef DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
 ///
 /// Note that only one of [routePageBuilder] or [routeBuilder] can be provided.
 class TreeStateRoute {
-  TreeStateRoute(
+  TreeStateRoute._(
     this.stateKey, {
-    this.routePageBuilder,
-    this.routeBuilder,
+    required this.routePageBuilder,
+    required this.routeBuilder,
+    required this.isPopup,
   })  : assert(routePageBuilder != null || routeBuilder != null,
             "One of routePageBuilder or routeBuilder must be provided"),
         assert(!(routePageBuilder != null && routeBuilder != null),
-            "Only one of routePageBuilder or routeBuilder can be provided");
+            "Only one of routePageBuilder or routeBuilder can be provided"),
+        assert((isPopup && routePageBuilder == null) || !isPopup,
+            "routePageBuilder is not compatible with popup routes.");
+
+  /// Constructs a [TreeStateRoute].
+  factory TreeStateRoute(
+    StateKey stateKey, {
+    TreeStateRoutePageBuilder? routePageBuilder,
+    TreeStateRouteBuilder? routeBuilder,
+  }) =>
+      TreeStateRoute._(
+        stateKey,
+        routeBuilder: routeBuilder,
+        routePageBuilder: routePageBuilder,
+        isPopup: false,
+      );
+
+  factory TreeStateRoute.popup(
+    StateKey stateKey, {
+    TreeStateRouteBuilder? routeBuilder,
+  }) =>
+      TreeStateRoute._(
+        stateKey,
+        routeBuilder: routeBuilder,
+        routePageBuilder: null,
+        isPopup: true,
+      );
 
   /// The state key identifying the tree state associated with this route.
   final StateKey stateKey;
@@ -88,6 +115,9 @@ class TreeStateRoute {
   /// If provided, tree state router will choose an appropriate [Page] type based on the application
   /// typoe (Material, Cupertino, etc.).
   final TreeStateRouteBuilder? routeBuilder;
+
+  /// Indicates if this is a popup route.
+  final bool isPopup;
 }
 
 /// A route associated with a data state in a state tree, which is used to visually display the tree
@@ -100,27 +130,42 @@ class TreeStateRoute {
 /// Additionally, if the data value in the data state is updated, the [routePageBuilder] or
 /// [routeBuilder] will be called with the update value.
 class DataTreeStateRoute<D> extends TreeStateRoute {
-  DataTreeStateRoute(
-    DataStateKey<D> super.stateKey, {
-    DataTreeStateRouteBuilder<D>? dataRouteBuilder,
-  }) : super(
-            routeBuilder: dataRouteBuilder == null
-                ? null
-                : (context, stateContext) {
-                    return DataTreeStateBuilder<D>(
-                      stateKey: stateKey,
-                      builder: (context, _, stateData) {
-                        return dataRouteBuilder.call(context, stateContext, stateData);
-                      },
-                    );
-                  });
+  DataTreeStateRoute._(
+    super.stateKey, {
+    DataTreeStateRouteBuilder<D>? routeBuilder,
+    required super.isPopup,
+  }) : super._(
+          routeBuilder: routeBuilder == null
+              ? null
+              : (context, stateContext) {
+                  return DataTreeStateBuilder<D>(
+                    stateKey: stateKey,
+                    builder: (context, _, stateData) {
+                      return routeBuilder.call(context, stateContext, stateData);
+                    },
+                  );
+                },
+          routePageBuilder: null,
+        );
+
+  factory DataTreeStateRoute(
+    StateKey stateKey, {
+    DataTreeStateRouteBuilder<D>? routeBuilder,
+  }) =>
+      DataTreeStateRoute._(stateKey, routeBuilder: routeBuilder, isPopup: false);
+
+  factory DataTreeStateRoute.popup(
+    StateKey stateKey, {
+    DataTreeStateRouteBuilder<D>? routeBuilder,
+  }) =>
+      DataTreeStateRoute._(stateKey, routeBuilder: routeBuilder, isPopup: true);
 }
 
 class DataTreeStateRoute2<D, DAnc> extends TreeStateRoute {
   DataTreeStateRoute2(
     DataStateKey<D> super.stateKey, {
     DataTreeStateRouteBuilder2<D, DAnc>? dataRouteBuilder,
-  }) : super(
+  }) : super._(
           routeBuilder: dataRouteBuilder == null
               ? null
               : (context, stateContext) {
@@ -131,6 +176,8 @@ class DataTreeStateRoute2<D, DAnc> extends TreeStateRoute {
                     },
                   );
                 },
+          routePageBuilder: null,
+          isPopup: false,
         );
 }
 
@@ -138,7 +185,7 @@ class DataTreeStateRoute3<D, DAnc, DAnc2> extends TreeStateRoute {
   DataTreeStateRoute3(
     DataStateKey<D> super.stateKey, {
     DataTreeStateRouteBuilder3<D, DAnc, DAnc2>? dataRouteBuilder,
-  }) : super(
+  }) : super._(
           routeBuilder: dataRouteBuilder == null
               ? null
               : (context, stateContext) {
@@ -150,5 +197,7 @@ class DataTreeStateRoute3<D, DAnc, DAnc2> extends TreeStateRoute {
                     },
                   );
                 },
+          routePageBuilder: null,
+          isPopup: false,
         );
 }

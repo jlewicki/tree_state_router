@@ -4,28 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
-import '../../helpers/helpers.dart';
+import 'package:tree_state_router_examples/helpers/helpers.dart';
 import 'state_tree.dart';
 import 'pages.dart';
 
-//
-// This example demonstrates accessing and updating state and ancestor state data with nested
-// routers.
-//
-// The top level route for the parent state displays and updates the parent state data, and
-// presents child states using a nested router. The parent route in this case can be thought of a
-// kind of 'layout' or 'shell' route in this case.
-//
 void main() {
   _initLogging();
   runApp(const MainApp());
 }
 
 final router = TreeStateRouter(
-  stateMachine: TreeStateMachine(hierarchicalDataStateTree()),
-  defaultScaffolding: defaultScaffolding,
+  stateMachine: TreeStateMachine(countingStateTree()),
+  defaultScaffolding: (buildFor, pageContent) => switch (buildFor) {
+    BuildForRoute(route: TreeStateRoute(isPopup: var isPopup)) when isPopup =>
+      Center(child: Material(child: pageContent)),
+    _ => defaultScaffolding(buildFor, pageContent)
+  },
   routes: [
-    DataTreeStateRoute(States.parent, routeBuilder: parentPage),
+    DataTreeStateRoute<CounterData>(States.view, routeBuilder: viewCounterPage),
+    DataTreeStateRoute<CounterData>.popup(States.edit, routeBuilder: editCounterPage),
   ],
 );
 

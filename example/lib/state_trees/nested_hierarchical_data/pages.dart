@@ -33,8 +33,8 @@ Widget parentPage(
       IntrinsicHeight(
         child: NestedStateTreeRouter(
           routes: [
-            DataTreeStateRoute(States.child1, dataRouteBuilder: child1Page),
-            DataTreeStateRoute(States.child2, dataRouteBuilder: child2Page),
+            DataTreeStateRoute(States.child1, routeBuilder: child1Page),
+            DataTreeStateRoute(States.child2, routeBuilder: child2Page),
           ],
         ),
       )

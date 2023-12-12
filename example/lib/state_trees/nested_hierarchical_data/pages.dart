@@ -31,7 +31,8 @@ Widget parentPage(
         ),
       ),
       IntrinsicHeight(
-        child: NestedStateTreeRouter(
+        child: NestedTreeStateRouter(
+          enableTransitions: false,
           routes: [
             DataTreeStateRoute(States.child1, routeBuilder: child1Page),
             DataTreeStateRoute(States.child2, routeBuilder: child2Page),
@@ -81,7 +82,7 @@ Widget child2Page(BuildContext ctx, TreeStateRoutingContext stateCtx, Child2Data
     children: <Widget>[
       Container(
         padding: const EdgeInsets.all(8.0),
-        child: Text('Child1 data: ${data.value}'),
+        child: Text('Child2 data: ${data.value}'),
       ),
       Padding(
         padding: const EdgeInsets.all(8.0),

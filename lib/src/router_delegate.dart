@@ -40,7 +40,11 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
   /// This is primarily useful for debugging purposes.
   final bool displayStateMachineErrors;
 
+  /// The most recent state machine transition that has occurred.
+  Transition? _transition;
+
   final Logger _logger;
+
   late final Map<StateKey, TreeStateRoute> _routeMap = _mapRoutes(_routes);
   List<TreeStateRoute> get _routes => config.routes;
   DefaultScaffoldingBuilder? get _defaultScaffolding => config.defaultScaffolding;
@@ -57,7 +61,6 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     List<Page> pages,
     CurrentState? currentState, {
     required bool provideCurrentState,
-    List<TreeStateRoute> popupRoutes = const [],
   }) {
     Widget widget = Navigator(
       key: navigatorKey,
@@ -87,13 +90,6 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     return widget;
   }
 
-  Iterable<TreeStateRoute> _findRoutesFor(Iterable<StateKey> keys) {
-    return keys
-        .map((stateKey) => MapEntry<StateKey, TreeStateRoute?>(stateKey, _routeMap[stateKey]))
-        .where((entry) => entry.value != null)
-        .map((entry) => entry.value!);
-  }
-
   /// Calculates the stack of routes that should display the current state of the state tree.
   ///
   /// Currently this returns a collection of 0 or 1 pages, but once a history feature is added to
@@ -106,9 +102,23 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     var activeRoutes = _findRoutesFor(currentState.activeStates.reversed).toList();
 
     var navigatorRoutes = activeRoutes.take(1);
+    // If we have a popup route, attempt to find a route for one of the exiting states. This route
+    // will be pushed on to the navigator below the popup route, so that the popup looks like it
+    // appears over something.
     if (activeRoutes.isNotEmpty && activeRoutes.first.isPopup) {
       assert(_transition != null);
-      navigatorRoutes = _findRoutesFor(_transition!.exitPath).followedBy(navigatorRoutes);
+      navigatorRoutes = _findRoutesFor(_transition!.exitPath)
+          .where((r) {
+            // TODO: we only can use the exiting route if the route accesses state data from the
+            // transition lca (or  higher), otherwise the state data that the route expects will not
+            // be available. Even then, it may be risky to try an show the route, since the widget
+            // content of the route may have additional unknown dependencies on the corresponding
+            //tree state being active.
+            if (r is DataTreeStateRouteInfo) {}
+            return true;
+          })
+          .take(1)
+          .followedBy(navigatorRoutes);
     }
 
     return navigatorRoutes.map((r) => _buildRoutePage(r, context, currentState));
@@ -132,11 +142,14 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     return ErrorWidget.withDetails(message: msg);
   }
 
-  Transition? _transition;
   @protected
   void _onTransition(CurrentState currentState, Transition transition) {
     _transition = transition;
-    notifyListeners();
+    // Only notify (i.e. rebuild the navigator) if the transition applies to one of the routes.
+    var shouldNotify = transition.path.any(_routeMap.containsKey);
+    if (shouldNotify) {
+      notifyListeners();
+    }
   }
 
   @protected
@@ -190,6 +203,13 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     );
   }
 
+  Iterable<TreeStateRoute> _findRoutesFor(Iterable<StateKey> keys) {
+    return keys
+        .map((stateKey) => MapEntry<StateKey, TreeStateRoute?>(stateKey, _routeMap[stateKey]))
+        .where((entry) => entry.value != null)
+        .map((entry) => entry.value!);
+  }
+
   static Map<StateKey, TreeStateRoute> _mapRoutes(List<TreeStateRoute> pages) {
     var map = <StateKey, TreeStateRoute>{};
     for (var page in pages) {
@@ -220,7 +240,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
 }
 
 class _PopupPage extends Page<void> {
-  _PopupPage(this.popupContent);
+  const _PopupPage(this.popupContent);
   final Widget popupContent;
 
   @override
@@ -250,7 +270,7 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
 
   /// The key used for retrieving the current navigator.
   @override
-  final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'StateTreeRouterDelegate');
+  final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'TreeStateRouterDelegate');
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +311,7 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
   }
 }
 
-/// A [RouterDelegate] that indented for use with a nested [Eo].
+/// The [RouterDelegate] used by [NestedTreeStateRouter].
 ///
 /// An application configures [NestedTreeStateRouterDelegate] that indicate how individual states in
 /// the state machine should be visualized. This router does not need to be with a state machine
@@ -306,14 +326,14 @@ class NestedTreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
   NestedTreeStateRouterDelegate({
     required super.config,
     super.displayStateMachineErrors,
-    this.supportsFinalPage = true,
+    this.supportsFinalRoute = true,
   }) : super(
           logger: Logger('ChildTreeStateRouterDelegate'),
         );
 
   /// If `true` (the default), an error page will be displayed if the state machine reaches a final
-  /// state, and there is no page in the pages list that can display that state.
-  final bool supportsFinalPage;
+  /// state, and there is no route that can display that state.
+  final bool supportsFinalRoute;
 
   /// The key used for retrieving the current navigator.
   @override
@@ -337,7 +357,7 @@ class NestedTreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
     var activeStates = currentState.activeStates;
     var pages = _buildActivePages(context, currentState).toList();
     if (pages.isEmpty) {
-      if (currentState.stateMachine.isDone && !supportsFinalPage) {
+      if (currentState.stateMachine.isDone && !supportsFinalRoute) {
         // If the current state machine is running as a nested machine, then there is likely a
         // Router with a NestedStateTreeRouterDelegate higher in the widget tree, which will render
         // a different page when the nested state machine finishes. In this case, a developer will
@@ -358,8 +378,9 @@ class NestedTreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
 
   @override
   void _onTransition(CurrentState currentState, Transition transition) {
-    if (!transition.isToFinalState || supportsFinalPage) {
-      notifyListeners();
+    _transition = transition;
+    if (!transition.isToFinalState || supportsFinalRoute) {
+      super._onTransition(currentState, transition);
     }
   }
 }

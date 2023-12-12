@@ -5,8 +5,8 @@ import 'package:tree_state_router/src/routes.dart';
 
 /// A routing widget that provides visuals for the active states in a state tree, intended for use as
 /// a descendant of a top-level [TreeStateRouter].
-class NestedStateTreeRouter extends StatelessWidget {
-  const NestedStateTreeRouter({
+class NestedTreeStateRouter extends StatelessWidget {
+  const NestedTreeStateRouter({
     super.key,
     required this.routes,
     this.defaultPageBuilder,

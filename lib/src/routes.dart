@@ -120,6 +120,8 @@ class TreeStateRoute {
   final bool isPopup;
 }
 
+sealed class DataTreeStateRouteInfo {}
+
 /// A route associated with a data state in a state tree, which is used to visually display the tree
 /// state in a [Navigator] widget.
 ///
@@ -129,7 +131,7 @@ class TreeStateRoute {
 ///
 /// Additionally, if the data value in the data state is updated, the [routePageBuilder] or
 /// [routeBuilder] will be called with the update value.
-class DataTreeStateRoute<D> extends TreeStateRoute {
+class DataTreeStateRoute<D> extends TreeStateRoute implements DataTreeStateRouteInfo {
   DataTreeStateRoute._(
     super.stateKey, {
     DataTreeStateRouteBuilder<D>? routeBuilder,
@@ -161,7 +163,7 @@ class DataTreeStateRoute<D> extends TreeStateRoute {
       DataTreeStateRoute._(stateKey, routeBuilder: routeBuilder, isPopup: true);
 }
 
-class DataTreeStateRoute2<D, DAnc> extends TreeStateRoute {
+class DataTreeStateRoute2<D, DAnc> extends TreeStateRoute implements DataTreeStateRouteInfo {
   DataTreeStateRoute2(
     DataStateKey<D> super.stateKey, {
     DataTreeStateRouteBuilder2<D, DAnc>? dataRouteBuilder,
@@ -181,7 +183,7 @@ class DataTreeStateRoute2<D, DAnc> extends TreeStateRoute {
         );
 }
 
-class DataTreeStateRoute3<D, DAnc, DAnc2> extends TreeStateRoute {
+class DataTreeStateRoute3<D, DAnc, DAnc2> extends TreeStateRoute implements DataTreeStateRouteInfo {
   DataTreeStateRoute3(
     DataStateKey<D> super.stateKey, {
     DataTreeStateRouteBuilder3<D, DAnc, DAnc2>? dataRouteBuilder,

@@ -3,7 +3,8 @@ import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/pages.dart';
 import 'package:tree_state_router/src/parser.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
-import 'package:tree_state_router/src/routes.dart';
+
+import 'routes/routes.dart';
 
 /// A function that can adorn the content of a route page, adding common layout or scaffolding.
 ///
@@ -28,11 +29,11 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
     this.enableTransitions = true,
   }) : assert((() {
           routes.fold(<StateKey>{}, (keys, route) {
-            if (keys.contains(route.stateKey)) {
+            if (keys.contains(route.config.stateKey)) {
               throw AssertionError(
-                  "There is more than one route for state '${route.stateKey}' defined");
+                  "There is more than one route for state '${route.config.stateKey}' defined");
             }
-            keys.add(route.stateKey);
+            keys.add(route.config.stateKey);
             return keys;
           });
           return true;
@@ -43,7 +44,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
 
   /// The list of routes that can be materialized by this router.  Each route should correspond to a
   /// a state in the [stateMachine].
-  final List<TreeStateRoute> routes;
+  final List<TreeStateRouteConfigProvider> routes;
 
   /// {@template defaultScaffolding}
   /// A function that can adorn the content of a route page, adding common layout or scaffolding.
@@ -83,7 +84,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   final bool enableTransitions;
 
   late final _routerDelegateConfig = TreeStateRouterDelegateConfig(
-    routes,
+    routes.map((e) => e.config).toList(),
     defaultPageBuilder: defaultPageBuilder,
     defaultScaffolding: defaultScaffolding,
     enableTransitions: enableTransitions,

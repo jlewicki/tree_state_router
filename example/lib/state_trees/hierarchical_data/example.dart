@@ -24,8 +24,8 @@ final router = TreeStateRouter(
   stateMachine: TreeStateMachine(hierarchicalDataStateTree()),
   defaultScaffolding: defaultScaffolding,
   routes: [
-    DataTreeStateRoute2(States.child1, dataRouteBuilder: child1Page),
-    DataTreeStateRoute2(States.child2, dataRouteBuilder: child2Page),
+    DataTreeStateRoute2(States.child1, ancestorStateKey: States.parent, routeBuilder: child1Page),
+    DataTreeStateRoute2(States.child2, ancestorStateKey: States.parent, routeBuilder: child2Page),
   ],
 );
 

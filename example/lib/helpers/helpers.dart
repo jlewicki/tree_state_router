@@ -3,13 +3,22 @@ import 'package:tree_state_router/tree_state_router.dart';
 import 'edit_text.dart';
 
 Widget defaultScaffolding(PageBuildFor buildFor, Widget pageContent) {
-  return Scaffold(
-    body: StateTreeInspector(
-      child: Center(
-        child: pageContent,
+  return switch (buildFor) {
+    // Don't wrap popup routes in a Scaffold, since that expands to fit the entire page, which
+    // obscures the popup dialog shim
+    BuildForRoute(route: TreeStateRouteConfig(isPopup: var isPopup)) when isPopup => Center(
+        child: Card(
+          child: pageContent,
+        ),
       ),
-    ),
-  );
+    _ => Scaffold(
+        body: StateTreeInspector(
+          child: Center(
+            child: pageContent,
+          ),
+        ),
+      )
+  };
 }
 
 Widget editText(String initialValue, String hint, void Function(String) onChanged) {

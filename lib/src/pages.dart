@@ -12,7 +12,7 @@ sealed class PageBuildFor {}
 /// Indicates that page content is being built to visualize a [TreeStateRoute].
 class BuildForRoute implements PageBuildFor {
   BuildForRoute(this.route);
-  final TreeStateRoute route;
+  final TreeStateRouteConfig route;
 
   // Value equality is needed, because this will be used as a key for a Page<void>, and Navigator
   // needs keys for pages to trigger transition animations properly
@@ -51,8 +51,30 @@ typedef PageBuilder = Page<void> Function(PageBuildFor buildFor, Widget pageCont
 PageBuilder materialPageBuilder =
     (buildFor, content) => MaterialPage<void>(key: ValueKey(buildFor), child: content);
 
+/// Builds a page that displays the specified content in a Material [DialogRoute].
+PageBuilder materialPopupPageBuilder = (buildFor, content) => _PopupPage(
+    key: ValueKey(buildFor),
+    buildPopupRoute: (context, page) =>
+        DialogRoute<void>(context: context, builder: (_) => content, settings: page));
+
 /// Builds a [CupertinoPage] that displays the specified content.
 PageBuilder cupertinoPageBuilder =
     (buildFor, content) => CupertinoPage<void>(key: ValueKey(buildFor), child: content);
 
-// TODO: dialogPageBuilder(s)
+/// Builds a page that displays the specified content in a [CupertinoDialogRoute].
+PageBuilder cupertinoPopupPageBuilder = (buildFor, content) => _PopupPage(
+    key: ValueKey(buildFor),
+    buildPopupRoute: (context, page) => CupertinoDialogRoute<void>(
+          context: context,
+          builder: (_) => content,
+          settings: page,
+        ));
+
+class _PopupPage extends Page<void> {
+  const _PopupPage({super.key, required this.buildPopupRoute});
+  final PopupRoute<void> Function(BuildContext context, Page<void> page) buildPopupRoute;
+  @override
+  Route<void> createRoute(BuildContext context) {
+    return buildPopupRoute(context, this);
+  }
+}

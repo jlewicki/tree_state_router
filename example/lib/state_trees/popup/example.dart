@@ -15,14 +15,18 @@ void main() {
 
 final router = TreeStateRouter(
   stateMachine: TreeStateMachine(countingStateTree()),
-  defaultScaffolding: (buildFor, pageContent) => switch (buildFor) {
-    BuildForRoute(route: TreeStateRoute(isPopup: var isPopup)) when isPopup =>
-      Center(child: Material(child: pageContent)),
-    _ => defaultScaffolding(buildFor, pageContent)
-  },
+  defaultScaffolding: defaultScaffolding,
   routes: [
-    DataTreeStateRoute<CounterData>(States.view, routeBuilder: viewCounterPage),
-    DataTreeStateRoute<CounterData>.popup(States.edit, routeBuilder: editCounterPage),
+    TreeStateRoute1(
+      States.view,
+      ancestorStateKey: States.counting,
+      routeBuilder: viewCounterPage,
+    ),
+    TreeStateRoute1.popup(
+      States.edit,
+      ancestorStateKey: States.counting,
+      routeBuilder: editCounterPage,
+    ),
   ],
 );
 

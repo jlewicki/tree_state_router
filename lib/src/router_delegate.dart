@@ -17,15 +17,15 @@ class TreeStateRouterDelegateConfig {
     this.defaultScaffolding,
     this.enableTransitions = true,
   });
-  final List<TreeStateRoute> routes;
+  final List<TreeStateRouteConfig> routes;
   final DefaultScaffoldingBuilder? defaultScaffolding;
   final DefaultPageBuilder? defaultPageBuilder;
   final bool enableTransitions;
 }
 
-abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRouteInfo>
+abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRouteInfo>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
-  BaseTreeStateRouterDelegate({
+  TreeStateRouterDelegateBase({
     required this.config,
     required Logger logger,
     this.displayStateMachineErrors = false,
@@ -45,17 +45,17 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
 
   final Logger _logger;
 
-  late final Map<StateKey, TreeStateRoute> _routeMap = _mapRoutes(_routes);
-  List<TreeStateRoute> get _routes => config.routes;
+  late final Map<StateKey, TreeStateRouteConfig> _routeMap = _mapRoutes(_routes);
+  List<TreeStateRouteConfig> get _routes => config.routes;
   DefaultScaffoldingBuilder? get _defaultScaffolding => config.defaultScaffolding;
   DefaultPageBuilder? get _defaultPageBuilder => config.defaultPageBuilder;
 
   // Used to create Page<Object> when routes are unopinionated about which Page type to use.
-  PageBuilder? _pageBuilder;
+  (PageBuilder pageBuilder, PageBuilder popupPageBuilder)? _pageBuilders;
 
-  Page<void> _dialogPageBuilder(PageBuildFor buildFor, Widget pageContent) {
-    return _PopupPage(pageContent);
-  }
+  // Page<void> _dialogPageBuilder(PageBuildFor buildFor, Widget pageContent) {
+  //   return _PopupPage(pageContent);
+  // }
 
   Widget _buildNavigatorWidget(
     List<Page> pages,
@@ -100,25 +100,35 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     /// maps to a state as far as possible from the root state. This gives the current leaf state
     /// priority in determining the page to display, followed by its parent state, etc.
     var activeRoutes = _findRoutesFor(currentState.activeStates.reversed).toList();
-
     var navigatorRoutes = activeRoutes.take(1);
+
     // If we have a popup route, attempt to find a route for one of the exiting states. This route
     // will be pushed on to the navigator below the popup route, so that the popup looks like it
     // appears over something.
-    if (activeRoutes.isNotEmpty && activeRoutes.first.isPopup) {
+    if (navigatorRoutes.isNotEmpty && navigatorRoutes.first.isPopup) {
       assert(_transition != null);
-      navigatorRoutes = _findRoutesFor(_transition!.exitPath)
+      var belowPopupRoutes = _findRoutesFor(_transition!.exitPath)
           .where((r) {
-            // TODO: we only can use the exiting route if the route accesses state data from the
+            // The exiting route can only be used if the route accesses state data from the
             // transition lca (or  higher), otherwise the state data that the route expects will not
             // be available. Even then, it may be risky to try an show the route, since the widget
-            // content of the route may have additional unknown dependencies on the corresponding
-            //tree state being active.
-            if (r is DataTreeStateRouteInfo) {}
-            return true;
+            // content of the route may have additional unknown assumptions/dependencies on the
+            // corresponding tree state being active.
+            return !r.dependencies.contains(r.stateKey);
           })
           .take(1)
-          .followedBy(navigatorRoutes);
+          .toList();
+
+      if (belowPopupRoutes.isEmpty) {
+        var error =
+            "Popup route for '${navigatorRoutes.first.stateKey}' cannot be displayed because all "
+            "exiting routes depend on data states below the least common ancestor state '${_transition!.lca}' for this "
+            "transition: ";
+        _logger.severe(error);
+        throw StateError(error);
+      }
+
+      navigatorRoutes = belowPopupRoutes.followedBy(navigatorRoutes);
     }
 
     return navigatorRoutes.map((r) => _buildRoutePage(r, context, currentState));
@@ -126,7 +136,14 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
 
   @protected
   PageBuilder _pageBuilderForAppType(BuildContext context) {
-    return _pageBuilder ??= _inferPageBuilder(context);
+    var (pageBuilder, _) = _pageBuilders ??= _inferPageBuilders(context);
+    return pageBuilder;
+  }
+
+  @protected
+  PageBuilder _popupBuilderForAppType(BuildContext context) {
+    var (_, popupPageBuilder) = _pageBuilders ??= _inferPageBuilders(context);
+    return popupPageBuilder;
   }
 
   @protected
@@ -161,7 +178,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
   }
 
   Page<void> _buildRoutePage(
-    TreeStateRoute route,
+    TreeStateRouteConfig route,
     BuildContext context,
     CurrentState currentState,
   ) {
@@ -170,7 +187,7 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     } else if (route.routeBuilder != null) {
       var content = route.routeBuilder!.call(context, TreeStateRoutingContext(currentState));
       var pageBuilder = route.isPopup
-          ? _dialogPageBuilder
+          ? _popupBuilderForAppType(context)
           : _defaultPageBuilder ?? _pageBuilderForAppType(context);
       var buildFor = BuildForRoute(route);
       return pageBuilder(buildFor, _withDefaultScaffolding(buildFor, content));
@@ -203,49 +220,39 @@ abstract class BaseTreeStateRouterDelegate extends RouterDelegate<TreeStateRoute
     );
   }
 
-  Iterable<TreeStateRoute> _findRoutesFor(Iterable<StateKey> keys) {
+  Iterable<TreeStateRouteConfig> _findRoutesFor(Iterable<StateKey> keys) {
     return keys
-        .map((stateKey) => MapEntry<StateKey, TreeStateRoute?>(stateKey, _routeMap[stateKey]))
+        .map((stateKey) => MapEntry<StateKey, TreeStateRouteConfig?>(stateKey, _routeMap[stateKey]))
         .where((entry) => entry.value != null)
         .map((entry) => entry.value!);
   }
 
-  static Map<StateKey, TreeStateRoute> _mapRoutes(List<TreeStateRoute> pages) {
-    var map = <StateKey, TreeStateRoute>{};
-    for (var page in pages) {
-      if (map.containsKey(page.stateKey)) {
-        throw ArgumentError('Duplicate routes defined for state \'${page.stateKey}\'', 'pages');
+  static Map<StateKey, TreeStateRouteConfig> _mapRoutes(List<TreeStateRouteConfig> routes) {
+    var map = <StateKey, TreeStateRouteConfig>{};
+    for (var route in routes) {
+      if (map.containsKey(route.stateKey)) {
+        throw ArgumentError('Duplicate routes defined for state \'${route.stateKey}\'', 'pages');
       }
-      map[page.stateKey] = page;
+      map[route.stateKey] = route;
     }
     return map;
   }
 
-  PageBuilder _inferPageBuilder(BuildContext context) {
+  (PageBuilder pageBuilder, PageBuilder popupPageBuilder) _inferPageBuilders(BuildContext context) {
     // May be null during testing
     Element? elem = context is Element ? context : null;
     if (elem != null) {
       if (elem.findAncestorWidgetOfExactType<MaterialApp>() != null) {
         _logger.info('Resolved MaterialApp. Will use MaterialPage pages.');
-        return materialPageBuilder;
+        return (materialPageBuilder, materialPopupPageBuilder);
       } else if (elem.findAncestorWidgetOfExactType<CupertinoApp>() != null) {
         _logger.info('Resolved CupertinoApp. Will use CupertinoPage pages.');
-        return cupertinoPageBuilder;
+        return (cupertinoPageBuilder, materialPopupPageBuilder);
       }
     }
 
     _logger.info('Unable to resolve application type. Defaulting to MaterialPage pages.');
-    return materialPageBuilder;
-  }
-}
-
-class _PopupPage extends Page<void> {
-  const _PopupPage(this.popupContent);
-  final Widget popupContent;
-
-  @override
-  Route<void> createRoute(BuildContext context) {
-    return DialogRoute(context: context, builder: (c) => popupContent, settings: this);
+    return (materialPageBuilder, materialPopupPageBuilder);
   }
 }
 
@@ -255,7 +262,7 @@ class _PopupPage extends Page<void> {
 /// As state transitions occur within the state machine, the router delegate will determine if there
 /// are [TreeStateRoute]s that correspond to a active state of the state machine.  If a route is
 /// available, it is displayed by the [Navigator] returned by [build].
-class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
+class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   // TODO: make this delegate rebuild when routing config changes
   TreeStateRouterDelegate({
     required this.stateMachine,
@@ -322,7 +329,7 @@ class TreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
 /// As state transitions occur within the parent state machine, this router delegate will determine
 /// if there is a [TreeStateRoute] that corresponds to the an active state of the state machine. If a
 /// route is available, it is displayed by the [Navigator] returned by [build].
-class NestedTreeStateRouterDelegate extends BaseTreeStateRouterDelegate {
+class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   NestedTreeStateRouterDelegate({
     required super.config,
     super.displayStateMachineErrors,

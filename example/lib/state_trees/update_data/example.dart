@@ -8,7 +8,7 @@ import 'pages.dart';
 import 'state_tree.dart';
 
 //
-// This example demonstrates accessing and updating state and state data.
+// This example demonstrates accessing and updating state data.
 //
 void main() {
   _initLogging();

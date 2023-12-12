@@ -24,21 +24,17 @@ Widget editCounterPage(
   TreeStateRoutingContext stateCtx,
   CounterData data,
 ) {
-  return Container(
-    color: Colors.lime,
-    padding: const EdgeInsets.all(10),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Text(
-          'Counter: ${data.counter}',
-          style: const TextStyle(fontSize: 24),
-        ),
-        button('Increment', () => stateCtx.currentState.post(Messages.increment)),
-        button('Decrement', () => stateCtx.currentState.post(Messages.decrement)),
-        button('Done', () => stateCtx.currentState.post(Messages.endEdit)),
-      ],
-    ),
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    mainAxisSize: MainAxisSize.min,
+    children: <Widget>[
+      Text(
+        'Counter: ${data.counter}',
+        style: const TextStyle(fontSize: 24),
+      ),
+      button('Increment', () => stateCtx.currentState.post(Messages.increment)),
+      button('Decrement', () => stateCtx.currentState.post(Messages.decrement)),
+      button('Done', () => stateCtx.currentState.post(Messages.endEdit)),
+    ],
   );
 }

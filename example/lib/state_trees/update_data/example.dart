@@ -8,7 +8,7 @@ import 'pages.dart';
 import 'state_tree.dart';
 
 //
-// This example demonstrates accessing and updating state and state data.
+// This example demonstrates accessing and updating state data.
 //
 void main() {
   _initLogging();
@@ -25,7 +25,7 @@ final router = TreeStateRouter(
     ),
   ),
   routes: [
-    DataTreeStateRoute(States.counting, dataRouteBuilder: countingPage),
+    DataTreeStateRoute(States.counting, routeBuilder: countingPage),
   ],
 );
 

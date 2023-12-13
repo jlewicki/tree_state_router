@@ -57,8 +57,8 @@ typedef DataTreeStateRoutePageBuilder<D> = Page<void> Function(
 ///     DataTreeStateRoute(
 ///       States.dataState1,
 ///       routeBuilder: (buildContext, stateContext, data) {
-//            return const Center(child: Text('State data value: $data');
-//        }
+///            return const Center(child: Text('State data value: $data');
+///        }
 ///     ),
 ///   ]);
 /// ```

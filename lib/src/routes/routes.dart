@@ -24,7 +24,7 @@ class TreeStateRoutingContext {
 
 /// Provides an accessor for a [TreeStateRouteConfig] describing a route.
 abstract class TreeStateRouteConfigProvider {
-  /// A config object providing a generalized descripton of a route for a [TreeStateRouter].
+  /// A config object providing a generalized description of a route for a [TreeStateRouter].
   TreeStateRouteConfig get config;
 }
 

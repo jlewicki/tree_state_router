@@ -19,10 +19,10 @@ typedef DataTreeStateRouteBuilder<D> = Widget Function(
 /// A function that can build a routing [Page] that provides a visualization of an active state in
 /// a state tree.
 ///
-/// The function is provided a build [context], and a [wrapPageContent] that must be called in order
-/// to wrap the contents of the route in a specialized wioget that detects state transitions in the
-/// state machine and render this route as necessary. The return value of the [wrapPageContent]
-/// function should be used as the contents of the page.
+/// The function is provided a build [context], and a [wrapPageContent] function that must be called
+/// in order to wrap the contents of the route in a specialized widget that detects state
+/// transitions and re-renders this route as necessary. The return value of the
+/// [wrapPageContent] function should be used as the contents of the page.
 ///
 /// ```dart
 /// var routerConfig = TreeStateRouter(
@@ -31,8 +31,8 @@ typedef DataTreeStateRouteBuilder<D> = Widget Function(
 ///       States.dataState1,
 ///       pageRouteBuilder: (buildContext, wrapPageContent) {
 ///         return MaterialPage(child: wrapPageContent((ctx, stateCtx, data) {
-//            return const Center(child: Text('State data value: $data');
-//          }));
+///            return const Center(child: Text('State data value: $data');
+///          }));
 ///       }),
 ///   ]);
 /// ```

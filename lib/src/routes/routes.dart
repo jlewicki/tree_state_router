@@ -22,12 +22,14 @@ class TreeStateRoutingContext {
   final TreeStateRoutingState routingState = TreeStateRoutingState();
 }
 
+/// Provides an accessor for a [TreeStateRouteConfig] describing a route.
 abstract class TreeStateRouteConfigProvider {
+  /// A config object providing a generalized descripton of a route for a [TreeStateRouter].
   TreeStateRouteConfig get config;
 }
 
 /// {@template TreeStateRouteBuilder}
-/// A function that can widget provides a visualization of an active state in a state tree.
+/// A function that can build a widget providing a visualization of an active state in a state tree.
 ///
 /// The function is provided a build [context], and a [stateContext] that describes the state to be
 /// visualized.
@@ -49,6 +51,10 @@ typedef TreeStateRoutePageBuilder = Page<dynamic> Function(
   TreeStateRoutingContext stateContext,
 );
 
+/// A generalized description of a route that can be placed in a [TreeStateRouter].
+///
+/// This is intended for use by [TreeStateRouter], and typically not used by an applciation
+/// directly.
 class TreeStateRouteConfig {
   TreeStateRouteConfig(
     this.stateKey, {
@@ -57,13 +63,61 @@ class TreeStateRouteConfig {
     this.isPopup = false,
     this.dependencies = const [],
   });
+
+  /// The state key identifying the tree state associated with this route.
   final StateKey stateKey;
+
+  /// {@macro TreeStateRouteBuilder}
   final TreeStateRouteBuilder? routeBuilder;
+
+  /// {@macro TreeStateRoutePageBuilder}
   final TreeStateRoutePageBuilder? routePageBuilder;
+
+  /// {@macro TreeStateRoute.isPopup}
   final bool isPopup;
+
+  /// A list (possibly empty) of keys indentifying the data states whose data are used when
+  /// producing the visuals for the state.
+  ///
+  /// In general these will be ancestor states of [stateKey], although if [stateKey] is a
+  /// [DataStateKey] it will be present in the list as well.
   final List<DataStateKey> dependencies;
 }
 
+/// A route that creates visuals for a state in a state tree.
+///
+/// {@template TreeStateRoute.propSummary}
+/// The route is provided with a [stateKey] identifying the tree state to be displayed. When a
+/// [TreeStateRouter] detects that the state is an active state in the routers state machine, it
+/// will place a page in the routers [Navigator] that displays the visuals created by this route.
+///
+/// The visuals that are created are specified by providing either a [routeBuilder] or a
+/// [routePageBuilder]. In most cases, [routeBuilder] will be used, and the [TreeStateRouter] will
+/// wrap these visuals in a routing [Page] that is appropriate for the application (Material or
+/// Cupertino). If precise control of the [Page] type is needed, for example to control the specific
+/// navigation transition animations, [routePageBuilder] can be provided.
+/// instead.
+/// {@endtemplate}
+///
+/// ```dart
+/// var routerConfig = TreeStateRouter(
+///   routes: [
+///     TreeStateRoute(
+///       States.state1,
+///       routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
+///         return Center(
+///           child: Column(
+///             mainAxisAlignment: MainAxisAlignment.center,
+///             children: [
+///               const Text('This is state 1'),
+///               ElevatedButton(
+///                 onPressed: () => stateCtx.currentState.post(AMessage()),
+///                 child: const Text('Send a message'),
+///               )],
+///           ));
+///       }),
+///   ]);
+/// ```
 class TreeStateRoute implements TreeStateRouteConfigProvider {
   TreeStateRoute._(
     this.stateKey, {
@@ -90,6 +144,7 @@ class TreeStateRoute implements TreeStateRouteConfigProvider {
         isPopup: false,
       );
 
+  /// Constructs a [TreeStateRoute] that displays its visuals in a [PopupRoute].
   factory TreeStateRoute.popup(
     StateKey stateKey, {
     TreeStateRouteBuilder? routeBuilder,
@@ -101,19 +156,21 @@ class TreeStateRoute implements TreeStateRouteConfigProvider {
         isPopup: true,
       );
 
-  /// The state key identifying the tree state associated with this route.
+  /// Identifies the tree state associated with this route.
   final StateKey stateKey;
+
+  /// {@macro TreeStateRouteBuilder}
+  ///
+  /// If `null`, the [TreeStateRouter] will choose an appropriate [Page] type based on the application
+  /// typoe (Material, Cupertino, etc.).
+  final TreeStateRouteBuilder? routeBuilder;
 
   /// {@macro TreeStateRoutePageBuilder}
   final TreeStateRoutePageBuilder? routePageBuilder;
 
-  /// {@macro TreeStateRouteBuilder}
-  ///
-  /// If provided, tree state router will choose an appropriate [Page] type based on the application
-  /// typoe (Material, Cupertino, etc.).
-  final TreeStateRouteBuilder? routeBuilder;
-
-  /// Indicates if this is a popup route.
+  /// {@template TreeStateRoute.isPopup}
+  /// Indicates if this route will display its visuals in a [PopupRoute].
+  /// {@endtemplate}
   final bool isPopup;
 
   @override

@@ -33,7 +33,7 @@ StateTreeBuilder simpleStateTree() {
 }
 
 // Define a router with routes for states in the state tree
-final router = TreeStateRouter(
+var router = TreeStateRouter(
   stateMachine: TreeStateMachine(simpleStateTree()),
   defaultScaffolding: (_, pageContent) => Scaffold(body: pageContent),
   routes: [

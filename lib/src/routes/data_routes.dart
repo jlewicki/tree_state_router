@@ -2,22 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'builder.dart';
-import 'routes.dart';
 
-sealed class DataTreeStateRouteInfo {}
-
+/// {@template DataTreeStateRouteBuilder}
+/// A function that can build a widget providing a visualization of an active data state in a state tree.
+///
+/// The function is provided a build [context], and a [stateContext] that describes the state to be
+/// visualized, and the current [data] value for the data state.
+/// {@endtemplate}
 typedef DataTreeStateRouteBuilder<D> = Widget Function(
   BuildContext context,
   TreeStateRoutingContext stateContext,
   D data,
 );
 
+/// {@template DataTreeStateRoutePageBuilder}
+/// A function that can build a routing [Page] that provides a visualization of an active state in
+/// a state tree.
+///
+/// The function is provided a build [context], and a [wrapPageContent] that must be called in order
+/// to wrap the contents of the route in a specialized wioget that detects state transitions in the
+/// state machine and render this route as necessary. The return value of the [wrapPageContent]
+/// function should be used as the contents of the page.
+///
+/// ```dart
+/// var routerConfig = TreeStateRouter(
+///   routes: [
+///     DataTreeStateRoute(
+///       States.dataState1,
+///       pageRouteBuilder: (buildContext, wrapPageContent) {
+///         return MaterialPage(child: wrapPageContent((ctx, stateCtx, data) {
+//            return const Center(child: Text('State data value: $data');
+//          }));
+///       }),
+///   ]);
+/// ```
+/// {@endtemplate}
 typedef DataTreeStateRoutePageBuilder<D> = Page<void> Function(
   BuildContext context,
   Widget Function(DataTreeStateRouteBuilder<D> buildPageContent) wrapPageContent,
 );
 
-class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider, DataTreeStateRouteInfo {
+/// A route that creates visuals for a data state in a state tree.
+///
+/// {@macro TreeStateRoute.propSummary}
+///
+/// The builder functions are provided with a `data` argument that is the current data value of the
+/// data state at the time the visuals are created. If the state data value is updated while a
+/// message is processed by the state machine, the builder function will be called again by the router
+/// with the updated data value.
+///
+/// ```dart
+/// var routerConfig = TreeStateRouter(
+///   routes: [
+///     DataTreeStateRoute(
+///       States.dataState1,
+///       routeBuilder: (buildContext, stateContext, data) {
+//            return const Center(child: Text('State data value: $data');
+//        }
+///     ),
+///   ]);
+/// ```
+class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider {
   DataTreeStateRoute._(
     this.stateKey, {
     this.routeBuilder,
@@ -25,6 +70,7 @@ class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider, DataTreeSta
     this.isPopup = false,
   });
 
+  /// Constructs a [DataTreeStateRoute].
   DataTreeStateRoute(
     this.stateKey, {
     this.routeBuilder,
@@ -37,10 +83,21 @@ class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider, DataTreeSta
   }) =>
       DataTreeStateRoute<D>._(stateKey, routeBuilder: routeBuilder, isPopup: true);
 
+  /// Identifies the data tree state associated with this route.
   final DataStateKey<D> stateKey;
+
+  /// {@macro DataTreeStateRouteBuilder}
+  ///
+  /// If `null`, the [TreeStateRouter] will choose an appropriate [Page] type based on the application
+  /// typoe (Material, Cupertino, etc.).
   final DataTreeStateRouteBuilder<D>? routeBuilder;
+
+  /// {@macro DataTreeStateRoutePageBuilder}
   final DataTreeStateRoutePageBuilder<D>? routePageBuilder;
+
+  /// {@macro TreeStateRoute.isPopup}
   final bool isPopup;
+
   late final List<StateDataResolver> _resolvers = [StateDataResolver<D>(stateKey)];
 
   @override
@@ -86,7 +143,7 @@ typedef DataTreeStateRoutePageBuilder2<D, DAnc> = Page<void> Function(
   Widget Function(DataTreeStateRouteBuilder2<D, DAnc> buildPageContent) wrapPageContent,
 );
 
-class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider, DataTreeStateRouteInfo {
+class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider {
   DataTreeStateRoute2._(
     this.stateKey, {
     required this.ancestorStateKey,
@@ -170,16 +227,7 @@ typedef DataTreeStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
   Widget Function(DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent) wrapPageContent,
 );
 
-class DataTreeStateRoute3<D, DAnc1, DAnc2>
-    implements TreeStateRouteConfigProvider, DataTreeStateRouteInfo {
-  // DataTreeStateRoute3(
-  //   this.stateKey, {
-  //   required this.ancestor1StateKey,
-  //   required this.ancestor2StateKey,
-  //   this.routeBuilder,
-  //   this.routePageBuilder,
-  //   this.isPopup = false,
-  // });
+class DataTreeStateRoute3<D, DAnc1, DAnc2> implements TreeStateRouteConfigProvider {
   DataTreeStateRoute3._(
     this.stateKey, {
     required this.ancestor1StateKey,

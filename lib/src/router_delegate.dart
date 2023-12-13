@@ -27,11 +27,11 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
   TreeStateRouterDelegateBase({
     required this.config,
-    required Logger logger,
+    required Logger log,
     this.displayStateMachineErrors = false,
-  }) : _logger = logger;
+  }) : _log = log;
 
-  /// Configuration information for this router delegate describing the available routed.
+  /// Configuration information for this router delegate describing the available routes.
   final TreeStateRouterDelegateConfig config;
 
   /// If `true`, this router delegate will display an [ErrorWidget] when the
@@ -43,9 +43,8 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
   /// The most recent state machine transition that has occurred.
   Transition? _transition;
 
-  final Logger _logger;
-
-  late final Map<StateKey, TreeStateRouteConfig> _routeMap = _mapRoutes(_routes);
+  final Logger _log;
+  late final _routeMap = _mapRoutes(_routes);
   List<TreeStateRouteConfig> get _routes => config.routes;
   DefaultScaffoldingBuilder? get _defaultScaffolding => config.defaultScaffolding;
   DefaultPageBuilder? get _defaultPageBuilder => config.defaultPageBuilder;
@@ -124,7 +123,7 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
             "Popup route for '${navigatorRoutes.first.stateKey}' cannot be displayed because all "
             "exiting routes depend on data states below the least common ancestor state '${_transition!.lca}' for this "
             "transition: ";
-        _logger.severe(error);
+        _log.severe(error);
         throw StateError(error);
       }
 
@@ -171,7 +170,7 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
 
   @protected
   bool _onPopPage(Route<dynamic> route, dynamic result) {
-    _logger.finer('Popping page for state ${(route.settings as TreeStateRoute).stateKey}');
+    _log.finer('Popping page for state ${(route.settings as TreeStateRoute).stateKey}');
     if (!route.didPop(result)) return false;
     notifyListeners();
     return true;
@@ -204,7 +203,7 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
 
   @protected
   Page<void> _createEmptyRoutesErrorPage(BuildContext context, List<StateKey> activeStates) {
-    _logger.warning('No pages available to display active states [${activeStates.join(',')}]');
+    _log.warning('No pages available to display active states [${activeStates.join(',')}]');
     Widget error = Container();
     assert(() {
       error = ErrorWidget.withDetails(
@@ -243,15 +242,15 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
     Element? elem = context is Element ? context : null;
     if (elem != null) {
       if (elem.findAncestorWidgetOfExactType<MaterialApp>() != null) {
-        _logger.info('Resolved MaterialApp. Will use MaterialPage pages.');
+        _log.info('Resolved MaterialApp. Will use MaterialPage pages.');
         return (materialPageBuilder, materialPopupPageBuilder);
       } else if (elem.findAncestorWidgetOfExactType<CupertinoApp>() != null) {
-        _logger.info('Resolved CupertinoApp. Will use CupertinoPage pages.');
+        _log.info('Resolved CupertinoApp. Will use CupertinoPage pages.');
         return (cupertinoPageBuilder, materialPopupPageBuilder);
       }
     }
 
-    _logger.info('Unable to resolve application type. Defaulting to MaterialPage pages.');
+    _log.info('Unable to resolve application type. Defaulting to MaterialPage pages.');
     return (materialPageBuilder, materialPopupPageBuilder);
   }
 }
@@ -266,10 +265,11 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   // TODO: make this delegate rebuild when routing config changes
   TreeStateRouterDelegate({
     required this.stateMachine,
+    // TODO: validate data dependencies (dependencies must be self or ancester states)
     required super.config,
     super.displayStateMachineErrors,
   }) : super(
-          logger: Logger('StateTreeRouterDelegate'),
+          log: Logger('StateTreeRouterDelegate'),
         );
 
   /// The [TreeStateMachine] that provides the state transition  notifications to this router.
@@ -283,7 +283,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   Widget build(BuildContext context) {
     var curState = stateMachine.currentState;
     if (curState != null) {
-      _logger.fine('Creating pages for active states ${curState.activeStates.join(', ')}');
+      _log.fine('Creating pages for active states ${curState.activeStates.join(', ')}');
     }
 
     var pages = curState != null
@@ -335,7 +335,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     super.displayStateMachineErrors,
     this.supportsFinalRoute = true,
   }) : super(
-          logger: Logger('ChildTreeStateRouterDelegate'),
+          log: Logger('ChildTreeStateRouterDelegate'),
         );
 
   /// If `true` (the default), an error page will be displayed if the state machine reaches a final
@@ -356,7 +356,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     var stateMachineInfo = TreeStateMachineProvider.of(context);
     if (stateMachineInfo == null) {
       var message = 'Unable to find tree state machine in widget tree';
-      _logger.warning(message);
+      _log.warning(message);
       return ErrorWidget.withDetails(message: message);
     }
 
@@ -373,7 +373,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         // no visible content.
         pages = [MaterialPage(child: Container())];
       } else {
-        _logger.warning(
+        _log.warning(
           'No pages available to display active states ${currentState.activeStates.join(',')}',
         );
         pages = [_createEmptyRoutesErrorPage(context, activeStates)];
@@ -404,19 +404,20 @@ class _NoTransitionsTransitionDelegate extends DefaultTransitionDelegate {
     required Map<RouteTransitionRecord?, List<RouteTransitionRecord>> pageRouteToPagelessRoutes,
   }) {
     var records = super.resolve(
-      newPageRouteHistory: newPageRouteHistory.map(_NoTransitionRouteTransitionRecord.new).toList(),
+      newPageRouteHistory:
+          newPageRouteHistory.map(_NoTransitionsRouteTransitionRecord.new).toList(),
       locationToExitingPageRoute: locationToExitingPageRoute,
       pageRouteToPagelessRoutes: pageRouteToPagelessRoutes,
     );
     // DefaultTransitionDelegate assumes records are _RouteEntry, so we need to unwrap
     // _NoTransitionRouteTransitionRecord before returning the results.
-    return records.map((r) => r is _NoTransitionRouteTransitionRecord ? r.inner : r);
+    return records.map((r) => r is _NoTransitionsRouteTransitionRecord ? r.inner : r);
   }
 }
 
 /// Wraps a [RouteTransitionRecord] and redirects calls that trigger animations to calls that do not.
-class _NoTransitionRouteTransitionRecord implements RouteTransitionRecord {
-  _NoTransitionRouteTransitionRecord(this.inner);
+class _NoTransitionsRouteTransitionRecord implements RouteTransitionRecord {
+  _NoTransitionsRouteTransitionRecord(this.inner);
 
   final RouteTransitionRecord inner;
 

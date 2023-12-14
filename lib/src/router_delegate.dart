@@ -312,7 +312,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         ? _buildActivePages(context, curState).toList()
         // build() may be called before the setNewRoutePath future completes, so we display a loading
         // indicator while that is in progress
-        : [if (stateMachine.isStarting) _createLoadingPage(context)];
+        : [if (stateMachine.lifecycle.isStarting) _createLoadingPage(context)];
 
     if (pages.isEmpty) {
       pages = [
@@ -326,7 +326,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
   @override
   Future<void> setNewRoutePath(TreeStateRouteInfo configuration) async {
-    if (stateMachine.isStarted) {
+    if (stateMachine.lifecycle.isStarted) {
       throw UnsupportedError(
           'Routing after the state machine has started is not yet supported.');
     } else {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tree_state_router/tree_state_router.dart';
-import 'package:tree_state_router_examples/state_trees/update_data/state_tree.dart';
+import 'state_tree.dart';
 
 Widget countingPage(
   BuildContext ctx,
@@ -14,8 +14,14 @@ Widget countingPage(
         'Counter: ${data.counter}',
         style: const TextStyle(fontSize: 24),
       ),
-      _button('Increment', () => stateCtx.currentState.post(Messages.increment)),
-      _button('Decrement', () => stateCtx.currentState.post(Messages.decrement)),
+      _button(
+        'Increment',
+        () => stateCtx.currentState.post(Messages.increment),
+      ),
+      _button(
+        'Decrement',
+        () => stateCtx.currentState.post(Messages.decrement),
+      ),
       _button('Restart', () async {
         await stateCtx.currentState.stateMachine.stop();
         await stateCtx.currentState.stateMachine.start();

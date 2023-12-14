@@ -285,7 +285,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   // TODO: make this delegate rebuild when routing config changes
   TreeStateRouterDelegate({
     required this.stateMachine,
-    // TODO: validate data dependencies (dependencies must be self or ancester states)
+    // TODO: validate data dependencies (dependencies must be self or ancestor states)
     required super.config,
     super.displayStateMachineErrors,
   }) : super(

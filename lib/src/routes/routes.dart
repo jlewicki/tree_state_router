@@ -226,17 +226,23 @@ class TreeStateRoute1<DAnc> implements TreeStateRouteConfigProvider {
   final TreeStateRouteBuilder1<DAnc>? routeBuilder;
   final TreeStateRoutePageBuilder1<DAnc>? routePageBuilder;
   final bool isPopup;
-  late final List<StateDataResolver> _resolvers = [StateDataResolver<DAnc>(ancestorStateKey)];
+  late final List<StateDataResolver> _resolvers = [
+    StateDataResolver<DAnc>(ancestorStateKey)
+  ];
 
   @override
   late final config = TreeStateRouteConfig(stateKey,
       routeBuilder: routeBuilder != null
-          ? (context, stateContext) => _createDataTreeStateBuilder(stateContext, routeBuilder!)
+          ? (context, stateContext) =>
+              _createDataTreeStateBuilder(stateContext, routeBuilder!)
           : null,
       routePageBuilder: routePageBuilder != null
           ? (context, stateContext) => routePageBuilder!.call(
                 context,
-                (buildPageContent) => _createDataTreeStateBuilder(stateContext, buildPageContent),
+                (buildPageContent) => _createDataTreeStateBuilder(
+                  stateContext,
+                  buildPageContent,
+                ),
               )
           : null,
       isPopup: isPopup,
@@ -268,7 +274,8 @@ typedef TreeStateRouteBuilder2<DAnc1, DAnc2> = Widget Function(
 
 typedef TreeStateRoutePageBuilder2<DAnc1, DAnc2> = Page<void> Function(
   BuildContext context,
-  Widget Function(TreeStateRouteBuilder2<DAnc1, DAnc2> buildPageContent) wrapPageContent,
+  Widget Function(TreeStateRouteBuilder2<DAnc1, DAnc2> buildPageContent)
+      wrapPageContent,
 );
 
 class TreeStateRoute2<DAnc1, DAnc2> implements TreeStateRouteConfigProvider {
@@ -317,12 +324,18 @@ class TreeStateRoute2<DAnc1, DAnc2> implements TreeStateRouteConfigProvider {
   @override
   late final config = TreeStateRouteConfig(stateKey,
       routeBuilder: routeBuilder != null
-          ? (context, stateContext) => _createDataTreeStateBuilder(stateContext, routeBuilder!)
+          ? (context, stateContext) => _createDataTreeStateBuilder(
+                stateContext,
+                routeBuilder!,
+              )
           : null,
       routePageBuilder: routePageBuilder != null
           ? (context, stateContext) => routePageBuilder!.call(
                 context,
-                (buildPageContent) => _createDataTreeStateBuilder(stateContext, buildPageContent),
+                (buildPageContent) => _createDataTreeStateBuilder(
+                  stateContext,
+                  buildPageContent,
+                ),
               )
           : null,
       isPopup: isPopup,
@@ -356,10 +369,12 @@ typedef TreeStateRouteBuilder3<DAnc1, DAnc2, DAnc3> = Widget Function(
 
 typedef TreeStateRoutePageBuilder3<DAnc1, DAnc2, DAnc3> = Page<void> Function(
   BuildContext context,
-  Widget Function(TreeStateRouteBuilder3<DAnc1, DAnc2, DAnc3> buildPageContent) wrapPageContent,
+  Widget Function(TreeStateRouteBuilder3<DAnc1, DAnc2, DAnc3> buildPageContent)
+      wrapPageContent,
 );
 
-class TreeStateRoute3<DAnc1, DAnc2, DAnc3> implements TreeStateRouteConfigProvider {
+class TreeStateRoute3<DAnc1, DAnc2, DAnc3>
+    implements TreeStateRouteConfigProvider {
   TreeStateRoute3._(
     this.stateKey, {
     required this.ancestor1StateKey,
@@ -411,12 +426,18 @@ class TreeStateRoute3<DAnc1, DAnc2, DAnc3> implements TreeStateRouteConfigProvid
   @override
   late final config = TreeStateRouteConfig(stateKey,
       routeBuilder: routeBuilder != null
-          ? (context, stateContext) => _createDataTreeStateBuilder(stateContext, routeBuilder!)
+          ? (context, stateContext) => _createDataTreeStateBuilder(
+                stateContext,
+                routeBuilder!,
+              )
           : null,
       routePageBuilder: routePageBuilder != null
           ? (context, stateContext) => routePageBuilder!.call(
                 context,
-                (buildPageContent) => _createDataTreeStateBuilder(stateContext, buildPageContent),
+                (buildPageContent) => _createDataTreeStateBuilder(
+                  stateContext,
+                  buildPageContent,
+                ),
               )
           : null,
       isPopup: isPopup,

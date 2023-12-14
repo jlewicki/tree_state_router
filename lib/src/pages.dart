@@ -45,21 +45,24 @@ class BuildForError implements PageBuildFor {
 }
 
 /// A function that can build a routing page that displays the specified content.
-typedef PageBuilder = Page<void> Function(PageBuildFor buildFor, Widget pageContent);
+typedef PageBuilder = Page<void> Function(
+  PageBuildFor buildFor,
+  Widget pageContent,
+);
 
 /// Builds a [MaterialPage] that displays the specified content.
-PageBuilder materialPageBuilder =
-    (buildFor, content) => MaterialPage<void>(key: ValueKey(buildFor), child: content);
+PageBuilder materialPageBuilder = (buildFor, content) =>
+    MaterialPage<void>(key: ValueKey(buildFor), child: content);
 
 /// Builds a page that displays the specified content in a Material [DialogRoute].
 PageBuilder materialPopupPageBuilder = (buildFor, content) => _PopupPage(
     key: ValueKey(buildFor),
-    buildPopupRoute: (context, page) =>
-        DialogRoute<void>(context: context, builder: (_) => content, settings: page));
+    buildPopupRoute: (context, page) => DialogRoute<void>(
+        context: context, builder: (_) => content, settings: page));
 
 /// Builds a [CupertinoPage] that displays the specified content.
-PageBuilder cupertinoPageBuilder =
-    (buildFor, content) => CupertinoPage<void>(key: ValueKey(buildFor), child: content);
+PageBuilder cupertinoPageBuilder = (buildFor, content) =>
+    CupertinoPage<void>(key: ValueKey(buildFor), child: content);
 
 /// Builds a page that displays the specified content in a [CupertinoDialogRoute].
 PageBuilder cupertinoPopupPageBuilder = (buildFor, content) => _PopupPage(
@@ -72,7 +75,8 @@ PageBuilder cupertinoPopupPageBuilder = (buildFor, content) => _PopupPage(
 
 class _PopupPage extends Page<void> {
   const _PopupPage({super.key, required this.buildPopupRoute});
-  final PopupRoute<void> Function(BuildContext context, Page<void> page) buildPopupRoute;
+  final PopupRoute<void> Function(BuildContext context, Page<void> page)
+      buildPopupRoute;
   @override
   Route<void> createRoute(BuildContext context) {
     return buildPopupRoute(context, this);

@@ -39,7 +39,8 @@ typedef DataTreeStateRouteBuilder<D> = Widget Function(
 /// {@endtemplate}
 typedef DataTreeStateRoutePageBuilder<D> = Page<void> Function(
   BuildContext context,
-  Widget Function(DataTreeStateRouteBuilder<D> buildPageContent) wrapPageContent,
+  Widget Function(DataTreeStateRouteBuilder<D> buildPageContent)
+      wrapPageContent,
 );
 
 /// A route that creates visuals for a data state in a state tree.
@@ -81,7 +82,8 @@ class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider {
     DataStateKey<D> stateKey, {
     required DataTreeStateRouteBuilder<D> routeBuilder,
   }) =>
-      DataTreeStateRoute<D>._(stateKey, routeBuilder: routeBuilder, isPopup: true);
+      DataTreeStateRoute<D>._(stateKey,
+          routeBuilder: routeBuilder, isPopup: true);
 
   /// Identifies the data tree state associated with this route.
   final DataStateKey<D> stateKey;
@@ -98,17 +100,21 @@ class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider {
   /// {@macro TreeStateRoute.isPopup}
   final bool isPopup;
 
-  late final List<StateDataResolver> _resolvers = [StateDataResolver<D>(stateKey)];
+  late final List<StateDataResolver> _resolvers = [
+    StateDataResolver<D>(stateKey)
+  ];
 
   @override
   late final config = TreeStateRouteConfig(stateKey,
       routeBuilder: routeBuilder != null
-          ? (context, stateContext) => _createDataTreeStateBuilder(stateContext, routeBuilder!)
+          ? (context, stateContext) =>
+              _createDataTreeStateBuilder(stateContext, routeBuilder!)
           : null,
       routePageBuilder: routePageBuilder != null
           ? (context, stateContext) => routePageBuilder!.call(
                 context,
-                (buildPageContent) => _createDataTreeStateBuilder(stateContext, buildPageContent),
+                (buildPageContent) =>
+                    _createDataTreeStateBuilder(stateContext, buildPageContent),
               )
           : null,
       isPopup: isPopup,
@@ -140,7 +146,8 @@ typedef DataTreeStateRouteBuilder2<D, DAnc> = Widget Function(
 
 typedef DataTreeStateRoutePageBuilder2<D, DAnc> = Page<void> Function(
   BuildContext context,
-  Widget Function(DataTreeStateRouteBuilder2<D, DAnc> buildPageContent) wrapPageContent,
+  Widget Function(DataTreeStateRouteBuilder2<D, DAnc> buildPageContent)
+      wrapPageContent,
 );
 
 class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider {
@@ -185,12 +192,14 @@ class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider {
   late final config = TreeStateRouteConfig(
     stateKey,
     routeBuilder: routeBuilder != null
-        ? (context, stateContext) => _createDataTreeStateBuilder(stateContext, routeBuilder!)
+        ? (context, stateContext) =>
+            _createDataTreeStateBuilder(stateContext, routeBuilder!)
         : null,
     routePageBuilder: routePageBuilder != null
         ? (context, stateContext) => routePageBuilder!.call(
               context,
-              (buildPageContent) => _createDataTreeStateBuilder(stateContext, buildPageContent),
+              (buildPageContent) =>
+                  _createDataTreeStateBuilder(stateContext, buildPageContent),
             )
         : null,
     isPopup: isPopup,
@@ -224,10 +233,12 @@ typedef DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
 
 typedef DataTreeStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
   BuildContext context,
-  Widget Function(DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent) wrapPageContent,
+  Widget Function(DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent)
+      wrapPageContent,
 );
 
-class DataTreeStateRoute3<D, DAnc1, DAnc2> implements TreeStateRouteConfigProvider {
+class DataTreeStateRoute3<D, DAnc1, DAnc2>
+    implements TreeStateRouteConfigProvider {
   DataTreeStateRoute3._(
     this.stateKey, {
     required this.ancestor1StateKey,
@@ -275,12 +286,14 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2> implements TreeStateRouteConfigProvid
   late final config = TreeStateRouteConfig(
     stateKey,
     routeBuilder: routeBuilder != null
-        ? (context, stateContext) => _createDataTreeStateBuilder(stateContext, routeBuilder!)
+        ? (context, stateContext) =>
+            _createDataTreeStateBuilder(stateContext, routeBuilder!)
         : null,
     routePageBuilder: routePageBuilder != null
         ? (context, stateContext) => routePageBuilder!.call(
               context,
-              (buildPageContent) => _createDataTreeStateBuilder(stateContext, buildPageContent),
+              (buildPageContent) =>
+                  _createDataTreeStateBuilder(stateContext, buildPageContent),
             )
         : null,
     isPopup: isPopup,

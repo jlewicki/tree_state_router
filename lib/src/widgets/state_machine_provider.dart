@@ -25,8 +25,11 @@ class TreeStateMachineProvider extends StatelessWidget {
 
   /// The data from the closest [TreeStateMachineProvider] instance that encloses the given context.
   static TreeStateMachineInfo? of(BuildContext context) {
-    var inheritedInfo = context.dependOnInheritedWidgetOfExactType<_InheritedStateMachineInfo>();
-    return inheritedInfo != null ? TreeStateMachineInfo(inheritedInfo.currentState) : null;
+    var inheritedInfo = context
+        .dependOnInheritedWidgetOfExactType<_InheritedStateMachineInfo>();
+    return inheritedInfo != null
+        ? TreeStateMachineInfo(inheritedInfo.currentState)
+        : null;
   }
 
   @override

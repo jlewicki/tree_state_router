@@ -7,13 +7,16 @@ class TreeStateRouteInfo {
   TreeStateRouteInfo(this.currentState);
 }
 
-class TreeStateRouteInformationParser extends RouteInformationParser<TreeStateRouteInfo> {
+class TreeStateRouteInformationParser
+    extends RouteInformationParser<TreeStateRouteInfo> {
   TreeStateRouteInformationParser(this.rootKey);
 
   final StateKey rootKey;
 
   @override
-  Future<TreeStateRouteInfo> parseRouteInformation(RouteInformation routeInformation) {
+  Future<TreeStateRouteInfo> parseRouteInformation(
+    RouteInformation routeInformation,
+  ) {
     if (routeInformation.uri.path == '/') {
       return SynchronousFuture(TreeStateRouteInfo(rootKey));
     }

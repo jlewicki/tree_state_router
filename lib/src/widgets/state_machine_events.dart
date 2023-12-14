@@ -82,10 +82,11 @@ class _TreeStateMachineEventsState extends State<TreeStateMachineEvents> {
 
     if (widget.onTransition != null) {
       var transitions = widget.transitionRootKey != null
-          ? stateMachine.transitions.where((t) => !t.exitPath.contains(widget.transitionRootKey))
+          ? stateMachine.transitions
+              .where((t) => !t.exitPath.contains(widget.transitionRootKey))
           : stateMachine.transitions;
-      _transitionSubscription =
-          transitions.listen((trans) => widget.onTransition!(currentState, trans));
+      _transitionSubscription = transitions
+          .listen((trans) => widget.onTransition!(currentState, trans));
     }
   }
 

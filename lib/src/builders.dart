@@ -88,7 +88,10 @@ class DataTreeStateBuilder<D> extends BaseDataTreeStateBuilder {
   }) : super(
             key,
             stateKey,
-            [StateDataResolver<D>(dataStateKey ?? (stateKey is DataStateKey<D> ? stateKey : null))],
+            [
+              StateDataResolver<D>(dataStateKey ??
+                  (stateKey is DataStateKey<D> ? stateKey : null))
+            ],
             (context, dataList, currentState) => builder(
                   context,
                   currentState,
@@ -200,7 +203,8 @@ class DataTreeStateBuilderState extends State<BaseDataTreeStateBuilder> {
     assert(_stateDataList != null);
     return _error != null
         ? ErrorWidget(_error!)
-        : widget._widgetBuilder(context, _stateDataList!, stateMachineContext!.currentState);
+        : widget._widgetBuilder(
+            context, _stateDataList!, stateMachineContext!.currentState);
   }
 
   void _subscribe() {
@@ -214,8 +218,10 @@ class DataTreeStateBuilderState extends State<BaseDataTreeStateBuilder> {
     var dataStreams = widget._stateDataResolvers
         .map((resolve) {
           var stream = resolve(currentState);
-          assert(stream != null, 'Data stream for state ${resolve.stateKey} could not be resolved');
-          assert(stream!.hasValue, 'A resolved data stream should have a value');
+          assert(stream != null,
+              'Data stream for state ${resolve.stateKey} could not be resolved');
+          assert(
+              stream!.hasValue, 'A resolved data stream should have a value');
           if (stream != null) initialValues.add(stream.value);
           return stream;
         })
@@ -294,5 +300,6 @@ class StateDataResolver<D> {
     return resolver as StateDataResolver<D>;
   }
 
-  ValueStream? call(CurrentState currentState) => currentState.dataStream<D>(stateKey);
+  ValueStream? call(CurrentState currentState) =>
+      currentState.dataStream<D>(stateKey);
 }

@@ -19,7 +19,8 @@ class StateMachineErrorBuilder extends StatefulWidget {
   final Widget Function(BuildContext, FailedMessage, CurrentState) errorBuilder;
 
   @override
-  State<StateMachineErrorBuilder> createState() => _StateMachineErrorBuilderState();
+  State<StateMachineErrorBuilder> createState() =>
+      _StateMachineErrorBuilderState();
 }
 
 class _StateMachineErrorBuilderState extends State<StateMachineErrorBuilder> {
@@ -36,7 +37,10 @@ class _StateMachineErrorBuilderState extends State<StateMachineErrorBuilder> {
     );
   }
 
-  void _onFailedMessage(CurrentState currentState, FailedMessage failedMessage) {
+  void _onFailedMessage(
+    CurrentState currentState,
+    FailedMessage failedMessage,
+  ) {
     setState(() {
       _failedMessage = failedMessage;
       _currentState = currentState;

@@ -23,7 +23,8 @@ class TreeStateRouterDelegateConfig {
   final bool enableTransitions;
 }
 
-abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRouteInfo>
+abstract class TreeStateRouterDelegateBase
+    extends RouterDelegate<TreeStateRouteInfo>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
   TreeStateRouterDelegateBase({
     required this.config,
@@ -46,7 +47,8 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
   final Logger _log;
   late final _routeMap = _mapRoutes(_routes);
   List<TreeStateRouteConfig> get _routes => config.routes;
-  DefaultScaffoldingBuilder? get _defaultScaffolding => config.defaultScaffolding;
+  DefaultScaffoldingBuilder? get _defaultScaffolding =>
+      config.defaultScaffolding;
   DefaultPageBuilder? get _defaultPageBuilder => config.defaultPageBuilder;
 
   // Used to create Page<Object> when routes are unopinionated about which Page type to use.
@@ -83,7 +85,8 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
     }
 
     if (provideCurrentState) {
-      widget = TreeStateMachineProvider(currentState: currentState!, child: widget);
+      widget =
+          TreeStateMachineProvider(currentState: currentState!, child: widget);
     }
 
     return widget;
@@ -94,11 +97,13 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
   /// Currently this returns a collection of 0 or 1 pages, but once a history feature is added to
   /// tree_state_machine, this will return a history stack which can be popped by the navigator.
   @protected
-  Iterable<Page<void>> _buildActivePages(BuildContext context, CurrentState currentState) {
+  Iterable<Page<void>> _buildActivePages(
+      BuildContext context, CurrentState currentState) {
     /// Return the deepest page that maps to an active state. By deepest, we mean the page that
     /// maps to a state as far as possible from the root state. This gives the current leaf state
     /// priority in determining the page to display, followed by its parent state, etc.
-    var activeRoutes = _findRoutesFor(currentState.activeStates.reversed).toList();
+    var activeRoutes =
+        _findRoutesFor(currentState.activeStates.reversed).toList();
     var navigatorRoutes = activeRoutes.take(1);
 
     // If we have a popup route, attempt to find a route for one of the exiting states. This route
@@ -130,7 +135,8 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
       navigatorRoutes = belowPopupRoutes.followedBy(navigatorRoutes);
     }
 
-    return navigatorRoutes.map((r) => _buildRoutePage(r, context, currentState));
+    return navigatorRoutes
+        .map((r) => _buildRoutePage(r, context, currentState));
   }
 
   @protected
@@ -170,7 +176,8 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
 
   @protected
   bool _onPopPage(Route<dynamic> route, dynamic result) {
-    _log.finer('Popping page for state ${(route.settings as TreeStateRoute).stateKey}');
+    _log.finer(
+        'Popping page for state ${(route.settings as TreeStateRoute).stateKey}');
     if (!route.didPop(result)) return false;
     notifyListeners();
     return true;
@@ -182,9 +189,11 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
     CurrentState currentState,
   ) {
     if (route.routePageBuilder != null) {
-      return route.routePageBuilder!.call(context, TreeStateRoutingContext(currentState));
+      return route.routePageBuilder!
+          .call(context, TreeStateRoutingContext(currentState));
     } else if (route.routeBuilder != null) {
-      var content = route.routeBuilder!.call(context, TreeStateRoutingContext(currentState));
+      var content = route.routeBuilder!
+          .call(context, TreeStateRoutingContext(currentState));
       var pageBuilder = route.isPopup
           ? _popupBuilderForAppType(context)
           : _defaultPageBuilder ?? _pageBuilderForAppType(context);
@@ -198,16 +207,21 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
   }
 
   Widget _withDefaultScaffolding(PageBuildFor buildFor, Widget content) {
-    return _defaultScaffolding != null ? _defaultScaffolding!.call(buildFor, content) : content;
+    return _defaultScaffolding != null
+        ? _defaultScaffolding!.call(buildFor, content)
+        : content;
   }
 
   @protected
-  Page<void> _createEmptyRoutesErrorPage(BuildContext context, List<StateKey> activeStates) {
-    _log.warning('No pages available to display active states [${activeStates.join(',')}]');
+  Page<void> _createEmptyRoutesErrorPage(
+      BuildContext context, List<StateKey> activeStates) {
+    _log.warning(
+        'No pages available to display active states [${activeStates.join(',')}]');
     Widget error = Container();
     assert(() {
       error = ErrorWidget.withDetails(
-          message: 'No tree state routes are available to display any of the active states: '
+          message:
+              'No tree state routes are available to display any of the active states: '
               '${activeStates.map((s) => '"$s"').join(', ')}.\n\n'
               'Make sure to add a route that can display one of the active states to the $runtimeType.');
       return true;
@@ -221,23 +235,28 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
 
   Iterable<TreeStateRouteConfig> _findRoutesFor(Iterable<StateKey> keys) {
     return keys
-        .map((stateKey) => MapEntry<StateKey, TreeStateRouteConfig?>(stateKey, _routeMap[stateKey]))
+        .map((stateKey) => MapEntry<StateKey, TreeStateRouteConfig?>(
+            stateKey, _routeMap[stateKey]))
         .where((entry) => entry.value != null)
         .map((entry) => entry.value!);
   }
 
-  static Map<StateKey, TreeStateRouteConfig> _mapRoutes(List<TreeStateRouteConfig> routes) {
+  static Map<StateKey, TreeStateRouteConfig> _mapRoutes(
+      List<TreeStateRouteConfig> routes) {
     var map = <StateKey, TreeStateRouteConfig>{};
     for (var route in routes) {
       if (map.containsKey(route.stateKey)) {
-        throw ArgumentError('Duplicate routes defined for state \'${route.stateKey}\'', 'pages');
+        throw ArgumentError(
+            'Duplicate routes defined for state \'${route.stateKey}\'',
+            'pages');
       }
       map[route.stateKey] = route;
     }
     return map;
   }
 
-  (PageBuilder pageBuilder, PageBuilder popupPageBuilder) _inferPageBuilders(BuildContext context) {
+  (PageBuilder pageBuilder, PageBuilder popupPageBuilder) _inferPageBuilders(
+      BuildContext context) {
     // May be null during testing
     Element? elem = context is Element ? context : null;
     if (elem != null) {
@@ -250,7 +269,8 @@ abstract class TreeStateRouterDelegateBase extends RouterDelegate<TreeStateRoute
       }
     }
 
-    _log.info('Unable to resolve application type. Defaulting to MaterialPage pages.');
+    _log.info(
+        'Unable to resolve application type. Defaulting to MaterialPage pages.');
     return (materialPageBuilder, materialPopupPageBuilder);
   }
 }
@@ -277,13 +297,15 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
   /// The key used for retrieving the current navigator.
   @override
-  final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'TreeStateRouterDelegate');
+  final navigatorKey =
+      GlobalKey<NavigatorState>(debugLabel: 'TreeStateRouterDelegate');
 
   @override
   Widget build(BuildContext context) {
     var curState = stateMachine.currentState;
     if (curState != null) {
-      _log.fine('Creating pages for active states ${curState.activeStates.join(', ')}');
+      _log.fine(
+          'Creating pages for active states ${curState.activeStates.join(', ')}');
     }
 
     var pages = curState != null
@@ -293,16 +315,20 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         : [if (stateMachine.isStarting) _createLoadingPage(context)];
 
     if (pages.isEmpty) {
-      pages = [_createEmptyRoutesErrorPage(context, curState?.activeStates ?? [])];
+      pages = [
+        _createEmptyRoutesErrorPage(context, curState?.activeStates ?? [])
+      ];
     }
 
-    return _buildNavigatorWidget(pages, curState, provideCurrentState: curState != null);
+    return _buildNavigatorWidget(pages, curState,
+        provideCurrentState: curState != null);
   }
 
   @override
   Future<void> setNewRoutePath(TreeStateRouteInfo configuration) async {
     if (stateMachine.isStarted) {
-      throw UnsupportedError('Routing after the state machine has started is not yet supported.');
+      throw UnsupportedError(
+          'Routing after the state machine has started is not yet supported.');
     } else {
       await stateMachine.start(at: configuration.currentState);
     }
@@ -322,13 +348,13 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 ///
 /// An application configures [NestedTreeStateRouterDelegate] that indicate how individual states in
 /// the state machine should be visualized. This router does not need to be with a state machine
-/// instance. because this router delegate is intended to be nested within an ancestor router configured
-/// with a [TreeStateRouterDelegate]. This router will share the same state machine instance with
-/// the ancestor [TreeStateRouterDelegate].
+/// instance. because this router delegate is intended to be nested within an ancestor router
+/// configured with a [TreeStateRouterDelegate]. This router will share the same state machine
+/// instance with the ancestor [TreeStateRouterDelegate].
 ///
 /// As state transitions occur within the parent state machine, this router delegate will determine
-/// if there is a [TreeStateRoute] that corresponds to the an active state of the state machine. If a
-/// route is available, it is displayed by the [Navigator] returned by [build].
+/// if there is a [TreeStateRoute] that corresponds to the an active state of the state machine. If
+/// a route is available, it is displayed by the [Navigator] returned by [build].
 class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   NestedTreeStateRouterDelegate({
     required super.config,
@@ -344,7 +370,8 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
   /// The key used for retrieving the current navigator.
   @override
-  final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'ChildTreeStateRouterDelegate');
+  final navigatorKey =
+      GlobalKey<NavigatorState>(debugLabel: 'ChildTreeStateRouterDelegate');
 
   @override
   Future<void> setNewRoutePath(TreeStateRouteInfo configuration) {
@@ -380,7 +407,8 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       }
     }
 
-    return _buildNavigatorWidget(pages, currentState, provideCurrentState: false);
+    return _buildNavigatorWidget(pages, currentState,
+        provideCurrentState: false);
   }
 
   @override
@@ -400,18 +428,22 @@ class _NoTransitionsTransitionDelegate extends DefaultTransitionDelegate {
   @override
   Iterable<RouteTransitionRecord> resolve({
     required List<RouteTransitionRecord> newPageRouteHistory,
-    required Map<RouteTransitionRecord?, RouteTransitionRecord> locationToExitingPageRoute,
-    required Map<RouteTransitionRecord?, List<RouteTransitionRecord>> pageRouteToPagelessRoutes,
+    required Map<RouteTransitionRecord?, RouteTransitionRecord>
+        locationToExitingPageRoute,
+    required Map<RouteTransitionRecord?, List<RouteTransitionRecord>>
+        pageRouteToPagelessRoutes,
   }) {
     var records = super.resolve(
-      newPageRouteHistory:
-          newPageRouteHistory.map(_NoTransitionsRouteTransitionRecord.new).toList(),
+      newPageRouteHistory: newPageRouteHistory
+          .map(_NoTransitionsRouteTransitionRecord.new)
+          .toList(),
       locationToExitingPageRoute: locationToExitingPageRoute,
       pageRouteToPagelessRoutes: pageRouteToPagelessRoutes,
     );
     // DefaultTransitionDelegate assumes records are _RouteEntry, so we need to unwrap
     // _NoTransitionRouteTransitionRecord before returning the results.
-    return records.map((r) => r is _NoTransitionsRouteTransitionRecord ? r.inner : r);
+    return records
+        .map((r) => r is _NoTransitionsRouteTransitionRecord ? r.inner : r);
   }
 }
 

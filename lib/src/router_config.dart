@@ -10,13 +10,19 @@ import 'routes/routes.dart';
 ///
 /// The function is provided a [buildFor] indicating the reason the page is being built, and
 /// the [pageContent] to display in the page.
-typedef DefaultScaffoldingBuilder = Widget Function(PageBuildFor buildFor, Widget pageContent);
+typedef DefaultScaffoldingBuilder = Widget Function(
+  PageBuildFor buildFor,
+  Widget pageContent,
+);
 
 /// A function that can create a [Page] to display the content of a route.
 ///
 /// The function is provided a [buildFor] indicating the reason the page is being built, and
 /// the [pageContent] to display in the page.
-typedef DefaultPageBuilder = Page<void> Function(PageBuildFor buildFor, Widget pageContent);
+typedef DefaultPageBuilder = Page<void> Function(
+  PageBuildFor buildFor,
+  Widget pageContent,
+);
 
 /// Routing information that describes how to display states in a [TreeStateMachine], and triggers
 /// routing navigation in response to state transitions within the state machine.
@@ -99,18 +105,20 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
 
   /// The [RootBackButtonDispatcher] used by [TreeStateRouter].
   @override
-  final BackButtonDispatcher? backButtonDispatcher = RootBackButtonDispatcher();
+  final backButtonDispatcher = RootBackButtonDispatcher();
 
   /// The [RouteInformationParser] used by [TreeStateRouter].
   @override
-  late final RouteInformationParser<TreeStateRouteInfo>? routeInformationParser =
+  late final routeInformationParser =
       TreeStateRouteInformationParser(stateMachine.rootNode.key);
 
   /// The [RouteInformationProvider] used by [TreeStateRouter].
   @override
   late final routeInformationProvider = PlatformRouteInformationProvider(
     initialRouteInformation: RouteInformation(
-      uri: Uri.parse(WidgetsBinding.instance.platformDispatcher.defaultRouteName),
+      uri: Uri.parse(
+        WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+      ),
     ),
   );
 }

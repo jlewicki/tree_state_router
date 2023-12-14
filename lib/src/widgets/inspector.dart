@@ -38,8 +38,10 @@ class _StateTreeInspectorState extends State<StateTreeInspector> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (info.currentState.stateMachine.label != null)
-                            Text('State Machine: ${info.currentState.stateMachine.label}'),
-                          Text("Active States: ${info.currentState.activeStates.join(' -> ')}"),
+                            Text(
+                                'State Machine: ${info.currentState.stateMachine.label}'),
+                          Text(
+                              "Active States: ${info.currentState.activeStates.join(' -> ')}"),
                         ],
                       ),
                     ),

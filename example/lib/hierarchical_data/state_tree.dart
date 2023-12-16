@@ -1,5 +1,5 @@
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/tree_builders.dart';
+import 'package:tree_state_machine/declarative_builders.dart';
 
 //
 // State keys
@@ -45,13 +45,15 @@ class Child2Data {
   final String value;
 }
 
-StateTreeBuilder hierarchicalDataStateTree() {
-  var b = StateTreeBuilder.withDataRoot<ParentData>(
+DeclarativeStateTreeBuilder hierarchicalDataStateTree() {
+  var b = DeclarativeStateTreeBuilder.withDataRoot<ParentData>(
     States.parent,
     InitialData(() => ParentData('This is the parent value')),
     (b) {
       b.onMessage<UpdateParentData>(
-        (b) => b.stay(action: b.act.updateOwnData((ctx) => ParentData(ctx.message.newValue))),
+        (b) => b.stay(
+            action:
+                b.act.updateOwnData((ctx) => ParentData(ctx.message.newValue))),
       );
     },
     InitialChild(States.child1),
@@ -64,7 +66,9 @@ StateTreeBuilder hierarchicalDataStateTree() {
     InitialData(() => Child1Data("This is the value from child 1")),
     (b) {
       b.onMessage<UpdateChildData>(
-        (b) => b.stay(action: b.act.updateOwnData((ctx) => Child1Data(ctx.message.newValue))),
+        (b) => b.stay(
+            action:
+                b.act.updateOwnData((ctx) => Child1Data(ctx.message.newValue))),
       );
       b.onMessage<GoToChild2>((b) => b.goTo(States.child2));
     },
@@ -75,7 +79,9 @@ StateTreeBuilder hierarchicalDataStateTree() {
     InitialData(() => Child2Data("This is the value from child 2")),
     (b) {
       b.onMessage<UpdateChildData>(
-        (b) => b.stay(action: b.act.updateOwnData((ctx) => Child2Data(ctx.message.newValue))),
+        (b) => b.stay(
+            action:
+                b.act.updateOwnData((ctx) => Child2Data(ctx.message.newValue))),
       );
       b.onMessage<GoToChild1>((b) => b.goTo(States.child1));
     },

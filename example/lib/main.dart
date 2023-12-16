@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:tree_state_machine/tree_builders.dart';
+import 'package:tree_state_machine/declarative_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
@@ -23,8 +23,8 @@ class States {
 
 class AMessage {}
 
-StateTreeBuilder simpleStateTree() {
-  var b = StateTreeBuilder(initialChild: States.state1);
+DeclarativeStateTreeBuilder simpleStateTree() {
+  var b = DeclarativeStateTreeBuilder(initialChild: States.state1);
   b.state(States.state1, (b) {
     b.onMessage<AMessage>((b) => b.goTo(States.state2));
   });

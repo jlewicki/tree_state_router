@@ -1,5 +1,5 @@
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/tree_builders.dart';
+import 'package:tree_state_machine/declarative_builders.dart';
 
 class CounterData {
   CounterData(this.counter);
@@ -15,8 +15,8 @@ class States {
 enum Messages { increment, decrement, edit, endEdit }
 
 /// A state tree with states for viewing and editing a counter value stored in a parent state.
-StateTreeBuilder countingStateTree() {
-  var b = StateTreeBuilder.withDataRoot<CounterData>(
+DeclarativeStateTreeBuilder countingStateTree() {
+  var b = DeclarativeStateTreeBuilder.withDataRoot<CounterData>(
     States.counting,
     InitialData(() => CounterData(0)),
     emptyState,
@@ -37,13 +37,15 @@ StateTreeBuilder countingStateTree() {
     b.onMessageValue(
       Messages.increment,
       (b) => b.stay(
-        action: b.act.updateData<CounterData>((ctx, data) => CounterData(data.counter + 1)),
+        action: b.act.updateData<CounterData>(
+            (ctx, data) => CounterData(data.counter + 1)),
       ),
     );
     b.onMessageValue(
       Messages.decrement,
       (b) => b.stay(
-        action: b.act.updateData<CounterData>((ctx, data) => CounterData(data.counter - 1)),
+        action: b.act.updateData<CounterData>(
+            (ctx, data) => CounterData(data.counter - 1)),
       ),
     );
     b.onMessageValue(Messages.endEdit, (b) => b.goTo(States.view));

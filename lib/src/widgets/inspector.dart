@@ -37,7 +37,7 @@ class _StateTreeInspectorState extends State<StateTreeInspector> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (info.currentState.stateMachine.label != null)
+                          if (info.currentState.stateMachine.label.isNotEmpty)
                             Text(
                                 'State Machine: ${info.currentState.stateMachine.label}'),
                           Text(

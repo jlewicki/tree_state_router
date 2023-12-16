@@ -1,5 +1,5 @@
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/tree_builders.dart';
+import 'package:tree_state_machine/declarative_builders.dart';
 
 //
 // State keys
@@ -30,18 +30,18 @@ class ToLowercase {
 
 /// A simple flat (non-hierarchial) state tree illustrating simple branching and passing data between
 /// states.
-StateTreeBuilder simpleStateTree() {
-  var b = StateTreeBuilder(
+DeclarativeStateTreeBuilder simpleStateTree() {
+  var b = DeclarativeStateTreeBuilder(
     initialChild: States.enterText,
     logName: 'simple',
     label: 'Simple State Tree',
   );
 
   b.state(States.enterText, (b) {
-    b.onMessage<ToUppercase>(
-        (b) => b.goTo(States.showUppercase, payload: (ctx) => ctx.message.text));
-    b.onMessage<ToLowercase>(
-        (b) => b.goTo(States.showLowercase, payload: (ctx) => ctx.message.text));
+    b.onMessage<ToUppercase>((b) =>
+        b.goTo(States.showUppercase, payload: (ctx) => ctx.message.text));
+    b.onMessage<ToLowercase>((b) =>
+        b.goTo(States.showLowercase, payload: (ctx) => ctx.message.text));
   });
 
   b.dataState<String>(

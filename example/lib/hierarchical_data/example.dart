@@ -5,7 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import '../../helpers/helpers.dart';
-import 'state_tree.dart';
+import '../../helpers/state_trees/hierarchical_data.dart';
 import 'pages.dart';
 
 //

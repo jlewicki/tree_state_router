@@ -1,79 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
-
 import 'builder.dart';
 
 /// TBD: This will contain routing information parsed from the current URI.
 class TreeStateRoutingState {}
-
-class StateRoutingContext {
-  StateRoutingContext(this.currentState);
-  final CurrentState currentState;
-  final TreeStateRoutingState routingState = TreeStateRoutingState();
-}
-
-/// Provides an accessor for a [StateRouteConfig] describing a route.
-abstract class StateRouteConfigProvider {
-  /// A config object providing a generalized description of a route for a [TreeStateRouter].
-  StateRouteConfig get config;
-}
-
-/// {@template TreeStateRouteBuilder}
-/// A function that can build a widget providing a visualization of an active state in a state tree.
-///
-/// The function is provided a build [context], and a [stateContext] that describes the state to be
-/// visualized.
-/// {@endtemplate}
-typedef StateRouteBuilder = Widget Function(
-  BuildContext context,
-  StateRoutingContext stateContext,
-);
-
-/// {@template TreeStateRoutePageBuilder}
-/// A function that can build a routing [Page] that provides a visualization of an active state in
-/// a state tree.
-///
-/// The function is provided a build [context], and a [stateContext] that describes the state to be
-/// visualized.
-/// {@endtemplate}
-typedef StateRoutePageBuilder = Page<dynamic> Function(
-  BuildContext context,
-  StateRoutingContext stateContext,
-);
-
-/// A generalized description of a route that can be placed in a [TreeStateRouter].
-///
-/// This is intended for use by [TreeStateRouter], and typically not used by an applciation
-/// directly.
-class StateRouteConfig {
-  StateRouteConfig(
-    this.stateKey, {
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.isPopup = false,
-    this.dependencies = const [],
-  });
-
-  /// The state key identifying the tree state associated with this route.
-  final StateKey stateKey;
-
-  /// {@macro TreeStateRouteBuilder}
-  final StateRouteBuilder? routeBuilder;
-
-  /// {@macro TreeStateRoutePageBuilder}
-  final StateRoutePageBuilder? routePageBuilder;
-
-  /// {@macro TreeStateRoute.isPopup}
-  final bool isPopup;
-
-  /// A list (possibly empty) of keys indentifying the data states whose data are used when
-  /// producing the visuals for the state.
-  ///
-  /// In general these will be ancestor states of [stateKey], although if [stateKey] is a
-  /// [DataStateKey] it will be present in the list as well.
-  final List<DataStateKey> dependencies;
-}
 
 /// {@template ShellTreeStateRouteBuilder}
 /// A function that can build a widget providing a visualization of an active parent state in a
@@ -184,6 +115,8 @@ class StateRoute implements StateRouteConfigProvider {
     bool enableTransitions = false,
   }) {
     var nestedRouter = NestedTreeStateRouter(
+      key: ValueKey(stateKey),
+      parentStateKey: stateKey,
       routes: routes,
       enableTransitions: enableTransitions,
     );
@@ -202,16 +135,22 @@ class StateRoute implements StateRouteConfigProvider {
   /// Identifies the tree state associated with this route.
   final StateKey stateKey;
 
-  /// {@macro TreeStateRouteBuilder}
+  /// {@template StateRoute.routeBuilder}
+  /// The builder function providing the visuals for this route.
+  ///
+  /// May be `null` if [routePageBuilder] is provided instead.
+  /// {@endtemplate}
+  final StateRouteBuilder? routeBuilder;
+
+  /// {@template StateRoute.routePageBuilder}
+  /// The builder function that constructs the routing [Page] for this route.
   ///
   /// If `null`, the [TreeStateRouter] will choose an appropriate [Page] type based on the application
   /// typoe (Material, Cupertino, etc.).
-  final StateRouteBuilder? routeBuilder;
-
-  /// {@macro TreeStateRoutePageBuilder}
+  /// {@endtemplate}
   final StateRoutePageBuilder? routePageBuilder;
 
-  /// {@template TreeStateRoute.isPopup}
+  /// {@template StateRoute.isPopup}
   /// Indicates if this route will display its visuals in a [PopupRoute].
   /// {@endtemplate}
   final bool isPopup;

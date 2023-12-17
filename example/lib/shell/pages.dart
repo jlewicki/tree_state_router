@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import '../../helpers/helpers.dart';
-import 'state_tree.dart';
+import '../../helpers/state_trees/hierarchical_data.dart';
 
 Widget parentPage(
   BuildContext ctx,
   StateRoutingContext stateCtx,
-  Widget childRouter,
+  Widget nestedRouter,
   ParentData parentData,
 ) {
   var textForParent = "";
@@ -32,7 +32,7 @@ Widget parentPage(
           ],
         ),
       ),
-      IntrinsicHeight(child: childRouter)
+      IntrinsicHeight(child: nestedRouter)
     ],
   );
 }

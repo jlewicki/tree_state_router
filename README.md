@@ -7,7 +7,7 @@ place in a [tree_state_machine](https://pub.dev/packages/tree_state_machine)
 ## Features
 
 * Flutter router built for the Router API.
-* Supports declarative routing for flat and hierarchical state machines.
+* Supports declarative routing based on the active states of flat and hierarchical state machines.
 * Supports nested routers
 
 

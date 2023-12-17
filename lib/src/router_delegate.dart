@@ -4,11 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
+import 'package:tree_state_router/tree_state_router.dart';
 import 'package:tree_state_router/src/pages.dart';
-import 'package:tree_state_router/src/parser.dart';
 import 'package:tree_state_router/src/widgets/state_machine_error.dart';
 import 'package:tree_state_router/src/widgets/state_machine_events.dart';
-import 'package:tree_state_router/tree_state_router.dart';
 
 class TreeStateRouterDelegateConfig {
   TreeStateRouterDelegateConfig(
@@ -44,24 +43,19 @@ abstract class TreeStateRouterDelegateBase
   /// The most recent state machine transition that has occurred.
   Transition? _transition;
 
+  /// The routes routed by this delegate, indexed by state key.
+  late final _routeMap = _mapRoutes(config.routes);
+
   final Logger _log;
-  late final _routeMap = _mapRoutes(_routes);
-  List<StateRouteConfig> get _routes => config.routes;
-  DefaultScaffoldingBuilder? get _defaultScaffolding =>
-      config.defaultScaffolding;
-  DefaultPageBuilder? get _defaultPageBuilder => config.defaultPageBuilder;
 
   // Used to create Page<Object> when routes are unopinionated about which Page type to use.
   (PageBuilder pageBuilder, PageBuilder popupPageBuilder)? _pageBuilders;
-
-  // Page<void> _dialogPageBuilder(PageBuildFor buildFor, Widget pageContent) {
-  //   return _PopupPage(pageContent);
-  // }
 
   Widget _buildNavigatorWidget(
     List<Page> pages,
     CurrentState? currentState, {
     required bool provideCurrentState,
+    StateKey? transitionEventRootState,
   }) {
     Widget widget = Navigator(
       key: navigatorKey,
@@ -75,6 +69,7 @@ abstract class TreeStateRouterDelegateBase
     if (currentState != null) {
       widget = TreeStateMachineEvents(
         onTransition: _onTransition,
+        transitionsRootKey: transitionEventRootState,
         child: displayStateMachineErrors
             ? StateMachineErrorBuilder(
                 errorBuilder: _buildErrorWidget,
@@ -196,7 +191,7 @@ abstract class TreeStateRouterDelegateBase
           route.routeBuilder!.call(context, StateRoutingContext(currentState));
       var pageBuilder = route.isPopup
           ? _popupBuilderForAppType(context)
-          : _defaultPageBuilder ?? _pageBuilderForAppType(context);
+          : config.defaultPageBuilder ?? _pageBuilderForAppType(context);
       var buildFor = BuildForRoute(route);
       return pageBuilder(buildFor, _withDefaultScaffolding(buildFor, content));
     }
@@ -207,9 +202,7 @@ abstract class TreeStateRouterDelegateBase
   }
 
   Widget _withDefaultScaffolding(PageBuildFor buildFor, Widget content) {
-    return _defaultScaffolding != null
-        ? _defaultScaffolding!.call(buildFor, content)
-        : content;
+    return config.defaultScaffolding?.call(buildFor, content) ?? content;
   }
 
   @protected
@@ -358,11 +351,20 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   NestedTreeStateRouterDelegate({
     required super.config,
+    required this.parentKey,
     super.displayStateMachineErrors,
     this.supportsFinalRoute = true,
   }) : super(
           log: Logger('ChildTreeStateRouterDelegate'),
         );
+
+  /// {@template NestedTreeStateRouterDelegate.parentKey}
+  /// Identifies the tree state that anchors the routing provided by this router.
+  ///
+  /// Only state transitions such that this state remains active are routed. In other words, routing
+  /// only occurs if the transition is between two decscendants of this state.
+  /// {@endtemplate}
+  final StateKey parentKey;
 
   /// If `true` (the default), an error page will be displayed if the state machine reaches a final
   /// state, and there is no route that can display that state.
@@ -407,8 +409,12 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       }
     }
 
-    return _buildNavigatorWidget(pages, currentState,
-        provideCurrentState: false);
+    return _buildNavigatorWidget(
+      pages,
+      currentState,
+      provideCurrentState: false,
+      transitionEventRootState: parentKey,
+    );
   }
 
   @override

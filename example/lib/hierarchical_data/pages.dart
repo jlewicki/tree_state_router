@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import '../../helpers/helpers.dart';
-import 'state_tree.dart';
+import '../../helpers/state_trees/hierarchical_data.dart';
 
 Widget child1Page(
   BuildContext ctx,

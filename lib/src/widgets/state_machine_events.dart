@@ -4,14 +4,14 @@ import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
-// A widget for receiving notifications from a [TreeStateMachine].
+/// A widget for receiving notifications from a [TreeStateMachine].
 ///
 /// The state machine providing the events is obtained using [TreeStateMachineProvider.of].
 class TreeStateMachineEvents extends StatefulWidget {
   const TreeStateMachineEvents({
     super.key,
     required this.child,
-    this.transitionRootKey,
+    this.transitionsRootKey,
     this.onTransition,
     this.onFailedMessage,
   });
@@ -22,8 +22,8 @@ class TreeStateMachineEvents extends StatefulWidget {
   /// Optional state key indicating a state that is used as a root for transition events.
   ///
   /// If provided, [onTransition] will be called only for transitions that occur between states that
-  /// are desecendant of the transition root.
-  final StateKey? transitionRootKey;
+  /// are descendants of the transition root.
+  final StateKey? transitionsRootKey;
 
   /// Called when a state transition has occurred within the state machine.
   final void Function(CurrentState, Transition)? onTransition;
@@ -44,7 +44,7 @@ class _TreeStateMachineEventsState extends State<TreeStateMachineEvents> {
     super.didUpdateWidget(oldWidget);
     if (widget.onTransition != oldWidget.onTransition ||
         widget.onFailedMessage != oldWidget.onFailedMessage ||
-        widget.transitionRootKey != oldWidget.transitionRootKey) {
+        widget.transitionsRootKey != oldWidget.transitionsRootKey) {
       _unsubscribe();
       _subscribe();
     }
@@ -81,9 +81,9 @@ class _TreeStateMachineEventsState extends State<TreeStateMachineEvents> {
     }
 
     if (widget.onTransition != null) {
-      var transitions = widget.transitionRootKey != null
+      var transitions = widget.transitionsRootKey != null
           ? stateMachine.transitions
-              .where((t) => !t.exitPath.contains(widget.transitionRootKey))
+              .where((t) => !t.exitPath.contains(widget.transitionsRootKey))
           : stateMachine.transitions;
       _transitionSubscription = transitions
           .listen((trans) => widget.onTransition!(currentState, trans));

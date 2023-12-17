@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_router/src/pages.dart';
-import 'package:tree_state_router/src/parser.dart';
+import 'package:tree_state_router/tree_state_router.dart';
+// import 'package:tree_state_router/src/pages.dart';
+// import 'package:tree_state_router/src/parser.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
-
-import 'routes/routes.dart';
+// import 'routes/routes.dart';
 
 /// A function that can adorn the content of a route page, adding common layout or scaffolding.
 ///
@@ -52,7 +52,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   /// a state in the [stateMachine].
   final List<StateRouteConfigProvider> routes;
 
-  /// {@template defaultScaffolding}
+  /// {@template TreeStateRouter.defaultScaffolding}
   /// A function that can adorn the content of a route page, adding common layout or scaffolding.
   ///
   /// The function is provided a `buildFor` indicating the reason the page is being built, and
@@ -70,7 +70,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   /// ```
   final DefaultScaffoldingBuilder? defaultScaffolding;
 
-  /// {@template defaultPageBuilder}
+  /// {@template TreeStateRouter.defaultPageBuilder}
   /// A function that can create a [Page] to display the content of a route.
   ///
   /// The function is provided a `buildFor` indicating the reason the page is being built, and
@@ -78,7 +78,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   /// {@endtemplate}
   final DefaultPageBuilder? defaultPageBuilder;
 
-  /// {@template enableTransitions}
+  /// {@template TreeStateRouter.enableTransitions}
   /// Indicates if page transitions within the router should be animated.
   ///
   /// If enabled, the particular animations that occur are determined by the [Page]s associated with

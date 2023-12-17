@@ -3,7 +3,7 @@ import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'builder.dart';
 
-/// {@template DataTreeStateRouteBuilder}
+/// {@template DataStateRouteBuilder}
 /// A function that can build a widget providing a visualization of an active data state in a state tree.
 ///
 /// The function is provided a build [context], and a [stateContext] that describes the state to be
@@ -15,7 +15,7 @@ typedef DataStateRouteBuilder<D> = Widget Function(
   D data,
 );
 
-/// {@template DataTreeStateRoutePageBuilder}
+/// {@template DataStateRoutePageBuilder}
 /// A function that can build a routing [Page] that provides a visualization of an active state in
 /// a state tree.
 ///
@@ -71,7 +71,7 @@ typedef ShellDataStateRoutePageBuilder<D> = Page<void> Function(
 /// ```dart
 /// var routerConfig = TreeStateRouter(
 ///   routes: [
-///     DataTreeStateRoute(
+///     DataStateRoute(
 ///       States.dataState1,
 ///       routeBuilder: (buildContext, stateContext, data) {
 ///            return const Center(child: Text('State data value: $data');
@@ -87,7 +87,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     this.isPopup = false,
   });
 
-  /// Constructs a [DataTreeStateRoute].
+  /// Constructs a [DataStateRoute].
   DataStateRoute(
     this.stateKey, {
     this.routeBuilder,
@@ -109,6 +109,8 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     DefaultScaffoldingBuilder? defaultScaffolding,
   }) {
     var nestedRouter = NestedTreeStateRouter(
+      key: ValueKey(stateKey),
+      parentStateKey: stateKey,
       routes: routes,
       enableTransitions: enableTransitions,
       defaultScaffolding: defaultScaffolding,
@@ -141,16 +143,13 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
   /// Identifies the data tree state associated with this route.
   final DataStateKey<D> stateKey;
 
-  /// {@macro DataTreeStateRouteBuilder}
-  ///
-  /// If `null`, the [TreeStateRouter] will choose an appropriate [Page] type based on the application
-  /// typoe (Material, Cupertino, etc.).
+  /// {@macro StateRoute.routeBuilder}
   final DataStateRouteBuilder<D>? routeBuilder;
 
-  /// {@macro DataTreeStateRoutePageBuilder}
+  /// {@macro StateRoute.routePageBuilder}
   final DataStateRoutePageBuilder<D>? routePageBuilder;
 
-  /// {@macro TreeStateRoute.isPopup}
+  /// {@macro StateRoute.isPopup}
   final bool isPopup;
 
   late final List<StateDataResolver> _resolvers = [

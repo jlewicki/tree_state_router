@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import '../../helpers/helpers.dart';
-import '../../helpers/state_trees/hierarchical_data.dart';
+import 'state_tree.dart';
 
-Widget parentPage(
+Widget dataParentPage(
   BuildContext ctx,
   StateRoutingContext stateCtx,
+  Widget nestedRouter,
   ParentData parentData,
 ) {
   var textForParent = "";
@@ -15,7 +16,7 @@ Widget parentPage(
     children: <Widget>[
       Container(
         padding: const EdgeInsets.all(8.0),
-        child: Text('Parent data: ${parentData.value}'),
+        child: Text('This is the data parent state: ${parentData.value}'),
       ),
       Padding(
         padding: const EdgeInsets.all(8.0),
@@ -34,56 +35,50 @@ Widget parentPage(
           ],
         ),
       ),
-      IntrinsicHeight(
-        child: NestedTreeStateRouter(
-          parentStateKey: States.parent,
-          enableTransitions: false,
-          routes: [
-            DataStateRoute(States.child1, routeBuilder: child1Page),
-            DataStateRoute(States.child2, routeBuilder: child2Page),
-          ],
-        ),
-      )
+      IntrinsicHeight(child: nestedRouter)
     ],
   );
 }
 
-Widget child1Page(
-    BuildContext ctx, StateRoutingContext stateCtx, Child1Data data) {
-  var textForChild1 = "";
-
+Widget parentPage(
+  BuildContext ctx,
+  StateRoutingContext stateCtx,
+  Widget nestedRouter,
+) {
   return Column(
     mainAxisSize: MainAxisSize.min,
     children: <Widget>[
       Container(
         padding: const EdgeInsets.all(8.0),
-        child: Text('Child1 data: ${data.value}'),
+        child: const Text('This is the parent state'),
       ),
-      Padding(
+      IntrinsicHeight(child: nestedRouter)
+    ],
+  );
+}
+
+Widget childPage(BuildContext ctx, StateRoutingContext stateCtx) {
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: <Widget>[
+      Container(
         padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            editText(data.value, 'Enter value for Child1',
-                (val) => textForChild1 = val),
-            button(
-              'Update Child1 data',
-              () => stateCtx.currentState.post(UpdateChildData(textForChild1)),
-            )
-          ],
-        ),
+        child: const Text('This is the child state'),
       ),
       button(
-        'Go to Child2',
-        () => stateCtx.currentState.post(GoToChild2()),
+        'Go to dataChild',
+        () => stateCtx.currentState.post(GoToDataChild()),
       ),
     ],
   );
 }
 
-Widget child2Page(
-    BuildContext ctx, StateRoutingContext stateCtx, Child2Data data) {
-  var textForChild2 = "";
+Widget dataChildPage(
+  BuildContext ctx,
+  StateRoutingContext stateCtx,
+  ChildData data,
+) {
+  var textForChildData = "";
 
   return Column(
     mainAxisSize: MainAxisSize.min,
@@ -97,18 +92,19 @@ Widget child2Page(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            editText(data.value, 'Enter value for Child2',
-                (val) => textForChild2 = val),
+            editText(data.value, 'Enter value for ChildData',
+                (val) => textForChildData = val),
             button(
-              'Update Child2 data',
-              () => stateCtx.currentState.post(UpdateChildData(textForChild2)),
+              'Update ChildData',
+              () =>
+                  stateCtx.currentState.post(UpdateChildData(textForChildData)),
             )
           ],
         ),
       ),
       button(
         'Go to Child1',
-        () => stateCtx.currentState.post(GoToChild1()),
+        () => stateCtx.currentState.post(GoToChild()),
       ),
     ],
   );

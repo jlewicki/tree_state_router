@@ -8,6 +8,9 @@ import 'package:tree_state_router_examples/helpers/helpers.dart';
 import 'state_tree.dart';
 import 'pages.dart';
 
+//
+// This example demonstrates a popup route.
+//
 void main() {
   _initLogging();
   runApp(const MainApp());
@@ -17,12 +20,12 @@ final router = TreeStateRouter(
   stateMachine: TreeStateMachine(countingStateTree()),
   defaultScaffolding: defaultScaffolding,
   routes: [
-    TreeStateRoute1(
+    StateRoute1(
       States.view,
       ancestorStateKey: States.counting,
       routeBuilder: viewCounterPage,
     ),
-    TreeStateRoute1.popup(
+    StateRoute1.popup(
       States.edit,
       ancestorStateKey: States.counting,
       routeBuilder: editCounterPage,

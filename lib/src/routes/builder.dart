@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/async.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
+import 'package:tree_state_router/tree_state_router.dart';
 
 import '../widgets/state_machine_provider.dart';
 
@@ -143,6 +144,45 @@ class StateDataResolver<D> {
 
   ValueStream? call(CurrentState currentState) =>
       currentState.dataStream<D>(stateKey);
+}
+
+DataStateBuilder createDataStateBuilder2<D1, D2>(
+  StateKey stateKey,
+  List<StateDataResolver> resolvers,
+  StateRoutingContext stateContext,
+  DataStateRouteBuilder2<D1, D2> buildPageContent,
+) {
+  return DataStateBuilder(
+    ValueKey(stateKey),
+    stateKey,
+    resolvers,
+    (context, dataList, currentState) => buildPageContent(
+      context,
+      stateContext,
+      dataList.getAs<D1>(0),
+      dataList.getAs<D2>(1),
+    ),
+  );
+}
+
+DataStateBuilder createDataStateBuilder3<D1, D2, D3>(
+  StateKey stateKey,
+  List<StateDataResolver> resolvers,
+  StateRoutingContext stateContext,
+  DataStateRouteBuilder3<D1, D2, D3> buildPageContent,
+) {
+  return DataStateBuilder(
+    ValueKey(stateKey),
+    stateKey,
+    resolvers,
+    (context, dataList, currentState) => buildPageContent(
+      context,
+      stateContext,
+      dataList.getAs<D1>(0),
+      dataList.getAs<D2>(1),
+      dataList.getAs<D3>(2),
+    ),
+  );
 }
 
 typedef _TreeStateDataListWidgetBuilder = Widget Function(

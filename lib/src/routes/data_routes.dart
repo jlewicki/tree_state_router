@@ -160,20 +160,19 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
   late final config = StateRouteConfig(stateKey,
       routeBuilder: routeBuilder != null
           ? (context, stateContext) =>
-              _createDataTreeStateBuilder(stateContext, routeBuilder!)
+              _createDataStateBuilder(stateContext, routeBuilder!)
           : null,
       routePageBuilder: routePageBuilder != null
           ? (context, wrapContent) => routePageBuilder!.call(
                 context,
                 (buildPageContent) => wrapContent((context, stateContext) =>
-                    _createDataTreeStateBuilder(
-                        stateContext, buildPageContent)),
+                    _createDataStateBuilder(stateContext, buildPageContent)),
               )
           : null,
       isPopup: isPopup,
       dependencies: _resolvers.map((e) => e.stateKey!).toList());
 
-  DataStateBuilder _createDataTreeStateBuilder(
+  DataStateBuilder _createDataStateBuilder(
     StateRoutingContext stateContext,
     DataStateRouteBuilder<D> buildPageContent,
   ) {
@@ -245,35 +244,19 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
   late final config = StateRouteConfig(
     stateKey,
     routeBuilder: routeBuilder != null
-        ? (context, stateContext) =>
-            _createDataTreeStateBuilder(stateContext, routeBuilder!)
+        ? (context, stateContext) => createDataStateBuilder2(
+            stateKey, _resolvers, stateContext, routeBuilder!)
         : null,
     routePageBuilder: routePageBuilder != null
         ? (context, wrapContent) => routePageBuilder!.call(
               context,
               (buildPageContent) => wrapContent((context, stateContext) =>
-                  _createDataTreeStateBuilder(stateContext, buildPageContent)),
+                  createDataStateBuilder2(
+                      stateKey, _resolvers, stateContext, buildPageContent)),
             )
         : null,
     isPopup: isPopup,
   );
-
-  DataStateBuilder _createDataTreeStateBuilder(
-    StateRoutingContext stateContext,
-    DataStateRouteBuilder2<D, DAnc> buildPageContent,
-  ) {
-    return DataStateBuilder(
-      ValueKey(stateKey),
-      stateKey,
-      _resolvers,
-      (context, dataList, currentState) => buildPageContent(
-        context,
-        stateContext,
-        dataList.getAs<D>(0),
-        dataList.getAs<DAnc>(1),
-      ),
-    );
-  }
 }
 
 typedef DataStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
@@ -290,8 +273,8 @@ typedef DataStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
       wrapPageContent,
 );
 
-class DataTreeStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
-  DataTreeStateRoute3._(
+class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
+  DataStateRoute3._(
     this.stateKey, {
     required this.ancestor1StateKey,
     required this.ancestor2StateKey,
@@ -300,7 +283,7 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.isPopup = false,
   });
 
-  DataTreeStateRoute3(
+  DataStateRoute3(
     this.stateKey, {
     required this.ancestor1StateKey,
     required this.ancestor2StateKey,
@@ -308,13 +291,13 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.routePageBuilder,
   }) : isPopup = false;
 
-  factory DataTreeStateRoute3.popup(
+  factory DataStateRoute3.popup(
     DataStateKey<D> stateKey, {
     required DataStateKey<DAnc1> ancestor1StateKey,
     required DataStateKey<DAnc2> ancestor2StateKey,
     required DataStateRouteBuilder3<D, DAnc1, DAnc2> routeBuilder,
   }) =>
-      DataTreeStateRoute3<D, DAnc1, DAnc2>._(
+      DataStateRoute3<D, DAnc1, DAnc2>._(
         stateKey,
         ancestor1StateKey: ancestor1StateKey,
         ancestor2StateKey: ancestor2StateKey,
@@ -338,34 +321,17 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
   late final config = StateRouteConfig(
     stateKey,
     routeBuilder: routeBuilder != null
-        ? (context, stateContext) =>
-            _createDataTreeStateBuilder(stateContext, routeBuilder!)
+        ? (context, stateContext) => createDataStateBuilder3(
+            stateKey, _resolvers, stateContext, routeBuilder!)
         : null,
     routePageBuilder: routePageBuilder != null
         ? (context, wrapContent) => routePageBuilder!.call(
               context,
               (buildPageContent) => wrapContent((context, stateContext) =>
-                  _createDataTreeStateBuilder(stateContext, buildPageContent)),
+                  createDataStateBuilder3(
+                      stateKey, _resolvers, stateContext, buildPageContent)),
             )
         : null,
     isPopup: isPopup,
   );
-
-  DataStateBuilder _createDataTreeStateBuilder(
-    StateRoutingContext stateContext,
-    DataStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent,
-  ) {
-    return DataStateBuilder(
-      ValueKey(stateKey),
-      stateKey,
-      _resolvers,
-      (context, dataList, currentState) => buildPageContent(
-        context,
-        stateContext,
-        dataList.getAs<D>(0),
-        dataList.getAs<DAnc1>(1),
-        dataList.getAs<DAnc2>(2),
-      ),
-    );
-  }
 }

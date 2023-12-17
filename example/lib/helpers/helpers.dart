@@ -6,8 +6,7 @@ Widget defaultScaffolding(PageBuildFor buildFor, Widget pageContent) {
   return switch (buildFor) {
     // Don't wrap popup routes in a Scaffold, since that expands to fit the entire page, which
     // obscures the popup dialog shim
-    BuildForRoute(route: StateRouteConfig(isPopup: var isPopup)) when isPopup =>
-      Center(
+    BuildForRoute(isPopup: true) => Center(
         child: Card(
           child: pageContent,
         ),

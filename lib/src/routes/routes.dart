@@ -144,7 +144,9 @@ class StateRoute implements StateRouteConfigProvider {
     );
   }
 
+  /// {@template StateRoute.stateKey}
   /// Identifies the tree state associated with this route.
+  /// {@endtemplate}
   final StateKey stateKey;
 
   /// {@template StateRoute.routeBuilder}
@@ -197,6 +199,11 @@ typedef ShellStateRoutePageBuilder = Page<void> Function(
   Widget Function(ShellStateRouteBuilder buildPageContent) wrapPageContent,
 );
 
+/// A route that creates visuals for a state in a state tree, using state data of type [DAnc]
+/// obtained from an ancestor data state.
+///
+/// This route is used in a very similar manner as [StateRoute], with the addition of providing
+/// the [DataStateKey] of the ancestor state whose data should be obtained.
 class StateRoute1<DAnc> implements StateRouteConfigProvider {
   StateRoute1._(
     this.stateKey, {
@@ -206,6 +213,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
     this.isPopup = false,
   });
 
+  /// Constructs a [StateRoute1].
   StateRoute1(
     this.stateKey, {
     required this.ancestorStateKey,
@@ -213,6 +221,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
     this.routePageBuilder,
   }) : isPopup = false;
 
+  /// Constructs a [StateRoute1] that displays its visuals in a [PopupRoute].
   factory StateRoute1.popup(
     StateKey stateKey, {
     required DataStateKey<DAnc> ancestorStateKey,
@@ -225,11 +234,27 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
         isPopup: true,
       );
 
+  /// {@macro StateRoute.stateKey}
   final StateKey stateKey;
+
+  /// Identifies the ancestor data state whose data should be obtained.
   final DataStateKey<DAnc> ancestorStateKey;
+
+  /// {@macro StateRoute.routeBuilder}
+  ///
+  /// When called, this function is provided the current [DAnc] value obtained from the ancestor
+  /// data state.
   final DataStateRouteBuilder<DAnc>? routeBuilder;
+
+  /// {@macro StateRoute.routePageBuilder}
+  ///
+  /// When called, this function is provided the current [DAnc] value obtained from the ancestor
+  /// data state.
   final DataStateRoutePageBuilder<DAnc>? routePageBuilder;
+
+  /// {@macro StateRoute.isPopup}
   final bool isPopup;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc>(ancestorStateKey)
   ];
@@ -244,6 +269,14 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
   );
 }
 
+/// A route that creates visuals for a state in a state tree, using state data of type [DAnc1] and
+/// [DAnc2 ]obtained from two ancestor data states.
+///
+/// This route is used in a very similar manner as [StateRoute], with the addition of providing
+/// the [DataStateKey]s of the ancestor states whose data should be obtained.
+///
+/// Note that there is no relationship implied between the ancestor states. Either state may be an
+/// ancestor of the other.
 class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
   StateRoute2._(
     this.stateKey, {
@@ -254,6 +287,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.isPopup = false,
   });
 
+  /// Constructs a [StateRoute2].
   StateRoute2(
     this.stateKey, {
     required this.ancestor1StateKey,
@@ -276,12 +310,34 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
         isPopup: true,
       );
 
+  /// {@macro StateRoute.stateKey}
   final StateKey stateKey;
+
+  /// {@template StateRoute2.ancestor1StateKey}
+  /// Identifies the first ancestor data state whose data should be obtained.
+  /// {@endtemplate}
   final DataStateKey<DAnc1> ancestor1StateKey;
+
+  /// {@template StateRoute2.ancestor2StateKey}
+  /// Identifies the second ancestor data state whose data should be obtained.
+  /// {@endtemplate}
   final DataStateKey<DAnc2> ancestor2StateKey;
+
+  /// {@macro StateRoute.routeBuilder}
+  ///
+  /// When called, this function is provided the current [DAnc1] and [DAnc2] values obtained from
+  /// the ancestor data states.
   final DataStateRouteBuilder2<DAnc1, DAnc2>? routeBuilder;
+
+  /// {@macro StateRoute.routePageBuilder}
+  ///
+  /// When called, this function is provided the current [DAnc1] and [DAnc2] values obtained from
+  /// the ancestor data states.
   final DataStateRoutePageBuilder2<DAnc1, DAnc2>? routePageBuilder;
+
+  /// {@macro StateRoute.isPopup}
   final bool isPopup;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc1>(ancestor1StateKey),
     StateDataResolver<DAnc2>(ancestor2StateKey)
@@ -297,6 +353,14 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
   );
 }
 
+/// A route that creates visuals for a state in a state tree, using state data of type [DAnc1],
+/// [DAnc2], and [DAnc3] obtained from three ancestor data states.
+///
+/// This route is used in a very similar manner as [StateRoute], with the addition of providing
+/// the [DataStateKey]s of the ancestor states whose data should be obtained.
+///
+/// Note that there is no relationship implied between the ancestor states. Any state may be an
+/// ancestor of the others
 class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
   StateRoute3._(
     this.stateKey, {
@@ -308,6 +372,7 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
     this.isPopup = false,
   });
 
+  /// Constructs a [StateRoute3].
   StateRoute3(
     this.stateKey, {
     required this.ancestor1StateKey,
@@ -333,12 +398,31 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
         isPopup: true,
       );
 
+  /// {@macro StateRoute.stateKey}
   final StateKey stateKey;
+
+  /// {@macro StateRoute2.ancestor1StateKey}
   final DataStateKey<DAnc1> ancestor1StateKey;
+
+  /// {@macro StateRoute2.ancestor2StateKey}
   final DataStateKey<DAnc2> ancestor2StateKey;
+
+  /// Identifies the third ancestor data state whose data should be obtained.
   final DataStateKey<DAnc3> ancestor3StateKey;
+
+  /// {@macro StateRoute.routeBuilder}
+  ///
+  /// When called, this function is provided the current [DAnc1], [DAnc2], and [DAnc3] values
+  /// obtained from the ancestor data states.
   final DataStateRouteBuilder3<DAnc1, DAnc2, DAnc3>? routeBuilder;
+
+  /// {@macro StateRoute.routePageBuilder}
+  ///
+  /// When called, this function is provided the current [DAnc1], [DAnc2], and [DAnc3] values
+  /// obtained from the ancestor data states.
   final DataStateRoutePageBuilder3<DAnc1, DAnc2, DAnc3>? routePageBuilder;
+
+  /// {@macro StateRoute.isPopup}
   final bool isPopup;
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc1>(ancestor1StateKey),

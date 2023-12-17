@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 
-/// Provides information about a [TreeStateMachine] to widgets.
+/// Provides information about a [TreeStateMachine] to widgets, as returned by
+/// [TreeStateMachineProvider.of].
 class TreeStateMachineInfo {
   TreeStateMachineInfo(this.currentState);
 

@@ -183,7 +183,7 @@ abstract class TreeStateRouterDelegateBase
     BuildContext context,
     CurrentState currentState,
   ) {
-    var buildFor = BuildForRoute(route);
+    var buildFor = BuildForRoute(route.stateKey, route.isPopup);
     var routingContext = StateRoutingContext(currentState);
     if (route.routePageBuilder != null) {
       return route.routePageBuilder!.call(
@@ -363,10 +363,10 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         );
 
   /// {@template NestedTreeStateRouterDelegate.parentKey}
-  /// Identifies the tree state that anchors the routing provided by this router.
+  /// Identifies the tree state that anchors the state transitions that are routed by this router.
   ///
   /// Only state transitions such that this state remains active are routed. In other words, routing
-  /// only occurs if the transition is between two decscendants of this state.
+  /// only occurs if the transition is between two descendants of this state.
   /// {@endtemplate}
   final StateKey parentKey;
 

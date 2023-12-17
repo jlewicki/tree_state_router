@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
 /// Describes the reason a page is being built.
@@ -11,8 +12,13 @@ sealed class PageBuildFor {}
 
 /// Indicates that page content is being built to visualize a [StateRoute].
 class BuildForRoute implements PageBuildFor {
-  BuildForRoute(this.route);
-  final StateRouteConfig route;
+  BuildForRoute(this.stateKey, this.isPopup);
+
+  /// Identifies the state that is being routed.
+  final StateKey stateKey;
+
+  /// Indicates if this is a popup route.
+  final bool isPopup;
 
   // Value equality is needed, because this will be used as a key for a Page<void>, and Navigator
   // needs keys for pages to trigger transition animations properly
@@ -21,15 +27,15 @@ class BuildForRoute implements PageBuildFor {
       identical(this, other) ||
       (other is BuildForRoute &&
           runtimeType == other.runtimeType &&
-          // There can only be one route per state, so it should be sufficient to only compare
-          // stateKey.
-          route.stateKey == other.route.stateKey);
+          stateKey == other.stateKey &&
+          isPopup == other.isPopup);
 
   @override
   int get hashCode {
     var hash = 7;
     hash = 31 * hash + runtimeType.hashCode;
-    hash = 31 * hash + route.stateKey.hashCode;
+    hash = 31 * hash + stateKey.hashCode;
+    hash = 31 * hash + isPopup.hashCode;
     return hash;
   }
 }

@@ -276,7 +276,7 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
   }
 }
 
-typedef DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
+typedef DataStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
   BuildContext context,
   StateRoutingContext stateContext,
   D data,
@@ -284,9 +284,9 @@ typedef DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
   DAnc2 ancestor2Data,
 );
 
-typedef DataTreeStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
+typedef DataStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
   BuildContext context,
-  Widget Function(DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent)
+  Widget Function(DataStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent)
       wrapPageContent,
 );
 
@@ -312,7 +312,7 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     DataStateKey<D> stateKey, {
     required DataStateKey<DAnc1> ancestor1StateKey,
     required DataStateKey<DAnc2> ancestor2StateKey,
-    required DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> routeBuilder,
+    required DataStateRouteBuilder3<D, DAnc1, DAnc2> routeBuilder,
   }) =>
       DataTreeStateRoute3<D, DAnc1, DAnc2>._(
         stateKey,
@@ -325,8 +325,8 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
   final DataStateKey<D> stateKey;
   final DataStateKey<DAnc1> ancestor1StateKey;
   final DataStateKey<DAnc2> ancestor2StateKey;
-  final DataTreeStateRouteBuilder3<D, DAnc1, DAnc2>? routeBuilder;
-  final DataTreeStateRoutePageBuilder3<D, DAnc1, DAnc2>? routePageBuilder;
+  final DataStateRouteBuilder3<D, DAnc1, DAnc2>? routeBuilder;
+  final DataStateRoutePageBuilder3<D, DAnc1, DAnc2>? routePageBuilder;
   final bool isPopup;
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey),
@@ -353,7 +353,7 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
 
   DataStateBuilder _createDataTreeStateBuilder(
     StateRoutingContext stateContext,
-    DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent,
+    DataStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent,
   ) {
     return DataStateBuilder(
       ValueKey(stateKey),

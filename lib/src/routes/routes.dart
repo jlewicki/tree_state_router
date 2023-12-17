@@ -112,6 +112,7 @@ class StateRoute implements StateRouteConfigProvider {
   /// ```
   factory StateRoute.shell(
     StateKey stateKey, {
+    // TODO: validate routes a dedcendants of stateKey
     required List<StateRouteConfigProvider> routes,
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,
@@ -123,6 +124,7 @@ class StateRoute implements StateRouteConfigProvider {
       routes: routes,
       enableTransitions: enableTransitions,
     );
+
     return StateRoute._(
       stateKey,
       routeBuilder: routeBuilder != null
@@ -190,34 +192,9 @@ typedef ShellStateRouteBuilder = Widget Function(
   Widget nestedRouter,
 );
 
-/// {@template ShellTreeStateRoutePageBuilder}
-/// {@endtemplate}
-// typedef ShellStateRoutePageBuilder = Page<dynamic> Function(
-//   BuildContext context,
-//   StateRoutingContext stateContext,
-//   Widget childRouter,
-// );
-
 typedef ShellStateRoutePageBuilder = Page<void> Function(
   BuildContext context,
   Widget Function(ShellStateRouteBuilder buildPageContent) wrapPageContent,
-);
-
-/// A function that can build a widget providing a visualization of an active state in a state tree,
-/// using state data of type [DAnc] from an ancestor state.
-///
-/// The function is provided a build [context], and a [stateContext] that describes the state to be
-/// visualized, as well as the [ancestorData] from the ancestor state.
-
-typedef StateRouteBuilder1<DAnc> = Widget Function(
-  BuildContext context,
-  StateRoutingContext stateContext,
-  DAnc ancestorData,
-);
-
-typedef StateRoutePageBuilder1<DAnc> = Page<void> Function(
-  BuildContext context,
-  Widget Function(StateRouteBuilder1<DAnc> buildPageContent) wrapPageContent,
 );
 
 class StateRoute1<DAnc> implements StateRouteConfigProvider {
@@ -250,63 +227,22 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
 
   final StateKey stateKey;
   final DataStateKey<DAnc> ancestorStateKey;
-  final StateRouteBuilder1<DAnc>? routeBuilder;
-  final StateRoutePageBuilder1<DAnc>? routePageBuilder;
+  final DataStateRouteBuilder<DAnc>? routeBuilder;
+  final DataStateRoutePageBuilder<DAnc>? routePageBuilder;
   final bool isPopup;
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc>(ancestorStateKey)
   ];
 
   @override
-  late final config = StateRouteConfig(stateKey,
-      routeBuilder: routeBuilder != null
-          ? (context, stateContext) =>
-              _createDataStateBuilder(stateContext, routeBuilder!)
-          : null,
-      routePageBuilder: routePageBuilder != null
-          ? (context, wrapContent) => routePageBuilder!.call(
-                context,
-                (buildPageContent) => wrapContent((context, stateContext) =>
-                    _createDataStateBuilder(stateContext, buildPageContent)),
-              )
-          : null,
-      isPopup: isPopup,
-      dependencies: _resolvers.map((e) => e.stateKey!).toList());
-
-  DataStateBuilder _createDataStateBuilder(
-    StateRoutingContext stateContext,
-    DataStateRouteBuilder<DAnc> buildPageContent,
-  ) {
-    return DataStateBuilder(
-      ValueKey(stateKey),
-      stateKey,
-      _resolvers,
-      (context, dataList, currentState) => buildPageContent(
-        context,
-        stateContext,
-        dataList.getAs<DAnc>(0),
-      ),
-    );
-  }
+  late final config = createDataStateRouteConfig1(
+    stateKey,
+    routeBuilder,
+    routePageBuilder,
+    _resolvers,
+    isPopup,
+  );
 }
-
-/// A function that can build a widget providing a visualization of an active state in a state tree,
-/// using state data from two ancestor states.
-///
-/// The function is provided a build [context], and a [stateContext] that describes the state to be
-/// visualized, as well as the [ancestor1Data] and [ancestor2Data] from the ancestor states.
-typedef StateRouteBuilder2<DAnc1, DAnc2> = Widget Function(
-  BuildContext context,
-  StateRoutingContext stateContext,
-  DAnc1 ancestor1Data,
-  DAnc2 ancestor2Data,
-);
-
-typedef StateRoutePageBuilder2<DAnc1, DAnc2> = Page<void> Function(
-  BuildContext context,
-  Widget Function(StateRouteBuilder2<DAnc1, DAnc2> buildPageContent)
-      wrapPageContent,
-);
 
 class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
   StateRoute2._(
@@ -343,8 +279,8 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
   final StateKey stateKey;
   final DataStateKey<DAnc1> ancestor1StateKey;
   final DataStateKey<DAnc2> ancestor2StateKey;
-  final StateRouteBuilder2<DAnc1, DAnc2>? routeBuilder;
-  final StateRoutePageBuilder2<DAnc1, DAnc2>? routePageBuilder;
+  final DataStateRouteBuilder2<DAnc1, DAnc2>? routeBuilder;
+  final DataStateRoutePageBuilder2<DAnc1, DAnc2>? routePageBuilder;
   final bool isPopup;
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc1>(ancestor1StateKey),
@@ -352,44 +288,14 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
   ];
 
   @override
-  late final config = StateRouteConfig(
+  late final config = createDataStateRouteConfig2(
     stateKey,
-    routeBuilder: routeBuilder != null
-        ? (context, stateContext) => createDataStateBuilder2(
-            stateKey, _resolvers, stateContext, routeBuilder!)
-        : null,
-    routePageBuilder: routePageBuilder != null
-        ? (context, wrapContent) => routePageBuilder!.call(
-              context,
-              (buildPageContent) => wrapContent((context, stateContext) =>
-                  createDataStateBuilder2(
-                      stateKey, _resolvers, stateContext, buildPageContent)),
-            )
-        : null,
-    isPopup: isPopup,
-    dependencies: _resolvers.map((e) => e.stateKey!).toList(),
+    routeBuilder,
+    routePageBuilder,
+    _resolvers,
+    isPopup,
   );
 }
-
-/// A function that can build a widget providing a visualization of an active state in a state tree,
-/// using state data from three ancestor states.
-///
-/// The function is provided a build [context], and a [stateContext] that describes the state to be
-/// visualized, as well as the [ancestor1Data], [ancestor2Data], and [ancestor3Data] from the
-/// ancestor states.
-typedef StateRouteBuilder3<DAnc1, DAnc2, DAnc3> = Widget Function(
-  BuildContext context,
-  StateRoutingContext stateContext,
-  DAnc1 ancestor1Data,
-  DAnc2 ancestor2Data,
-  DAnc3 ancestor3Data,
-);
-
-typedef TreeStateRoutePageBuilder3<DAnc1, DAnc2, DAnc3> = Page<void> Function(
-  BuildContext context,
-  Widget Function(StateRouteBuilder3<DAnc1, DAnc2, DAnc3> buildPageContent)
-      wrapPageContent,
-);
 
 class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
   StateRoute3._(
@@ -431,8 +337,8 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
   final DataStateKey<DAnc1> ancestor1StateKey;
   final DataStateKey<DAnc2> ancestor2StateKey;
   final DataStateKey<DAnc3> ancestor3StateKey;
-  final StateRouteBuilder3<DAnc1, DAnc2, DAnc3>? routeBuilder;
-  final TreeStateRoutePageBuilder3<DAnc1, DAnc2, DAnc3>? routePageBuilder;
+  final DataStateRouteBuilder3<DAnc1, DAnc2, DAnc3>? routeBuilder;
+  final DataStateRoutePageBuilder3<DAnc1, DAnc2, DAnc3>? routePageBuilder;
   final bool isPopup;
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc1>(ancestor1StateKey),
@@ -441,19 +347,11 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
   ];
 
   @override
-  late final config = StateRouteConfig(stateKey,
-      routeBuilder: routeBuilder != null
-          ? (context, stateContext) => createDataStateBuilder3(
-              stateKey, _resolvers, stateContext, routeBuilder!)
-          : null,
-      routePageBuilder: routePageBuilder != null
-          ? (context, wrapContent) => routePageBuilder!.call(
-                context,
-                (buildPageContent) => wrapContent((context, stateContext) =>
-                    createDataStateBuilder3(
-                        stateKey, _resolvers, stateContext, buildPageContent)),
-              )
-          : null,
-      isPopup: isPopup,
-      dependencies: _resolvers.map((e) => e.stateKey!).toList());
+  late final config = createDataStateRouteConfig3(
+    stateKey,
+    routeBuilder,
+    routePageBuilder,
+    _resolvers,
+    isPopup,
+  );
 }

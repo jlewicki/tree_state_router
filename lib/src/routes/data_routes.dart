@@ -4,7 +4,8 @@ import 'package:tree_state_router/tree_state_router.dart';
 import 'builder.dart';
 
 /// {@template DataStateRouteBuilder}
-/// A function that can build a widget providing a visualization of an active data state in a state tree.
+/// A function that can build a widget providing a visualization of an active data state in a state
+/// tree.
 ///
 /// The function is provided a build [context], and a [stateContext] that describes the state to be
 /// visualized, and the current [data] value for the data state.
@@ -157,36 +158,13 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
   ];
 
   @override
-  late final config = StateRouteConfig(stateKey,
-      routeBuilder: routeBuilder != null
-          ? (context, stateContext) =>
-              _createDataStateBuilder(stateContext, routeBuilder!)
-          : null,
-      routePageBuilder: routePageBuilder != null
-          ? (context, wrapContent) => routePageBuilder!.call(
-                context,
-                (buildPageContent) => wrapContent((context, stateContext) =>
-                    _createDataStateBuilder(stateContext, buildPageContent)),
-              )
-          : null,
-      isPopup: isPopup,
-      dependencies: _resolvers.map((e) => e.stateKey!).toList());
-
-  DataStateBuilder _createDataStateBuilder(
-    StateRoutingContext stateContext,
-    DataStateRouteBuilder<D> buildPageContent,
-  ) {
-    return DataStateBuilder(
-      ValueKey(stateKey),
-      stateKey,
-      _resolvers,
-      (context, dataList, currentState) => buildPageContent(
-        context,
-        stateContext,
-        dataList.getAs<D>(0),
-      ),
-    );
-  }
+  late final config = createDataStateRouteConfig1(
+    stateKey,
+    routeBuilder,
+    routePageBuilder,
+    _resolvers,
+    isPopup,
+  );
 }
 
 typedef DataStateRouteBuilder2<D, DAnc> = Widget Function(
@@ -241,21 +219,12 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
   ];
 
   @override
-  late final config = StateRouteConfig(
+  late final config = createDataStateRouteConfig2(
     stateKey,
-    routeBuilder: routeBuilder != null
-        ? (context, stateContext) => createDataStateBuilder2(
-            stateKey, _resolvers, stateContext, routeBuilder!)
-        : null,
-    routePageBuilder: routePageBuilder != null
-        ? (context, wrapContent) => routePageBuilder!.call(
-              context,
-              (buildPageContent) => wrapContent((context, stateContext) =>
-                  createDataStateBuilder2(
-                      stateKey, _resolvers, stateContext, buildPageContent)),
-            )
-        : null,
-    isPopup: isPopup,
+    routeBuilder,
+    routePageBuilder,
+    _resolvers,
+    isPopup,
   );
 }
 
@@ -318,20 +287,11 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
   ];
 
   @override
-  late final config = StateRouteConfig(
+  late final config = createDataStateRouteConfig3(
     stateKey,
-    routeBuilder: routeBuilder != null
-        ? (context, stateContext) => createDataStateBuilder3(
-            stateKey, _resolvers, stateContext, routeBuilder!)
-        : null,
-    routePageBuilder: routePageBuilder != null
-        ? (context, wrapContent) => routePageBuilder!.call(
-              context,
-              (buildPageContent) => wrapContent((context, stateContext) =>
-                  createDataStateBuilder3(
-                      stateKey, _resolvers, stateContext, buildPageContent)),
-            )
-        : null,
-    isPopup: isPopup,
+    routeBuilder,
+    routePageBuilder,
+    _resolvers,
+    isPopup,
   );
 }

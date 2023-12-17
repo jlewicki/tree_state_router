@@ -6,8 +6,6 @@ import 'package:tree_state_machine/async.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
-import '../widgets/state_machine_provider.dart';
-
 class DataStateBuilder extends StatefulWidget {
   const DataStateBuilder(
     Key? key,
@@ -146,45 +144,6 @@ class StateDataResolver<D> {
       currentState.dataStream<D>(stateKey);
 }
 
-DataStateBuilder createDataStateBuilder2<D1, D2>(
-  StateKey stateKey,
-  List<StateDataResolver> resolvers,
-  StateRoutingContext stateContext,
-  DataStateRouteBuilder2<D1, D2> buildPageContent,
-) {
-  return DataStateBuilder(
-    ValueKey(stateKey),
-    stateKey,
-    resolvers,
-    (context, dataList, currentState) => buildPageContent(
-      context,
-      stateContext,
-      dataList.getAs<D1>(0),
-      dataList.getAs<D2>(1),
-    ),
-  );
-}
-
-DataStateBuilder createDataStateBuilder3<D1, D2, D3>(
-  StateKey stateKey,
-  List<StateDataResolver> resolvers,
-  StateRoutingContext stateContext,
-  DataStateRouteBuilder3<D1, D2, D3> buildPageContent,
-) {
-  return DataStateBuilder(
-    ValueKey(stateKey),
-    stateKey,
-    resolvers,
-    (context, dataList, currentState) => buildPageContent(
-      context,
-      stateContext,
-      dataList.getAs<D1>(0),
-      dataList.getAs<D2>(1),
-      dataList.getAs<D3>(2),
-    ),
-  );
-}
-
 typedef _TreeStateDataListWidgetBuilder = Widget Function(
   BuildContext context,
   List stateDataList,
@@ -200,4 +159,130 @@ extension ListExtensions on List<dynamic> {
 class _TypeLiteral<T> {
   const _TypeLiteral();
   Type get type => T;
+}
+
+StateRouteConfig createDataStateRouteConfig1<D1>(
+  StateKey stateKey,
+  DataStateRouteBuilder<D1>? routeBuilder,
+  DataStateRoutePageBuilder<D1>? routePageBuilder,
+  List<StateDataResolver> resolvers,
+  bool isPopup,
+) {
+  DataStateBuilder createDataStateBuilder1(
+    StateRoutingContext stateContext,
+    DataStateRouteBuilder<D1> buildPageContent,
+  ) {
+    return DataStateBuilder(
+      ValueKey(stateKey),
+      stateKey,
+      resolvers,
+      (context, dataList, currentState) => buildPageContent(
+        context,
+        stateContext,
+        dataList.getAs<D1>(0),
+      ),
+    );
+  }
+
+  return StateRouteConfig(
+    stateKey,
+    routeBuilder: routeBuilder != null
+        ? (context, stateContext) =>
+            createDataStateBuilder1(stateContext, routeBuilder)
+        : null,
+    routePageBuilder: routePageBuilder != null
+        ? (context, wrapContent) => routePageBuilder.call(
+              context,
+              (buildPageContent) => wrapContent((context, stateContext) =>
+                  createDataStateBuilder1(stateContext, buildPageContent)),
+            )
+        : null,
+    isPopup: isPopup,
+    dependencies: resolvers.map((e) => e.stateKey!).toList(),
+  );
+}
+
+StateRouteConfig createDataStateRouteConfig2<D1, D2>(
+  StateKey stateKey,
+  DataStateRouteBuilder2<D1, D2>? routeBuilder,
+  DataStateRoutePageBuilder2<D1, D2>? routePageBuilder,
+  List<StateDataResolver> resolvers,
+  bool isPopup,
+) {
+  DataStateBuilder createDataStateBuilder2(
+    StateRoutingContext stateContext,
+    DataStateRouteBuilder2<D1, D2> buildPageContent,
+  ) {
+    return DataStateBuilder(
+      ValueKey(stateKey),
+      stateKey,
+      resolvers,
+      (context, dataList, currentState) => buildPageContent(
+        context,
+        stateContext,
+        dataList.getAs<D1>(0),
+        dataList.getAs<D2>(1),
+      ),
+    );
+  }
+
+  return StateRouteConfig(
+    stateKey,
+    routeBuilder: routeBuilder != null
+        ? (context, stateContext) =>
+            createDataStateBuilder2(stateContext, routeBuilder)
+        : null,
+    routePageBuilder: routePageBuilder != null
+        ? (context, wrapContent) => routePageBuilder.call(
+              context,
+              (buildPageContent) => wrapContent((context, stateContext) =>
+                  createDataStateBuilder2(stateContext, buildPageContent)),
+            )
+        : null,
+    isPopup: isPopup,
+    dependencies: resolvers.map((e) => e.stateKey!).toList(),
+  );
+}
+
+StateRouteConfig createDataStateRouteConfig3<D1, D2, D3>(
+  StateKey stateKey,
+  DataStateRouteBuilder3<D1, D2, D3>? routeBuilder,
+  DataStateRoutePageBuilder3<D1, D2, D3>? routePageBuilder,
+  List<StateDataResolver> resolvers,
+  bool isPopup,
+) {
+  DataStateBuilder createDataStateBuilder3(
+    StateRoutingContext stateContext,
+    DataStateRouteBuilder3<D1, D2, D3> buildPageContent,
+  ) {
+    return DataStateBuilder(
+      ValueKey(stateKey),
+      stateKey,
+      resolvers,
+      (context, dataList, currentState) => buildPageContent(
+        context,
+        stateContext,
+        dataList.getAs<D1>(0),
+        dataList.getAs<D2>(1),
+        dataList.getAs<D3>(2),
+      ),
+    );
+  }
+
+  return StateRouteConfig(
+    stateKey,
+    routeBuilder: routeBuilder != null
+        ? (context, stateContext) =>
+            createDataStateBuilder3(stateContext, routeBuilder)
+        : null,
+    routePageBuilder: routePageBuilder != null
+        ? (context, wrapContent) => routePageBuilder.call(
+              context,
+              (buildPageContent) => wrapContent((context, stateContext) =>
+                  createDataStateBuilder3(stateContext, buildPageContent)),
+            )
+        : null,
+    isPopup: isPopup,
+    dependencies: resolvers.map((e) => e.stateKey!).toList(),
+  );
 }

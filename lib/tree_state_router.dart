@@ -3,7 +3,12 @@
 library tree_state_router;
 
 export 'src/pages.dart'
-    hide PageBuilder, materialPageBuilder, cupertinoPageBuilder;
+    hide
+        PageBuilder,
+        materialPageBuilder,
+        cupertinoPageBuilder,
+        materialPopupPageBuilder,
+        cupertinoPopupPageBuilder;
 export 'src/parser.dart';
 export 'src/router_config.dart';
 export 'src/routes/route_config.dart';

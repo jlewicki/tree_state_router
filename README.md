@@ -98,3 +98,45 @@ class MainApp extends StatelessWidget {
 
 ```
 
+## Routes
+### StateRoute
+TODO
+
+### DataStateRoute
+TODO
+
+### Popup Routes
+TODO
+
+### Shell Routes
+Both `StateRoute` and `DataStateRoute` provide `shell` factory methods. These factories permit a route for a parent 
+state to provide page content that wraps the visuals of its descendant states. In other words, the parent route can provide a common layout or 'shell' that is wraps the visuals of its descendant states.
+
+When calling the `shell` method, a list of routes corresponding to descendant states must be provided. Additionally,
+the `routeBuilder` or `routePageBuilder` functions accept a `nestedRouter` widget that reprents the visuals for active
+descendant states.  The builder implementation can the decide where in its layout it would like to place that content. 
+
+```dart
+StateRoute.shell(
+   States.parent,
+   routeBuilder: (_, __, nestedRouter) => Scaffold(
+      body: Center(
+         child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+               Text('This the parent'),
+               // Visuals for descendant states appear here
+               Expanded(child: nestedRouter),
+            ],
+         ),
+      ),
+   ),
+   routes: [
+      StateRoute(States.child1,
+         routeBuilder: (_, __) => Center(child: Text('This is child1'))),
+      StateRoute(States.child2,
+         routeBuilder: (_, __) => Center(child: Text('This is child2'))),
+   ],
+)
+```
+

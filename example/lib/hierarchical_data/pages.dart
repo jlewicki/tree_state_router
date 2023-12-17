@@ -5,7 +5,7 @@ import 'state_tree.dart';
 
 Widget child1Page(
   BuildContext ctx,
-  TreeStateRoutingContext stateCtx,
+  StateRoutingContext stateCtx,
   Child1Data data,
   ParentData parentData,
 ) {
@@ -29,10 +29,12 @@ Widget child1Page(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              editText(parentData.value, 'Enter value for Parent', (val) => textForParent = val),
+              editText(parentData.value, 'Enter value for Parent',
+                  (val) => textForParent = val),
               button(
                 'Update Parent data',
-                () => stateCtx.currentState.post(UpdateParentData(textForParent)),
+                () =>
+                    stateCtx.currentState.post(UpdateParentData(textForParent)),
               )
             ],
           ),
@@ -42,10 +44,12 @@ Widget child1Page(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              editText(data.value, 'Enter value for Child1', (val) => textForChild1 = val),
+              editText(data.value, 'Enter value for Child1',
+                  (val) => textForChild1 = val),
               button(
                 'Update Child1 data',
-                () => stateCtx.currentState.post(UpdateChildData(textForChild1)),
+                () =>
+                    stateCtx.currentState.post(UpdateChildData(textForChild1)),
               )
             ],
           ),
@@ -61,7 +65,7 @@ Widget child1Page(
 
 Widget child2Page(
   BuildContext ctx,
-  TreeStateRoutingContext stateCtx,
+  StateRoutingContext stateCtx,
   Child2Data data,
   ParentData parentData,
 ) {
@@ -85,10 +89,12 @@ Widget child2Page(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              editText(parentData.value, 'Enter value for Parent', (val) => textForParent = val),
+              editText(parentData.value, 'Enter value for Parent',
+                  (val) => textForParent = val),
               button(
                 'Update Parent data',
-                () => stateCtx.currentState.post(UpdateParentData(textForParent)),
+                () =>
+                    stateCtx.currentState.post(UpdateParentData(textForParent)),
               )
             ],
           ),
@@ -98,10 +104,12 @@ Widget child2Page(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              editText(data.value, 'Enter value for Child2', (val) => textForChild2 = val),
+              editText(data.value, 'Enter value for Child2',
+                  (val) => textForChild2 = val),
               button(
                 'Update Child2 data',
-                () => stateCtx.currentState.post(UpdateChildData(textForChild2)),
+                () =>
+                    stateCtx.currentState.post(UpdateChildData(textForChild2)),
               )
             ],
           ),

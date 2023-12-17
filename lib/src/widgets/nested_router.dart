@@ -15,7 +15,7 @@ class NestedTreeStateRouter extends StatelessWidget {
   });
 
   /// The list of routes that can be materialized by this router.
-  final List<TreeStateRouteConfigProvider> routes;
+  final List<StateRouteConfigProvider> routes;
 
   /// {@macro defaultScaffolding}
   final DefaultScaffoldingBuilder? defaultScaffolding;

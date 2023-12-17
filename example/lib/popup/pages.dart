@@ -5,7 +5,7 @@ import 'state_tree.dart';
 
 Widget viewCounterPage(
   BuildContext ctx,
-  TreeStateRoutingContext stateCtx,
+  StateRoutingContext stateCtx,
   CounterData data,
 ) {
   return Center(
@@ -21,7 +21,7 @@ Widget viewCounterPage(
 
 Widget editCounterPage(
   BuildContext ctx,
-  TreeStateRoutingContext stateCtx,
+  StateRoutingContext stateCtx,
   CounterData data,
 ) {
   return Column(

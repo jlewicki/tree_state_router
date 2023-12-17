@@ -4,7 +4,7 @@ import 'state_tree.dart';
 
 Widget enterTextPage(
   BuildContext ctx,
-  TreeStateRoutingContext stateCtx,
+  StateRoutingContext stateCtx,
 ) {
   var currentText = '';
 
@@ -25,8 +25,10 @@ Widget enterTextPage(
           ),
         ),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          _button('To Uppercase', () => stateCtx.currentState.post(ToUppercase(currentText))),
-          _button('To Lowercase', () => stateCtx.currentState.post(ToLowercase(currentText))),
+          _button('To Uppercase',
+              () => stateCtx.currentState.post(ToUppercase(currentText))),
+          _button('To Lowercase',
+              () => stateCtx.currentState.post(ToLowercase(currentText))),
         ]),
       ],
     ),
@@ -35,7 +37,7 @@ Widget enterTextPage(
 
 Widget toUppercasePage(
   BuildContext ctx,
-  TreeStateRoutingContext stateCtx,
+  StateRoutingContext stateCtx,
   String text,
 ) {
   return Column(
@@ -52,7 +54,7 @@ Widget toUppercasePage(
 
 Widget toLowercasePage(
   BuildContext ctx,
-  TreeStateRoutingContext stateCtx,
+  StateRoutingContext stateCtx,
   String text,
 ) {
   return Column(
@@ -67,7 +69,7 @@ Widget toLowercasePage(
   );
 }
 
-Widget finishedPage(BuildContext ctx, TreeStateRoutingContext stateCtx) {
+Widget finishedPage(BuildContext ctx, StateRoutingContext stateCtx) {
   return Column(
     mainAxisAlignment: MainAxisAlignment.center,
     children: [

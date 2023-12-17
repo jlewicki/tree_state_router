@@ -9,11 +9,12 @@ import 'state_tree.dart';
 import 'pages.dart';
 
 //
-// This example demonstrates accessing and updating state and ancestor state data in a route for
-// a leaf state.
+// This example demonstrates accessing and updating state and ancestor state data with nested
+// routers.
 //
-// Each route displays all relevant state data belonging to active states, whether it belongs to the
-// state for the route, or one of its ancestor states.
+// The top level route for the parent state displays and updates the parent state data, and
+// presents child states using a nested router. The parent route in this case can be thought of a
+// kind of 'layout' or 'shell' route in this case.
 //
 void main() {
   _initLogging();
@@ -24,10 +25,14 @@ final router = TreeStateRouter(
   stateMachine: TreeStateMachine(hierarchicalDataStateTree()),
   defaultScaffolding: defaultScaffolding,
   routes: [
-    DataStateRoute2(States.child1,
-        ancestorStateKey: States.parent, routeBuilder: child1Page),
-    DataStateRoute2(States.child2,
-        ancestorStateKey: States.parent, routeBuilder: child2Page),
+    DataStateRoute.shell(
+      States.parent,
+      routeBuilder: parentPage,
+      routes: [
+        DataStateRoute(States.child1, routeBuilder: child1Page),
+        DataStateRoute(States.child2, routeBuilder: child2Page),
+      ],
+    ),
   ],
 );
 

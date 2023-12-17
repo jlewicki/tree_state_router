@@ -9,9 +9,9 @@ import 'builder.dart';
 /// The function is provided a build [context], and a [stateContext] that describes the state to be
 /// visualized, and the current [data] value for the data state.
 /// {@endtemplate}
-typedef DataTreeStateRouteBuilder<D> = Widget Function(
+typedef DataStateRouteBuilder<D> = Widget Function(
   BuildContext context,
-  TreeStateRoutingContext stateContext,
+  StateRoutingContext stateContext,
   D data,
 );
 
@@ -37,9 +37,25 @@ typedef DataTreeStateRouteBuilder<D> = Widget Function(
 ///   ]);
 /// ```
 /// {@endtemplate}
-typedef DataTreeStateRoutePageBuilder<D> = Page<void> Function(
+typedef DataStateRoutePageBuilder<D> = Page<void> Function(
   BuildContext context,
-  Widget Function(DataTreeStateRouteBuilder<D> buildPageContent)
+  Widget Function(DataStateRouteBuilder<D> buildPageContent) wrapPageContent,
+);
+
+/// {@template ShellDataStateRouteBuilder}
+/// {@endtemplate}
+typedef ShellDataStateRouteBuilder<D> = Widget Function(
+  BuildContext context,
+  StateRoutingContext stateContext,
+  Widget childRouter,
+  D data,
+);
+
+/// {@template ShellDataStateRoutePageBuilder}
+/// {@endtemplate}
+typedef ShellDataStateRoutePageBuilder<D> = Page<void> Function(
+  BuildContext context,
+  Widget Function(ShellDataStateRouteBuilder<D> buildPageContent)
       wrapPageContent,
 );
 
@@ -63,8 +79,8 @@ typedef DataTreeStateRoutePageBuilder<D> = Page<void> Function(
 ///     ),
 ///   ]);
 /// ```
-class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider {
-  DataTreeStateRoute._(
+class DataStateRoute<D> implements StateRouteConfigProvider {
+  DataStateRoute._(
     this.stateKey, {
     this.routeBuilder,
     this.routePageBuilder,
@@ -72,18 +88,55 @@ class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider {
   });
 
   /// Constructs a [DataTreeStateRoute].
-  DataTreeStateRoute(
+  DataStateRoute(
     this.stateKey, {
     this.routeBuilder,
     this.routePageBuilder,
   }) : isPopup = false;
 
-  factory DataTreeStateRoute.popup(
+  factory DataStateRoute.popup(
     DataStateKey<D> stateKey, {
-    required DataTreeStateRouteBuilder<D> routeBuilder,
+    required DataStateRouteBuilder<D> routeBuilder,
   }) =>
-      DataTreeStateRoute<D>._(stateKey,
-          routeBuilder: routeBuilder, isPopup: true);
+      DataStateRoute<D>._(stateKey, routeBuilder: routeBuilder, isPopup: true);
+
+  factory DataStateRoute.shell(
+    DataStateKey<D> stateKey, {
+    required List<StateRouteConfigProvider> routes,
+    ShellDataStateRouteBuilder<D>? routeBuilder,
+    ShellDataStateRoutePageBuilder<D>? routePageBuilder,
+    bool enableTransitions = false,
+    DefaultScaffoldingBuilder? defaultScaffolding,
+  }) {
+    var nestedRouter = NestedTreeStateRouter(
+      routes: routes,
+      enableTransitions: enableTransitions,
+      defaultScaffolding: defaultScaffolding,
+    );
+    return DataStateRoute<D>._(
+      stateKey,
+      routeBuilder: routeBuilder != null
+          ? (ctx, stateCtx, data) => routeBuilder(
+                ctx,
+                stateCtx,
+                nestedRouter,
+                data,
+              )
+          : null,
+      routePageBuilder: routePageBuilder != null
+          ? (buildContext, wrapPageContent) => routePageBuilder(
+              buildContext,
+              (buildPageContent) => wrapPageContent(
+                  (context, stateContext, data) => buildPageContent(
+                        context,
+                        stateContext,
+                        nestedRouter,
+                        data,
+                      )))
+          : null,
+      isPopup: false,
+    );
+  }
 
   /// Identifies the data tree state associated with this route.
   final DataStateKey<D> stateKey;
@@ -92,10 +145,10 @@ class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider {
   ///
   /// If `null`, the [TreeStateRouter] will choose an appropriate [Page] type based on the application
   /// typoe (Material, Cupertino, etc.).
-  final DataTreeStateRouteBuilder<D>? routeBuilder;
+  final DataStateRouteBuilder<D>? routeBuilder;
 
   /// {@macro DataTreeStateRoutePageBuilder}
-  final DataTreeStateRoutePageBuilder<D>? routePageBuilder;
+  final DataStateRoutePageBuilder<D>? routePageBuilder;
 
   /// {@macro TreeStateRoute.isPopup}
   final bool isPopup;
@@ -105,7 +158,7 @@ class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider {
   ];
 
   @override
-  late final config = TreeStateRouteConfig(stateKey,
+  late final config = StateRouteConfig(stateKey,
       routeBuilder: routeBuilder != null
           ? (context, stateContext) =>
               _createDataTreeStateBuilder(stateContext, routeBuilder!)
@@ -120,11 +173,11 @@ class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider {
       isPopup: isPopup,
       dependencies: _resolvers.map((e) => e.stateKey!).toList());
 
-  DataTreeStateBuilder _createDataTreeStateBuilder(
-    TreeStateRoutingContext stateContext,
-    DataTreeStateRouteBuilder<D> buildPageContent,
+  DataStateBuilder _createDataTreeStateBuilder(
+    StateRoutingContext stateContext,
+    DataStateRouteBuilder<D> buildPageContent,
   ) {
-    return DataTreeStateBuilder(
+    return DataStateBuilder(
       ValueKey(stateKey),
       stateKey,
       _resolvers,
@@ -137,21 +190,21 @@ class DataTreeStateRoute<D> implements TreeStateRouteConfigProvider {
   }
 }
 
-typedef DataTreeStateRouteBuilder2<D, DAnc> = Widget Function(
+typedef DataStateRouteBuilder2<D, DAnc> = Widget Function(
   BuildContext context,
-  TreeStateRoutingContext stateContext,
+  StateRoutingContext stateContext,
   D data,
   DAnc ancestorData,
 );
 
-typedef DataTreeStateRoutePageBuilder2<D, DAnc> = Page<void> Function(
+typedef DataStateRoutePageBuilder2<D, DAnc> = Page<void> Function(
   BuildContext context,
-  Widget Function(DataTreeStateRouteBuilder2<D, DAnc> buildPageContent)
+  Widget Function(DataStateRouteBuilder2<D, DAnc> buildPageContent)
       wrapPageContent,
 );
 
-class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider {
-  DataTreeStateRoute2._(
+class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
+  DataStateRoute2._(
     this.stateKey, {
     required this.ancestorStateKey,
     this.routeBuilder,
@@ -159,19 +212,19 @@ class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider {
     this.isPopup = false,
   });
 
-  DataTreeStateRoute2(
+  DataStateRoute2(
     this.stateKey, {
     required this.ancestorStateKey,
     this.routeBuilder,
     this.routePageBuilder,
   }) : isPopup = false;
 
-  factory DataTreeStateRoute2.popup(
+  factory DataStateRoute2.popup(
     DataStateKey<D> stateKey, {
     required DataStateKey<DAnc> ancestorStateKey,
-    required DataTreeStateRouteBuilder2<D, DAnc> routeBuilder,
+    required DataStateRouteBuilder2<D, DAnc> routeBuilder,
   }) =>
-      DataTreeStateRoute2<D, DAnc>._(
+      DataStateRoute2<D, DAnc>._(
         stateKey,
         ancestorStateKey: ancestorStateKey,
         routeBuilder: routeBuilder,
@@ -180,8 +233,8 @@ class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider {
 
   final DataStateKey<D> stateKey;
   final DataStateKey<DAnc> ancestorStateKey;
-  final DataTreeStateRouteBuilder2<D, DAnc>? routeBuilder;
-  final DataTreeStateRoutePageBuilder2<D, DAnc>? routePageBuilder;
+  final DataStateRouteBuilder2<D, DAnc>? routeBuilder;
+  final DataStateRoutePageBuilder2<D, DAnc>? routePageBuilder;
   final bool isPopup;
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey),
@@ -189,7 +242,7 @@ class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider {
   ];
 
   @override
-  late final config = TreeStateRouteConfig(
+  late final config = StateRouteConfig(
     stateKey,
     routeBuilder: routeBuilder != null
         ? (context, stateContext) =>
@@ -205,11 +258,11 @@ class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider {
     isPopup: isPopup,
   );
 
-  DataTreeStateBuilder _createDataTreeStateBuilder(
-    TreeStateRoutingContext stateContext,
-    DataTreeStateRouteBuilder2<D, DAnc> buildPageContent,
+  DataStateBuilder _createDataTreeStateBuilder(
+    StateRoutingContext stateContext,
+    DataStateRouteBuilder2<D, DAnc> buildPageContent,
   ) {
-    return DataTreeStateBuilder(
+    return DataStateBuilder(
       ValueKey(stateKey),
       stateKey,
       _resolvers,
@@ -225,7 +278,7 @@ class DataTreeStateRoute2<D, DAnc> implements TreeStateRouteConfigProvider {
 
 typedef DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
   BuildContext context,
-  TreeStateRoutingContext stateContext,
+  StateRoutingContext stateContext,
   D data,
   DAnc1 ancestor1Data,
   DAnc2 ancestor2Data,
@@ -237,8 +290,7 @@ typedef DataTreeStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
       wrapPageContent,
 );
 
-class DataTreeStateRoute3<D, DAnc1, DAnc2>
-    implements TreeStateRouteConfigProvider {
+class DataTreeStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
   DataTreeStateRoute3._(
     this.stateKey, {
     required this.ancestor1StateKey,
@@ -283,7 +335,7 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2>
   ];
 
   @override
-  late final config = TreeStateRouteConfig(
+  late final config = StateRouteConfig(
     stateKey,
     routeBuilder: routeBuilder != null
         ? (context, stateContext) =>
@@ -299,11 +351,11 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2>
     isPopup: isPopup,
   );
 
-  DataTreeStateBuilder _createDataTreeStateBuilder(
-    TreeStateRoutingContext stateContext,
+  DataStateBuilder _createDataTreeStateBuilder(
+    StateRoutingContext stateContext,
     DataTreeStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent,
   ) {
-    return DataTreeStateBuilder(
+    return DataStateBuilder(
       ValueKey(stateKey),
       stateKey,
       _resolvers,

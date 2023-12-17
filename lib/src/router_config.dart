@@ -50,7 +50,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
 
   /// The list of routes that can be materialized by this router.  Each route should correspond to a
   /// a state in the [stateMachine].
-  final List<TreeStateRouteConfigProvider> routes;
+  final List<StateRouteConfigProvider> routes;
 
   /// {@template defaultScaffolding}
   /// A function that can adorn the content of a route page, adding common layout or scaffolding.
@@ -84,7 +84,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteInfo> {
   /// If enabled, the particular animations that occur are determined by the [Page]s associated with
   /// the routes that are undergoing a transition.
   ///
-  /// See [TreeStateRoute.routePageBuilder] and [TreeStateRouter.defaultPageBuilder] for details on
+  /// See [StateRoute.routePageBuilder] and [TreeStateRouter.defaultPageBuilder] for details on
   /// choosing a [Page] type.
   /// {@endtemplate}
   final bool enableTransitions;

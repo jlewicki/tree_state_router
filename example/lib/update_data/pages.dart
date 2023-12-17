@@ -4,7 +4,7 @@ import 'state_tree.dart';
 
 Widget countingPage(
   BuildContext ctx,
-  TreeStateRoutingContext stateCtx,
+  StateRoutingContext stateCtx,
   CounterData data,
 ) {
   return Column(

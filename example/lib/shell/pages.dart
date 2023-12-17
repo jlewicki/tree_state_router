@@ -6,6 +6,7 @@ import 'state_tree.dart';
 Widget parentPage(
   BuildContext ctx,
   StateRoutingContext stateCtx,
+  Widget childRouter,
   ParentData parentData,
 ) {
   var textForParent = "";
@@ -22,11 +23,8 @@ Widget parentPage(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            editText(
-              parentData.value,
-              'Enter value for Parent',
-              (val) => textForParent = val,
-            ),
+            editText(parentData.value, 'Enter value for Parent',
+                (val) => textForParent = val),
             button(
               'Update Parent data',
               () => stateCtx.currentState.post(UpdateParentData(textForParent)),
@@ -34,21 +32,16 @@ Widget parentPage(
           ],
         ),
       ),
-      IntrinsicHeight(
-        child: NestedTreeStateRouter(
-          enableTransitions: false,
-          routes: [
-            DataStateRoute(States.child1, routeBuilder: child1Page),
-            DataStateRoute(States.child2, routeBuilder: child2Page),
-          ],
-        ),
-      )
+      IntrinsicHeight(child: childRouter)
     ],
   );
 }
 
 Widget child1Page(
-    BuildContext ctx, StateRoutingContext stateCtx, Child1Data data) {
+  BuildContext ctx,
+  StateRoutingContext stateCtx,
+  Child1Data data,
+) {
   var textForChild1 = "";
 
   return Column(
@@ -81,7 +74,10 @@ Widget child1Page(
 }
 
 Widget child2Page(
-    BuildContext ctx, StateRoutingContext stateCtx, Child2Data data) {
+  BuildContext ctx,
+  StateRoutingContext stateCtx,
+  Child2Data data,
+) {
   var textForChild2 = "";
 
   return Column(

@@ -17,7 +17,7 @@ class TreeStateRouterDelegateConfig {
     this.defaultScaffolding,
     this.enableTransitions = true,
   });
-  final List<TreeStateRouteConfig> routes;
+  final List<StateRouteConfig> routes;
   final DefaultScaffoldingBuilder? defaultScaffolding;
   final DefaultPageBuilder? defaultPageBuilder;
   final bool enableTransitions;
@@ -46,7 +46,7 @@ abstract class TreeStateRouterDelegateBase
 
   final Logger _log;
   late final _routeMap = _mapRoutes(_routes);
-  List<TreeStateRouteConfig> get _routes => config.routes;
+  List<StateRouteConfig> get _routes => config.routes;
   DefaultScaffoldingBuilder? get _defaultScaffolding =>
       config.defaultScaffolding;
   DefaultPageBuilder? get _defaultPageBuilder => config.defaultPageBuilder;
@@ -177,23 +177,23 @@ abstract class TreeStateRouterDelegateBase
   @protected
   bool _onPopPage(Route<dynamic> route, dynamic result) {
     _log.finer(
-        'Popping page for state ${(route.settings as TreeStateRoute).stateKey}');
+        'Popping page for state ${(route.settings as StateRoute).stateKey}');
     if (!route.didPop(result)) return false;
     notifyListeners();
     return true;
   }
 
   Page<void> _buildRoutePage(
-    TreeStateRouteConfig route,
+    StateRouteConfig route,
     BuildContext context,
     CurrentState currentState,
   ) {
     if (route.routePageBuilder != null) {
       return route.routePageBuilder!
-          .call(context, TreeStateRoutingContext(currentState));
+          .call(context, StateRoutingContext(currentState));
     } else if (route.routeBuilder != null) {
-      var content = route.routeBuilder!
-          .call(context, TreeStateRoutingContext(currentState));
+      var content =
+          route.routeBuilder!.call(context, StateRoutingContext(currentState));
       var pageBuilder = route.isPopup
           ? _popupBuilderForAppType(context)
           : _defaultPageBuilder ?? _pageBuilderForAppType(context);
@@ -233,17 +233,17 @@ abstract class TreeStateRouterDelegateBase
     );
   }
 
-  Iterable<TreeStateRouteConfig> _findRoutesFor(Iterable<StateKey> keys) {
+  Iterable<StateRouteConfig> _findRoutesFor(Iterable<StateKey> keys) {
     return keys
-        .map((stateKey) => MapEntry<StateKey, TreeStateRouteConfig?>(
+        .map((stateKey) => MapEntry<StateKey, StateRouteConfig?>(
             stateKey, _routeMap[stateKey]))
         .where((entry) => entry.value != null)
         .map((entry) => entry.value!);
   }
 
-  static Map<StateKey, TreeStateRouteConfig> _mapRoutes(
-      List<TreeStateRouteConfig> routes) {
-    var map = <StateKey, TreeStateRouteConfig>{};
+  static Map<StateKey, StateRouteConfig> _mapRoutes(
+      List<StateRouteConfig> routes) {
+    var map = <StateKey, StateRouteConfig>{};
     for (var route in routes) {
       if (map.containsKey(route.stateKey)) {
         throw ArgumentError(
@@ -279,7 +279,7 @@ abstract class TreeStateRouterDelegateBase
 /// [TreeStateMachine].
 ///
 /// As state transitions occur within the state machine, the router delegate will determine if there
-/// are [TreeStateRoute]s that correspond to a active state of the state machine.  If a route is
+/// are [StateRoute]s that correspond to a active state of the state machine.  If a route is
 /// available, it is displayed by the [Navigator] returned by [build].
 class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   // TODO: make this delegate rebuild when routing config changes
@@ -353,7 +353,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 /// instance with the ancestor [TreeStateRouterDelegate].
 ///
 /// As state transitions occur within the parent state machine, this router delegate will determine
-/// if there is a [TreeStateRoute] that corresponds to the an active state of the state machine. If
+/// if there is a [StateRoute] that corresponds to the an active state of the state machine. If
 /// a route is available, it is displayed by the [Navigator] returned by [build].
 class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   NestedTreeStateRouterDelegate({

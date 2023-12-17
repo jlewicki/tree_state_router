@@ -7,8 +7,8 @@ import 'package:tree_state_machine/tree_state_machine.dart';
 
 import '../widgets/state_machine_provider.dart';
 
-class DataTreeStateBuilder extends StatefulWidget {
-  const DataTreeStateBuilder(
+class DataStateBuilder extends StatefulWidget {
+  const DataStateBuilder(
     Key? key,
     this.stateKey,
     this._stateDataResolvers,
@@ -22,10 +22,10 @@ class DataTreeStateBuilder extends StatefulWidget {
   final _TreeStateDataListWidgetBuilder _widgetBuilder;
 
   @override
-  DataTreeStateBuilderState createState() => DataTreeStateBuilderState();
+  DataStateBuilderState createState() => DataStateBuilderState();
 }
 
-class DataTreeStateBuilderState extends State<DataTreeStateBuilder> {
+class DataStateBuilderState extends State<DataStateBuilder> {
   StreamSubscription? _combinedDataSubscription;
   StreamSubscription? _activeDescendantSubscription;
   List<dynamic>? _stateDataList;
@@ -33,7 +33,7 @@ class DataTreeStateBuilderState extends State<DataTreeStateBuilder> {
   late final Logger _log = Logger('$runtimeType.${widget.stateKey}');
 
   @override
-  void didUpdateWidget(DataTreeStateBuilder oldWidget) {
+  void didUpdateWidget(DataStateBuilder oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.stateKey != oldWidget.stateKey ||
         !_areResolversEqual(oldWidget._stateDataResolvers)) {

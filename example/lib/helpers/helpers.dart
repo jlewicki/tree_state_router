@@ -6,7 +6,8 @@ Widget defaultScaffolding(PageBuildFor buildFor, Widget pageContent) {
   return switch (buildFor) {
     // Don't wrap popup routes in a Scaffold, since that expands to fit the entire page, which
     // obscures the popup dialog shim
-    BuildForRoute(route: TreeStateRouteConfig(isPopup: var isPopup)) when isPopup => Center(
+    BuildForRoute(route: StateRouteConfig(isPopup: var isPopup)) when isPopup =>
+      Center(
         child: Card(
           child: pageContent,
         ),
@@ -21,7 +22,11 @@ Widget defaultScaffolding(PageBuildFor buildFor, Widget pageContent) {
   };
 }
 
-Widget editText(String initialValue, String hint, void Function(String) onChanged) {
+Widget editText(
+  String initialValue,
+  String hint,
+  void Function(String) onChanged,
+) {
   return Container(
     constraints: const BoxConstraints(maxWidth: 300),
     child: EditText(

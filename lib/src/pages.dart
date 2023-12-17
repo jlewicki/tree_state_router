@@ -9,10 +9,10 @@ import 'package:tree_state_router/tree_state_router.dart';
 /// based on the specific reason a page is built.
 sealed class PageBuildFor {}
 
-/// Indicates that page content is being built to visualize a [TreeStateRoute].
+/// Indicates that page content is being built to visualize a [StateRoute].
 class BuildForRoute implements PageBuildFor {
   BuildForRoute(this.route);
-  final TreeStateRouteConfig route;
+  final StateRouteConfig route;
 
   // Value equality is needed, because this will be used as a key for a Page<void>, and Navigator
   // needs keys for pages to trigger transition animations properly

@@ -183,16 +183,20 @@ abstract class TreeStateRouterDelegateBase
     BuildContext context,
     CurrentState currentState,
   ) {
+    var buildFor = BuildForRoute(route);
+    var routingContext = StateRoutingContext(currentState);
     if (route.routePageBuilder != null) {
-      return route.routePageBuilder!
-          .call(context, StateRoutingContext(currentState));
+      return route.routePageBuilder!.call(
+          context,
+          (buildPageContent) => _withDefaultScaffolding(
+                buildFor,
+                buildPageContent(context, routingContext),
+              ));
     } else if (route.routeBuilder != null) {
-      var content =
-          route.routeBuilder!.call(context, StateRoutingContext(currentState));
+      var content = route.routeBuilder!.call(context, routingContext);
       var pageBuilder = route.isPopup
           ? _popupBuilderForAppType(context)
           : config.defaultPageBuilder ?? _pageBuilderForAppType(context);
-      var buildFor = BuildForRoute(route);
       return pageBuilder(buildFor, _withDefaultScaffolding(buildFor, content));
     }
 

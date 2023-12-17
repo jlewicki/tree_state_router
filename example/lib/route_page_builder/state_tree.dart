@@ -43,7 +43,7 @@ class GoToChild {}
 
 DeclarativeStateTreeBuilder hierarchicalDataStateTree() {
   var b = DeclarativeStateTreeBuilder(
-    initialChild: States.dataParent,
+    initialChild: States.parent,
     logName: 'hierarchicalData',
     label: 'Hierarchical Data State Tree',
   );

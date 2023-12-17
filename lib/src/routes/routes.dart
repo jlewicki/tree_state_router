@@ -6,30 +6,6 @@ import 'builder.dart';
 /// TBD: This will contain routing information parsed from the current URI.
 class TreeStateRoutingState {}
 
-/// {@template ShellTreeStateRouteBuilder}
-/// A function that can build a widget providing a visualization of an active parent state in a
-/// state tree, wrapping a nested router that displays active descendant states. This enables shell
-/// or layout pages associated with a parent state to provide a common framing around the visuals
-/// for descendant states.
-///
-/// The function is provided a build [context], a [stateContext] that describes the parent state to be
-/// visualized, and a [nestedRouter] representing the visuals for the active states. The widget
-/// produced by the function should incorporate [nestedRouter] somewhere in its widget tree.
-/// {@endtemplate}
-typedef ShellStateRouteBuilder = Widget Function(
-  BuildContext context,
-  StateRoutingContext stateContext,
-  Widget nestedRouter,
-);
-
-/// {@template ShellTreeStateRoutePageBuilder}
-/// {@endtemplate}
-typedef ShellStateRoutePageBuilder = Page<dynamic> Function(
-  BuildContext context,
-  StateRoutingContext stateContext,
-  Widget childRouter,
-);
-
 /// A route that creates visuals for a state in a state tree.
 ///
 /// {@template TreeStateRoute.propSummary}
@@ -107,11 +83,38 @@ class StateRoute implements StateRouteConfigProvider {
   ///
   /// A list of [routes] must be provided that determine the routing for descendant states of the
   /// parent state identfied by [stateKey].
+  ///
+  /// When the [routeBuilder] and [routePageBuilder] functions are called, they are provided a
+  /// `nestedRouter` widget that displays the visuals for the active descendant states. The builder
+  /// functions can place this widget as desired in their layout.
+  ///
+  /// ```dart
+  /// var routerConfig = TreeStateRouter(
+  ///   routes: [
+  ///     TreeStateRoute.shell(
+  ///       States.parent,
+  ///       routeBuilder: (_, _, Widget nestedRouter) {
+  ///         return Column(
+  ///           mainAxisAlignment: MainAxisAlignment.center,
+  ///           children: [
+  ///             const Text('This is the parent state'),
+  ///             // Display the descendant states here
+  ///             Expanded(child: nestedRouter),
+  ///           ],
+  ///         );
+  ///       },
+  ///       routes: [
+  ///         StateRoute(States.child, routeBuilder: (_, _) =>
+  ///           const Center(child: Text('This is the child state'))
+  ///         )
+  ///       ]),
+  ///   ]);
+  /// ```
   factory StateRoute.shell(
     StateKey stateKey, {
     required List<StateRouteConfigProvider> routes,
-    ShellStateRoutePageBuilder? routePageBuilder,
     ShellStateRouteBuilder? routeBuilder,
+    ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
   }) {
     var nestedRouter = NestedTreeStateRouter(
@@ -126,7 +129,14 @@ class StateRoute implements StateRouteConfigProvider {
           ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter)
           : null,
       routePageBuilder: routePageBuilder != null
-          ? (ctx, stateCtx) => routePageBuilder(ctx, stateCtx, nestedRouter)
+          ? (buildContext, wrapPageContent) => routePageBuilder(
+              buildContext,
+              (buildPageContent) =>
+                  wrapPageContent((context, stateContext) => buildPageContent(
+                        context,
+                        stateContext,
+                        nestedRouter,
+                      )))
           : null,
       isPopup: false,
     );
@@ -164,10 +174,45 @@ class StateRoute implements StateRouteConfigProvider {
   );
 }
 
+/// {@template ShellTreeStateRouteBuilder}
+/// A function that can build a widget providing a visualization of an active parent state in a
+/// state tree, wrapping a nested router that displays active descendant states. This enables shell
+/// or layout pages associated with a parent state to provide a common framing around the visuals
+/// for descendant states.
+///
+/// The function is provided a build [context], a [stateContext] that describes the parent state to be
+/// visualized, and a [nestedRouter] representing the visuals for the active states. The widget
+/// produced by the function should incorporate [nestedRouter] somewhere in its widget tree.
+/// {@endtemplate}
+typedef ShellStateRouteBuilder = Widget Function(
+  BuildContext context,
+  StateRoutingContext stateContext,
+  Widget nestedRouter,
+);
+
+/// {@template ShellTreeStateRoutePageBuilder}
+/// {@endtemplate}
+// typedef ShellStateRoutePageBuilder = Page<dynamic> Function(
+//   BuildContext context,
+//   StateRoutingContext stateContext,
+//   Widget childRouter,
+// );
+
+typedef ShellStateRoutePageBuilder = Page<void> Function(
+  BuildContext context,
+  Widget Function(ShellStateRouteBuilder buildPageContent) wrapPageContent,
+);
+
+/// A function that can build a widget providing a visualization of an active state in a state tree,
+/// using state data of type [DAnc] from an ancestor state.
+///
+/// The function is provided a build [context], and a [stateContext] that describes the state to be
+/// visualized, as well as the [ancestorData] from the ancestor state.
+
 typedef TreeStateRouteBuilder1<DAnc> = Widget Function(
   BuildContext context,
   StateRoutingContext stateContext,
-  DAnc data,
+  DAnc ancestorData,
 );
 
 typedef TreeStateRoutePageBuilder1<DAnc> = Page<void> Function(
@@ -220,12 +265,11 @@ class TreeStateRoute1<DAnc> implements StateRouteConfigProvider {
               _createDataTreeStateBuilder(stateContext, routeBuilder!)
           : null,
       routePageBuilder: routePageBuilder != null
-          ? (context, stateContext) => routePageBuilder!.call(
+          ? (context, wrapContent) => routePageBuilder!.call(
                 context,
-                (buildPageContent) => _createDataTreeStateBuilder(
-                  stateContext,
-                  buildPageContent,
-                ),
+                (buildPageContent) => wrapContent((context, stateContext) =>
+                    _createDataTreeStateBuilder(
+                        stateContext, buildPageContent)),
               )
           : null,
       isPopup: isPopup,
@@ -248,6 +292,11 @@ class TreeStateRoute1<DAnc> implements StateRouteConfigProvider {
   }
 }
 
+/// A function that can build a widget providing a visualization of an active state in a state tree,
+/// using state data from two ancestor states.
+///
+/// The function is provided a build [context], and a [stateContext] that describes the state to be
+/// visualized, as well as the [ancestor1Data] and [ancestor2Data] from the ancestor states.
 typedef TreeStateRouteBuilder2<DAnc1, DAnc2> = Widget Function(
   BuildContext context,
   StateRoutingContext stateContext,
@@ -314,12 +363,10 @@ class TreeStateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
             )
         : null,
     routePageBuilder: routePageBuilder != null
-        ? (context, stateContext) => routePageBuilder!.call(
+        ? (context, wrapContent) => routePageBuilder!.call(
               context,
-              (buildPageContent) => _createDataTreeStateBuilder(
-                stateContext,
-                buildPageContent,
-              ),
+              (buildPageContent) => wrapContent((context, stateContext) =>
+                  _createDataTreeStateBuilder(stateContext, buildPageContent)),
             )
         : null,
     isPopup: isPopup,
@@ -344,6 +391,12 @@ class TreeStateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
   }
 }
 
+/// A function that can build a widget providing a visualization of an active state in a state tree,
+/// using state data from three ancestor states.
+///
+/// The function is provided a build [context], and a [stateContext] that describes the state to be
+/// visualized, as well as the [ancestor1Data], [ancestor2Data], and [ancestor3Data] from the
+/// ancestor states.
 typedef TreeStateRouteBuilder3<DAnc1, DAnc2, DAnc3> = Widget Function(
   BuildContext context,
   StateRoutingContext stateContext,
@@ -416,12 +469,11 @@ class TreeStateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
               )
           : null,
       routePageBuilder: routePageBuilder != null
-          ? (context, stateContext) => routePageBuilder!.call(
+          ? (context, wrapContent) => routePageBuilder!.call(
                 context,
-                (buildPageContent) => _createDataTreeStateBuilder(
-                  stateContext,
-                  buildPageContent,
-                ),
+                (buildPageContent) => wrapContent((context, stateContext) =>
+                    _createDataTreeStateBuilder(
+                        stateContext, buildPageContent)),
               )
           : null,
       isPopup: isPopup,

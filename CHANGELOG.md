@@ -1,3 +1,6 @@
+## 0.0.1-dev.2
+- Add shell routes
+
 ## 0.0.1-dev.1
 Initial pre-release
 - Routes for states and data states

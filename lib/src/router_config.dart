@@ -1,10 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
-// import 'package:tree_state_router/src/pages.dart';
-// import 'package:tree_state_router/src/parser.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
-// import 'routes/routes.dart';
 
 /// A function that can adorn the content of a route page, adding common layout or scaffolding.
 ///

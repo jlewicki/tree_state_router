@@ -163,10 +163,11 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
               _createDataTreeStateBuilder(stateContext, routeBuilder!)
           : null,
       routePageBuilder: routePageBuilder != null
-          ? (context, stateContext) => routePageBuilder!.call(
+          ? (context, wrapContent) => routePageBuilder!.call(
                 context,
-                (buildPageContent) =>
-                    _createDataTreeStateBuilder(stateContext, buildPageContent),
+                (buildPageContent) => wrapContent((context, stateContext) =>
+                    _createDataTreeStateBuilder(
+                        stateContext, buildPageContent)),
               )
           : null,
       isPopup: isPopup,
@@ -248,10 +249,10 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
             _createDataTreeStateBuilder(stateContext, routeBuilder!)
         : null,
     routePageBuilder: routePageBuilder != null
-        ? (context, stateContext) => routePageBuilder!.call(
+        ? (context, wrapContent) => routePageBuilder!.call(
               context,
-              (buildPageContent) =>
-                  _createDataTreeStateBuilder(stateContext, buildPageContent),
+              (buildPageContent) => wrapContent((context, stateContext) =>
+                  _createDataTreeStateBuilder(stateContext, buildPageContent)),
             )
         : null,
     isPopup: isPopup,
@@ -341,10 +342,10 @@ class DataTreeStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
             _createDataTreeStateBuilder(stateContext, routeBuilder!)
         : null,
     routePageBuilder: routePageBuilder != null
-        ? (context, stateContext) => routePageBuilder!.call(
+        ? (context, wrapContent) => routePageBuilder!.call(
               context,
-              (buildPageContent) =>
-                  _createDataTreeStateBuilder(stateContext, buildPageContent),
+              (buildPageContent) => wrapContent((context, stateContext) =>
+                  _createDataTreeStateBuilder(stateContext, buildPageContent)),
             )
         : null,
     isPopup: isPopup,

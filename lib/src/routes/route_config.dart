@@ -14,7 +14,7 @@ abstract class StateRouteConfigProvider {
   StateRouteConfig get config;
 }
 
-/// {@template TreeStateRouteBuilder}
+/// {@template StateRouteBuilder}
 /// A function that can build a widget providing a visualization of an active state in a state tree.
 ///
 /// The function is provided a build [context], and a [stateContext] that describes the state to be
@@ -25,16 +25,32 @@ typedef StateRouteBuilder = Widget Function(
   StateRoutingContext stateContext,
 );
 
-/// {@template TreeStateRoutePageBuilder}
+/// {@template StateRoutePageBuilder}
 /// A function that can build a routing [Page] that provides a visualization of an active state in
 /// a state tree.
 ///
-/// The function is provided a build [context], and a [stateContext] that describes the state to be
-/// visualized.
+/// The function is provided a build [context], and a [wrapPageContent] function. [wrapPageContent]
+/// must be called in order to wrap the contents of the route in a specialized widget that detects
+/// state transitions and re-renders this route as necessary, as well as including any
+/// [TreeStateRouter.defaultScaffolding] defined by the router. The return value of
+/// [wrapPageContent] function should be used as the contents of the page.
+///
+/// ```dart
+/// var routerConfig = TreeStateRouter(
+///   routes: [
+///     TreeStateRoute(
+///       States.state1,
+///       pageRouteBuilder: (buildContext, wrapPageContent) {
+///         return MaterialPage(child: wrapPageContent((ctx, stateCtx) {
+///            return const Text('Hello from state1');
+///          }));
+///       }),
+///   ]);
+/// ```
 /// {@endtemplate}
-typedef StateRoutePageBuilder = Page<dynamic> Function(
+typedef StateRoutePageBuilder = Page<void> Function(
   BuildContext context,
-  StateRoutingContext stateContext,
+  Widget Function(StateRouteBuilder buildPageContent) wrapPageContent,
 );
 
 /// A generalized description of a route that can be placed in a [TreeStateRouter].

@@ -8,6 +8,10 @@ import '../../helpers/helpers.dart';
 import 'state_tree.dart';
 import 'pages.dart';
 
+//
+// This example demonstrates use of `routePageBuilder`s to create the specific
+// `Page<void>` values that provide content to the router.
+//
 void main() {
   _initLogging();
   runApp(const MainApp());
@@ -20,16 +24,26 @@ final router = TreeStateRouter(
   routes: [
     DataStateRoute.shell(
       States.dataParent,
-      routeBuilder: dataParentPage,
+      routePageBuilder: (ctx, wrapPage) =>
+          MaterialPage(child: wrapPage(dataParentPage)),
       routes: [
-        StateRoute(States.child, routeBuilder: childPage),
+        StateRoute(
+          States.child,
+          routePageBuilder: (ctx, wrapPage) =>
+              MaterialPage(child: wrapPage(childPage)),
+        ),
       ],
     ),
     StateRoute.shell(
       States.parent,
-      routeBuilder: parentPage,
+      routePageBuilder: (ctx, wrapPage) =>
+          MaterialPage(child: wrapPage(parentPage)),
       routes: [
-        DataStateRoute(States.dataChild, routeBuilder: dataChildPage),
+        DataStateRoute(
+          States.dataChild,
+          routePageBuilder: (ctx, wrapPage) =>
+              MaterialPage(child: wrapPage(dataChildPage)),
+        ),
       ],
     ),
   ],

@@ -1,3 +1,7 @@
+## 0.0.1-dev.3
+- Improve error messages
+- Allow `DefaultPageBuilder` to return a null value.
+
 ## 0.0.1-dev.2
 - Add shell routes
 

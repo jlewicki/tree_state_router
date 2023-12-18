@@ -100,7 +100,37 @@ class MainApp extends StatelessWidget {
 
 ## Routes
 ### StateRoute
-TODO
+A `StateRoute` provides visuals for a plain state (that is, not a data state). When the state is active in the state 
+tree, `TreeStateRouter` will call the builder from the route to obtain the `Widget` that displays the state, and place
+it on top of the navigation stack.  
+
+The builder function is provided a `TreeStateRoutingContext` that may be used to post messages to the state machine 
+in response to user input.
+
+For example:
+
+```dart
+StateRoute(
+   // This route provides visuals for state1.
+   States.state1,
+   // This builder function creates a widget that displays state1.
+   routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
+      return Center(
+         child: Column(
+         mainAxisAlignment: MainAxisAlignment.center,
+         children: [
+            const Text('This is state 1'),
+            ElevatedButton(
+               // When the button is pressed, send a message to the state machine
+               onPressed: () => stateCtx.currentState.post(AMessage()),
+               child: const Text('Send a message'),
+            )
+         ],
+         ),
+      );
+   },
+),
+```
 
 ### DataStateRoute
 TODO
@@ -110,7 +140,8 @@ TODO
 
 ### Shell Routes
 Both `StateRoute` and `DataStateRoute` provide `shell` factory methods. These factories permit a route for a parent 
-state to provide page content that wraps the visuals of its descendant states. In other words, the parent route can provide a common layout or 'shell' that is wraps the visuals of its descendant states.
+state to provide page content that wraps the visuals of its descendant states. In other words, the parent route can 
+provide a common layout or 'shell' that is wraps the visuals of its descendant states.
 
 When calling the `shell` method, a list of routes corresponding to descendant states must be provided. Additionally,
 the `routeBuilder` or `routePageBuilder` functions accept a `nestedRouter` widget that reprents the visuals for active

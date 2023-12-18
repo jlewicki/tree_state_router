@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -8,6 +9,13 @@ import 'package:tree_state_router/tree_state_router.dart';
 import 'package:tree_state_router/src/pages.dart';
 import 'package:tree_state_router/src/widgets/state_machine_error.dart';
 import 'package:tree_state_router/src/widgets/state_machine_events.dart';
+
+/// The error thrown when an unrecoverable error occurs with a [TreeStateRouter], typically caused
+/// by a configuration error that must be addressed by a developer.
+class TreeStateRouterError extends Error {
+  TreeStateRouterError(this.message);
+  final String message;
+}
 
 class TreeStateRouterDelegateConfig {
   TreeStateRouterDelegateConfig(
@@ -22,6 +30,12 @@ class TreeStateRouterDelegateConfig {
   final bool enableTransitions;
 }
 
+// Error handling:
+//
+// * Assertions are used for internalo invariants, not to validate configuration
+// * RouterDelegates will throw TreeStateRouterError for errors due to route configuration errors
+// * Errors detected during build are presented as a page in the router
+// * Errors emitted from the state machine are detected and presented as a page in the router
 abstract class TreeStateRouterDelegateBase
     extends RouterDelegate<TreeStateRouteInfo>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
@@ -43,10 +57,13 @@ abstract class TreeStateRouterDelegateBase
   /// The most recent state machine transition that has occurred.
   Transition? _transition;
 
+  final Logger _log;
+
+  /// Catalogs errors that can be thrown by the router delegates
+  late final _RouterErrors _errors = _RouterErrors(_log);
+
   /// The routes routed by this delegate, indexed by state key.
   late final _routeMap = _mapRoutes(config.routes);
-
-  final Logger _log;
 
   // Used to create Page<Object> when routes are unopinionated about which Page type to use.
   (PageBuilder pageBuilder, PageBuilder popupPageBuilder)? _pageBuilders;
@@ -72,16 +89,18 @@ abstract class TreeStateRouterDelegateBase
         transitionsRootKey: transitionEventRootState,
         child: displayStateMachineErrors
             ? StateMachineErrorBuilder(
-                errorBuilder: _buildErrorWidget,
+                errorBuilder: _stateMachineErrorBuilder,
                 child: widget,
               )
             : widget,
       );
     }
 
-    if (provideCurrentState) {
-      widget =
-          TreeStateMachineProvider(currentState: currentState!, child: widget);
+    if (provideCurrentState && currentState != null) {
+      widget = TreeStateMachineProvider(
+        currentState: currentState,
+        child: widget,
+      );
     }
 
     return widget;
@@ -93,7 +112,9 @@ abstract class TreeStateRouterDelegateBase
   /// tree_state_machine, this will return a history stack which can be popped by the navigator.
   @protected
   Iterable<Page<void>> _buildActivePages(
-      BuildContext context, CurrentState currentState) {
+    BuildContext context,
+    CurrentState currentState,
+  ) {
     /// Return the deepest page that maps to an active state. By deepest, we mean the page that
     /// maps to a state as far as possible from the root state. This gives the current leaf state
     /// priority in determining the page to display, followed by its parent state, etc.
@@ -119,12 +140,10 @@ abstract class TreeStateRouterDelegateBase
           .toList();
 
       if (belowPopupRoutes.isEmpty) {
-        var error =
-            "Popup route for '${navigatorRoutes.first.stateKey}' cannot be displayed because all "
-            "exiting routes depend on data states below the least common ancestor state '${_transition!.lca}' for this "
-            "transition: ";
-        _log.severe(error);
-        throw StateError(error);
+        throw _errors.invalidPopupRoute(
+          navigatorRoutes.first.stateKey,
+          _transition!,
+        );
       }
 
       navigatorRoutes = belowPopupRoutes.followedBy(navigatorRoutes);
@@ -147,16 +166,12 @@ abstract class TreeStateRouterDelegateBase
   }
 
   @protected
-  Widget _buildErrorWidget(
+  Widget _stateMachineErrorBuilder(
     BuildContext buildContext,
-    FailedMessage error,
+    FailedMessage failedMessage,
     CurrentState currentState,
   ) {
-    var msg = 'The state machine failed to process a message.\n\n'
-        'Message: ${error.message.toString()}\n'
-        'Receiving tree state: ${error.receivingState}\n\n'
-        '${error.error.toString()}';
-    return ErrorWidget.withDetails(message: msg);
+    throw _errors.stateMachineFailedMessage(failedMessage);
   }
 
   @protected
@@ -201,8 +216,7 @@ abstract class TreeStateRouterDelegateBase
     }
 
     // Should never happen because of validation in TreeStateRoute
-    throw StateError(
-        "TreeStateRoute for state ${route.stateKey} does not have routePageBuilder or a routeBuilder.");
+    throw _errors.missingBuilder(route.stateKey);
   }
 
   Widget _withDefaultScaffolding(PageBuildFor buildFor, Widget content) {
@@ -210,23 +224,12 @@ abstract class TreeStateRouterDelegateBase
   }
 
   @protected
-  Page<void> _createEmptyRoutesErrorPage(
-      BuildContext context, List<StateKey> activeStates) {
-    _log.warning(
-        'No pages available to display active states [${activeStates.join(',')}]');
-    Widget error = Container();
-    assert(() {
-      error = ErrorWidget.withDetails(
-          message:
-              'No tree state routes are available to display any of the active states: '
-              '${activeStates.map((s) => '"$s"').join(', ')}.\n\n'
-              'Make sure to add a route that can display one of the active states to the $runtimeType.');
-      return true;
-    }());
-    error = Center(child: error);
+  Page<void> _createErrorPage(BuildContext context, Object exception) {
     return _pageBuilderForAppType(context).call(
       const BuildForError(),
-      error,
+      exception is TreeStateRouterError
+          ? ErrorWidget.withDetails(message: exception.message)
+          : ErrorWidget(exception),
     );
   }
 
@@ -238,14 +241,11 @@ abstract class TreeStateRouterDelegateBase
         .map((entry) => entry.value!);
   }
 
-  static Map<StateKey, StateRouteConfig> _mapRoutes(
-      List<StateRouteConfig> routes) {
+  Map<StateKey, StateRouteConfig> _mapRoutes(List<StateRouteConfig> routes) {
     var map = <StateKey, StateRouteConfig>{};
     for (var route in routes) {
       if (map.containsKey(route.stateKey)) {
-        throw ArgumentError(
-            'Duplicate routes defined for state \'${route.stateKey}\'',
-            'pages');
+        throw _errors.duplicateRoutes(route.stateKey);
       }
       map[route.stateKey] = route;
     }
@@ -305,20 +305,28 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
           'Creating pages for active states ${curState.activeStates.join(', ')}');
     }
 
-    var pages = curState != null
-        ? _buildActivePages(context, curState).toList()
-        // build() may be called before the setNewRoutePath future completes, so we display a loading
-        // indicator while that is in progress
-        : [if (stateMachine.lifecycle.isStarting) _createLoadingPage(context)];
+    var pages = <Page>[];
+    try {
+      pages = curState != null
+          ? _buildActivePages(context, curState).toList()
+          // build() may be called before the setNewRoutePath future completes, so we display a loading
+          // indicator while that is in progress
+          : [
+              if (stateMachine.lifecycle.isStarting) _createLoadingPage(context)
+            ];
 
-    if (pages.isEmpty) {
-      pages = [
-        _createEmptyRoutesErrorPage(context, curState?.activeStates ?? [])
-      ];
+      if (pages.isEmpty) {
+        throw _errors.noPagesForActiveStates(curState?.activeStates ?? []);
+      }
+    } catch (ex) {
+      pages = [_createErrorPage(context, ex)];
     }
 
-    return _buildNavigatorWidget(pages, curState,
-        provideCurrentState: curState != null);
+    return _buildNavigatorWidget(
+      pages,
+      curState,
+      provideCurrentState: curState != null,
+    );
   }
 
   @override
@@ -374,6 +382,9 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   /// state, and there is no route that can display that state.
   final bool supportsFinalRoute;
 
+  /// Records if nested route topology has been validated
+  bool _nestedRoutesValidated = false;
+
   /// The key used for retrieving the current navigator.
   @override
   final navigatorKey =
@@ -386,31 +397,39 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
   @override
   Widget build(BuildContext context) {
-    var stateMachineInfo = TreeStateMachineProvider.of(context);
-    if (stateMachineInfo == null) {
-      var message = 'Unable to find tree state machine in widget tree';
-      _log.warning(message);
-      return ErrorWidget.withDetails(message: message);
-    }
+    List<Page> pages = [];
+    CurrentState? currentState;
 
-    var currentState = stateMachineInfo.currentState;
-    var activeStates = currentState.activeStates;
-    var pages = _buildActivePages(context, currentState).toList();
-    if (pages.isEmpty) {
-      if (currentState.stateMachine.isDone && !supportsFinalRoute) {
-        // If the current state machine is running as a nested machine, then there is likely a
-        // Router with a NestedStateTreeRouterDelegate higher in the widget tree, which will render
-        // a different page when the nested state machine finishes. In this case, a developer will
-        // probably not add a page for the final state to this router delegate (since after all it
-        // will never be displayed), so to avoid emitting warnings just use a transient page with
-        // no visible content.
-        pages = [MaterialPage(child: Container())];
-      } else {
-        _log.warning(
-          'No pages available to display active states ${currentState.activeStates.join(',')}',
-        );
-        pages = [_createEmptyRoutesErrorPage(context, activeStates)];
+    try {
+      var stateMachineInfo = TreeStateMachineProvider.of(context);
+      if (stateMachineInfo == null) {
+        throw _errors.missingStateMachine();
       }
+
+      // Verify that routed states are all descendant states of parentKey
+      if (!_nestedRoutesValidated) {
+        _validateNestedRoutes(
+            stateMachineInfo.currentState.stateMachine.rootNode);
+        _nestedRoutesValidated = true;
+      }
+
+      currentState = stateMachineInfo.currentState;
+      var pages = _buildActivePages(context, currentState).toList();
+      if (pages.isEmpty) {
+        if (currentState.stateMachine.isDone && !supportsFinalRoute) {
+          // If the current state machine is running as a nested machine, then there is likely a
+          // Router with a NestedStateTreeRouterDelegate higher in the widget tree, which will render
+          // a different page when the nested state machine finishes. In this case, a developer will
+          // probably not add a page for the final state to this router delegate (since after all it
+          // will never be displayed), so to avoid emitting warnings just use a transient page with
+          // no visible content.
+          pages = [MaterialPage(child: Container())];
+        } else {
+          throw _errors.noPagesForActiveStates(currentState.activeStates);
+        }
+      }
+    } catch (ex) {
+      pages = [_createErrorPage(context, ex)];
     }
 
     return _buildNavigatorWidget(
@@ -421,12 +440,119 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     );
   }
 
+  void _validateNestedRoutes(RootNodeInfo rootNode) {
+    var routedStates = rootNode
+        .selfAndDescendants()
+        .where((e) => _routeMap.containsKey(e.key));
+
+    List<StateKey> invalidRoutes = [];
+    for (var routedState in routedStates) {
+      var ancestor =
+          ancestors(routedState).firstWhereOrNull((e) => e.key == parentKey);
+      if (ancestor == null) {
+        invalidRoutes.add(routedState.key);
+      }
+    }
+
+    if (invalidRoutes.isNotEmpty) {
+      throw _errors.nestedRoutesAreNotDescendantsOfParent(
+          parentKey, invalidRoutes);
+    }
+  }
+
   @override
   void _onTransition(CurrentState currentState, Transition transition) {
     _transition = transition;
     if (!transition.isToFinalState || supportsFinalRoute) {
       super._onTransition(currentState, transition);
     }
+  }
+
+  Iterable<TreeNodeInfo> ancestors(TreeNodeInfo node) sync* {
+    TreeNodeInfo? parent(TreeNodeInfo node) {
+      return switch (node) {
+        LeafNodeInfo(parent: var p) => p,
+        InteriorNodeInfo(parent: var p) => p,
+        _ => null
+      };
+    }
+
+    var nextAncestor = parent(node);
+    while (nextAncestor != null) {
+      yield nextAncestor;
+      nextAncestor = parent(nextAncestor);
+    }
+  }
+}
+
+class _RouterErrors {
+  _RouterErrors(this._log);
+
+  final Logger _log;
+
+  TreeStateRouterError missingStateMachine() {
+    var message = 'Unable to find tree state machine in widget tree';
+    _log.severe(message);
+    return TreeStateRouterError(message);
+  }
+
+  TreeStateRouterError duplicateRoutes(StateKey duplicateKey) {
+    var message =
+        "Duplicate routes defined for state '$duplicateKey'. A state can only "
+        "have a single route associatd with it.";
+    _log.severe(message);
+    return TreeStateRouterError(message);
+  }
+
+  TreeStateRouterError missingBuilder(StateKey routeKey) {
+    var message =
+        "TreeStateRoute for state '$routeKey' does not have routePageBuilder "
+        "or a routeBuilder.";
+    _log.severe(message);
+    return TreeStateRouterError(message);
+  }
+
+  TreeStateRouterError invalidPopupRoute(
+      StateKey popupRouteKey, Transition transition) {
+    var message =
+        "Popup route for '$popupRouteKey' cannot be displayed because all "
+        "exiting routes depend on data states below the least common ancestor "
+        "state '${transition.lca}' for this transition: \n\n"
+        "";
+    _log.severe(message);
+    return TreeStateRouterError(message);
+  }
+
+  TreeStateRouterError noPagesForActiveStates(List<StateKey> activeStates) {
+    var message =
+        'No tree state routes are available to display any of the active '
+        'states:\n\n'
+        '${activeStates.map((s) => '"$s"').join(', ')}.\n\n'
+        'Make sure to add a route that can display one of the active states to '
+        'the router.';
+    _log.severe(message);
+    return TreeStateRouterError(message);
+  }
+
+  TreeStateRouterError stateMachineFailedMessage(FailedMessage error) {
+    var message = 'The state machine failed to process a message.\n\n'
+        'Message: ${error.message.toString()}\n'
+        'Receiving tree state: ${error.receivingState} \n\n'
+        '${error.error.toString()}';
+    _log.severe(message);
+    return TreeStateRouterError(message);
+  }
+
+  TreeStateRouterError nestedRoutesAreNotDescendantsOfParent(
+    StateKey parentKey,
+    List<StateKey> routedStates,
+  ) {
+    var message = 'Unable to display a route page for nested router with '
+        "for parent state '$parentKey', because the following routed states are "
+        'not descendants of the parent state:\n'
+        '${routedStates.join('\n')}';
+    _log.severe(message);
+    return TreeStateRouterError(message);
   }
 }
 

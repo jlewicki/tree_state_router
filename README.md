@@ -58,7 +58,7 @@ final router = TreeStateRouter(
   stateMachine: TreeStateMachine(simpleStateTree()),
   defaultScaffolding: (_, pageContent) => Scaffold(body: pageContent),
   routes: [
-    TreeStateRoute(
+    StateRoute(
       States.state1,
       routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
         return Center(
@@ -75,7 +75,7 @@ final router = TreeStateRouter(
         );
       },
     ),
-    TreeStateRoute(
+    StateRoute(
       States.state2,
       routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
         return const Center(child: Text('This is state 2'));

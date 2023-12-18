@@ -141,7 +141,9 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     );
   }
 
+  /// {@template DataStateRoute.stateKey}
   /// Identifies the data tree state associated with this route.
+  /// {@endtemplate}
   final DataStateKey<D> stateKey;
 
   /// {@macro StateRoute.routeBuilder}
@@ -180,6 +182,11 @@ typedef DataStateRoutePageBuilder2<D, DAnc> = Page<void> Function(
       wrapPageContent,
 );
 
+/// A route that creates visuals for a data state, using state data of type [D] and [DAnc]
+/// obtained from the data state, and an ancestor data state.
+///
+/// This route is used in a very similar manner as [DataStateRoute], with the addition of providing
+/// the [DataStateKey] of the ancestor state whose data should be obtained.
 class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
   DataStateRoute2._(
     this.stateKey, {
@@ -189,6 +196,7 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
     this.isPopup = false,
   });
 
+  /// Constructs a [DataStateRoute2].
   DataStateRoute2(
     this.stateKey, {
     required this.ancestorStateKey,
@@ -208,11 +216,27 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
         isPopup: true,
       );
 
+  /// {@macro DataStateRoute.stateKey}
   final DataStateKey<D> stateKey;
+
+  /// {@macro StateRoute1.ancestorStateKey}
   final DataStateKey<DAnc> ancestorStateKey;
+
+  /// {@macro StateRoute.routeBuilder}
+  ///
+  /// When called, this function is provided the current [D] and [DAnc] values obtained from the
+  /// data state and the ancestor state.
   final DataStateRouteBuilder2<D, DAnc>? routeBuilder;
+
+  /// {@macro StateRoute.routePageBuilder}
+  ///
+  /// When called, this function is provided the current [D] and [DAnc] values obtained from the
+  /// data state and the ancestor state.
   final DataStateRoutePageBuilder2<D, DAnc>? routePageBuilder;
+
+  /// {@macro StateRoute.isPopup}
   final bool isPopup;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey),
     StateDataResolver<DAnc>(ancestorStateKey)
@@ -242,6 +266,14 @@ typedef DataStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
       wrapPageContent,
 );
 
+/// A route that creates visuals for a data state, using state data of type [D], [DAnc1] and [DAnc2]
+/// obtained from the data state, and two ancestor data states.
+///
+/// This route is used in a very similar manner as [DataStateRoute], with the addition of providing
+/// the [DataStateKey]s of the ancestor states whose data should be obtained.
+///
+/// Note that there is no relationship implied between the ancestor states. Either state may be an
+/// ancestor of the other.
 class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
   DataStateRoute3._(
     this.stateKey, {
@@ -252,6 +284,7 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.isPopup = false,
   });
 
+  /// Constructs a [DataStateRoute3].
   DataStateRoute3(
     this.stateKey, {
     required this.ancestor1StateKey,
@@ -274,12 +307,30 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
         isPopup: true,
       );
 
+  /// {@macro DataStateRoute.stateKey}
   final DataStateKey<D> stateKey;
+
+  /// {@macro StateRoute2.ancestor1StateKey}
   final DataStateKey<DAnc1> ancestor1StateKey;
+
+  /// {@macro StateRoute2.ancestor1StateKey}
   final DataStateKey<DAnc2> ancestor2StateKey;
+
+  /// {@macro StateRoute.routeBuilder}
+  ///
+  /// When called, this function is provided the current [D], [DAnc1] and [DAnc2] values obtained
+  /// from the data state, and the two ancestor states.
   final DataStateRouteBuilder3<D, DAnc1, DAnc2>? routeBuilder;
+
+  /// {@macro StateRoute.routePageBuilder}
+  ///
+  /// When called, this function is provided the current [D], [DAnc1] and [DAnc2] values obtained
+  /// from the data state, and the two ancestor states.
   final DataStateRoutePageBuilder3<D, DAnc1, DAnc2>? routePageBuilder;
+
+  /// {@macro StateRoute.isPopup}
   final bool isPopup;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey),
     StateDataResolver<DAnc1>(ancestor1StateKey),

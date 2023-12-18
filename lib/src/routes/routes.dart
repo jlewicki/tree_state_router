@@ -236,7 +236,9 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
   /// {@macro StateRoute.stateKey}
   final StateKey stateKey;
 
+  /// {@template StateRoute1.ancestorStateKey}
   /// Identifies the ancestor data state whose data should be obtained.
+  /// {@endtemplate}
   final DataStateKey<DAnc> ancestorStateKey;
 
   /// {@macro StateRoute.routeBuilder}

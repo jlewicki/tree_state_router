@@ -209,10 +209,15 @@ abstract class TreeStateRouterDelegateBase
               ));
     } else if (route.routeBuilder != null) {
       var content = route.routeBuilder!.call(context, routingContext);
-      var pageBuilder = route.isPopup
+      var appPageBuilder = route.isPopup
           ? _popupBuilderForAppType(context)
+          : _pageBuilderForAppType(context);
+      var pageBuilder = route.isPopup
+          ? appPageBuilder
           : config.defaultPageBuilder ?? _pageBuilderForAppType(context);
-      return pageBuilder(buildFor, _withDefaultScaffolding(buildFor, content));
+      var pageContent = _withDefaultScaffolding(buildFor, content);
+      return pageBuilder(buildFor, pageContent) ??
+          appPageBuilder(buildFor, pageContent);
     }
 
     // Should never happen because of validation in TreeStateRoute
@@ -225,12 +230,13 @@ abstract class TreeStateRouterDelegateBase
 
   @protected
   Page<void> _createErrorPage(BuildContext context, Object exception) {
-    return _pageBuilderForAppType(context).call(
-      const BuildForError(),
-      exception is TreeStateRouterError
-          ? ErrorWidget.withDetails(message: exception.message)
-          : ErrorWidget(exception),
-    );
+    var appPageBuilder = _pageBuilderForAppType(context);
+    var pageContent = exception is TreeStateRouterError
+        ? ErrorWidget.withDetails(message: exception.message)
+        : ErrorWidget(exception);
+    var buildFor = BuildForError(exception);
+    return config.defaultPageBuilder?.call(buildFor, pageContent) ??
+        appPageBuilder(buildFor, pageContent);
   }
 
   Iterable<StateRouteConfig> _findRoutesFor(Iterable<StateKey> keys) {
@@ -414,7 +420,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       }
 
       currentState = stateMachineInfo.currentState;
-      var pages = _buildActivePages(context, currentState).toList();
+      pages = _buildActivePages(context, currentState).toList();
       if (pages.isEmpty) {
         if (currentState.stateMachine.isDone && !supportsFinalRoute) {
           // If the current state machine is running as a nested machine, then there is likely a

@@ -16,7 +16,10 @@ typedef DefaultScaffoldingBuilder = Widget Function(
 ///
 /// The function is provided a [buildFor] indicating the reason the page is being built, and
 /// the [pageContent] to display in the page.
-typedef DefaultPageBuilder = Page<void> Function(
+///
+/// The function can return `null` if the application does not require specialized page under
+/// certain conditions, in which case the router will use a default [Page].
+typedef DefaultPageBuilder = Page<void>? Function(
   PageBuildFor buildFor,
   Widget pageContent,
 );

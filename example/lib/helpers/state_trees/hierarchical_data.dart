@@ -72,6 +72,7 @@ DeclarativeStateTreeBuilder hierarchicalDataStateTree() {
       );
       b.onMessage<GoToChild2>((b) => b.goTo(States.child2));
     },
+    parent: States.parent,
   );
 
   b.dataState<Child2Data>(
@@ -85,6 +86,7 @@ DeclarativeStateTreeBuilder hierarchicalDataStateTree() {
       );
       b.onMessage<GoToChild1>((b) => b.goTo(States.child1));
     },
+    parent: States.parent,
   );
 
   return b;

@@ -112,7 +112,6 @@ class StateRoute implements StateRouteConfigProvider {
   /// ```
   factory StateRoute.shell(
     StateKey stateKey, {
-    // TODO: validate routes are descendants of stateKey
     required List<StateRouteConfigProvider> routes,
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,

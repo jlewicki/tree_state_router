@@ -47,7 +47,8 @@ class BuildForLoading implements PageBuildFor {
 
 /// Indicates that page content is being built in order to display a navigator error page.
 class BuildForError implements PageBuildFor {
-  const BuildForError();
+  const BuildForError(this.error);
+  final Object error;
 }
 
 /// A function that can build a routing page that displays the specified content.

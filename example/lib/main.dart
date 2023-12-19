@@ -2,68 +2,52 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
+import 'simple/state_tree.dart';
+import 'simple/pages.dart';
 
 //
-// This example demonstrates a routing for a simple state machine with two states. State transitions
-// occur in response to user input.
+// This example demonstrates a routing for a relatively simple, non-hierarchical, state machine.
 //
 void main() {
   _initLogging();
   runApp(const MainApp());
 }
 
-// Define a simple state tree with 2 states
-class States {
-  static const state1 = StateKey('state1');
-  static const state2 = StateKey('state2');
-}
-
-class AMessage {}
-
-DeclarativeStateTreeBuilder simpleStateTree() {
-  var b = DeclarativeStateTreeBuilder(initialChild: States.state1);
-  b.state(States.state1, (b) {
-    b.onMessage<AMessage>((b) => b.goTo(States.state2));
-  });
-  b.state(States.state2, emptyState);
-  return b;
-}
-
-// Define a router with routes for states in the state tree
-var router = TreeStateRouter(
+final router = TreeStateRouter(
   stateMachine: TreeStateMachine(simpleStateTree()),
-  defaultScaffolding: (_, pageContent) => Scaffold(body: pageContent),
+  defaultScaffolding: (_, pageContent) => Scaffold(
+    body: StateTreeInspector(
+      child: Center(
+        child: pageContent,
+      ),
+    ),
+  ),
   routes: [
     StateRoute(
-      States.state1,
-      routeBuilder: (BuildContext ctx, StateRoutingContext stateCtx) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('This is state 1'),
-              ElevatedButton(
-                onPressed: () => stateCtx.currentState.post(AMessage()),
-                child: const Text('Send a message'),
-              )
-            ],
-          ),
-        );
-      },
+      States.enterText,
+      path: 'text',
+      routeBuilder: enterTextPage,
+    ),
+    DataStateRoute(
+      States.showLowercase,
+      path: 'lowercase',
+      routeBuilder: toLowercasePage,
+    ),
+    DataStateRoute(
+      States.showUppercase,
+      path: 'uppercase',
+      routeBuilder: toUppercasePage,
     ),
     StateRoute(
-      States.state2,
-      routeBuilder: (BuildContext ctx, StateRoutingContext stateCtx) {
-        return const Center(child: Text('This is state 2'));
-      },
+      States.finished,
+      path: 'done',
+      routeBuilder: finishedPage,
     ),
   ],
 );
 
-// Create a router based Material app with the TreeStateRouter
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 

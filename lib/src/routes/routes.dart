@@ -41,12 +41,13 @@ class TreeStateRoutingState {}
 ///   ]);
 /// ```
 class StateRoute implements StateRouteConfigProvider {
-  StateRoute._(
-    this.stateKey, {
-    required this.routePageBuilder,
-    required this.routeBuilder,
-    required this.isPopup,
-  })  : assert(routePageBuilder != null || routeBuilder != null,
+  StateRoute._(this.stateKey,
+      {required this.routePageBuilder,
+      required this.routeBuilder,
+      required this.isPopup,
+      required this.path,
+      required this.childRoutes})
+      : assert(routePageBuilder != null || routeBuilder != null,
             "One of routePageBuilder or routeBuilder must be provided"),
         assert(!(routePageBuilder != null && routeBuilder != null),
             "Only one of routePageBuilder or routeBuilder can be provided"),
@@ -58,25 +59,29 @@ class StateRoute implements StateRouteConfigProvider {
     StateKey stateKey, {
     StateRoutePageBuilder? routePageBuilder,
     StateRouteBuilder? routeBuilder,
+    String? path,
   }) =>
       StateRoute._(
         stateKey,
         routeBuilder: routeBuilder,
         routePageBuilder: routePageBuilder,
         isPopup: false,
+        path: path,
+        childRoutes: const [],
       );
 
   /// Constructs a [StateRoute] that displays its visuals in a [PopupRoute].
   factory StateRoute.popup(
     StateKey stateKey, {
     StateRouteBuilder? routeBuilder,
+    String? path,
   }) =>
-      StateRoute._(
-        stateKey,
-        routeBuilder: routeBuilder,
-        routePageBuilder: null,
-        isPopup: true,
-      );
+      StateRoute._(stateKey,
+          routeBuilder: routeBuilder,
+          routePageBuilder: null,
+          isPopup: true,
+          path: path,
+          childRoutes: const []);
 
   /// Constructs a [StateRoute] for a parent state that provides common layout (i.e. a 'shell')
   /// wrapping a nested router that displays visuals for active descendant states.
@@ -116,6 +121,7 @@ class StateRoute implements StateRouteConfigProvider {
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
+    String? path,
   }) {
     var nestedRouter = NestedTreeStateRouter(
       key: ValueKey(stateKey),
@@ -140,6 +146,8 @@ class StateRoute implements StateRouteConfigProvider {
                       )))
           : null,
       isPopup: false,
+      path: path,
+      childRoutes: routes,
     );
   }
 
@@ -168,13 +176,23 @@ class StateRoute implements StateRouteConfigProvider {
   /// {@endtemplate}
   final bool isPopup;
 
+  /// {@template StateRoute.path}
+  /// Optional path template indicating how the route appears as part of a routing URI.
+  ///
+  /// If a value is provided, the route will be included when a routing URI is generated, *and*
+  /// be deep-linkable when the platform sets the routing URI.
+  /// {@endtemplate}
+  final String? path;
+
+  final List<StateRouteConfigProvider> childRoutes;
+
   @override
-  late final StateRouteConfig config = StateRouteConfig(
-    stateKey,
-    routeBuilder: routeBuilder,
-    routePageBuilder: routePageBuilder,
-    isPopup: isPopup,
-  );
+  late final StateRouteConfig config = StateRouteConfig(stateKey,
+      routeBuilder: routeBuilder,
+      routePageBuilder: routePageBuilder,
+      isPopup: isPopup,
+      path: path,
+      childRoutes: childRoutes.map((e) => e.config).toList());
 }
 
 /// {@template ShellTreeStateRouteBuilder}
@@ -210,6 +228,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
+    this.path,
   });
 
   /// Constructs a [StateRoute1].
@@ -218,6 +237,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
     required this.ancestorStateKey,
     this.routeBuilder,
     this.routePageBuilder,
+    this.path,
   }) : isPopup = false;
 
   /// Constructs a [StateRoute1] that displays its visuals in a [PopupRoute].
@@ -256,18 +276,15 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
 
+  final String? path;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc>(ancestorStateKey)
   ];
 
   @override
   late final config = createDataStateRouteConfig1(
-    stateKey,
-    routeBuilder,
-    routePageBuilder,
-    _resolvers,
-    isPopup,
-  );
+      stateKey, routeBuilder, routePageBuilder, _resolvers, isPopup, path);
 }
 
 /// A route that creates visuals for a state in a state tree, using state data of type [DAnc1] and

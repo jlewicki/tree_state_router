@@ -86,6 +86,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
+    this.path,
   });
 
   /// Constructs a [DataStateRoute].
@@ -93,6 +94,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     this.stateKey, {
     this.routeBuilder,
     this.routePageBuilder,
+    this.path,
   }) : isPopup = false;
 
   factory DataStateRoute.popup(
@@ -155,6 +157,8 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
 
+  final String? path;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey)
   ];
@@ -166,6 +170,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     routePageBuilder,
     _resolvers,
     isPopup,
+    path,
   );
 }
 

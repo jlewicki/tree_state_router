@@ -63,11 +63,19 @@ class StateRouteConfig {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
+    this.path,
     this.dependencies = const [],
+    this.childRoutes = const [],
   });
 
   /// The state key identifying the tree state associated with this route.
   final StateKey stateKey;
+
+  /// Optional path template indicating how the route appears as part of a routing URI.
+  ///
+  /// If a value is provided, the route will be included when a routing URI is generated, *and*
+  /// be deep-linkable when the platform sets the routing URI.
+  final String? path;
 
   /// {@macro StateRoute.routeBuilder}
   final StateRouteBuilder? routeBuilder;
@@ -84,4 +92,6 @@ class StateRouteConfig {
   /// In general these will be ancestor states of [stateKey], although if [stateKey] is a
   /// [DataStateKey] it will be present in the list as well.
   final List<DataStateKey> dependencies;
+
+  final List<StateRouteConfig> childRoutes;
 }

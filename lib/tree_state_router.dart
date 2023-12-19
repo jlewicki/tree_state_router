@@ -9,8 +9,8 @@ export 'src/pages.dart'
         cupertinoPageBuilder,
         materialPopupPageBuilder,
         cupertinoPopupPageBuilder;
-export 'src/parser.dart';
-export 'src/router_config.dart';
+export 'src/route_parser.dart';
+export 'src/router_config.dart' hide DeepLinkRouteTable;
 export 'src/routes/route_config.dart';
 export 'src/routes/routes.dart';
 export 'src/routes/data_routes.dart';

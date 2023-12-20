@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_router/src/router_config.dart';
+import 'package:tree_state_router/src/route_table.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
 /// TBD: Provides information about a route that is parsed from [RouteInformation] provided by the
@@ -19,20 +20,24 @@ class TreeStateRouteMatches {
 /// of a [TreeStateMachine].
 class TreeStateRouteInformationParser
     extends RouteInformationParser<TreeStateRouteMatches> {
-  TreeStateRouteInformationParser(this.rootKey, this._deepLinkRouteTable);
+  TreeStateRouteInformationParser(this.rootKey, this._routeTable);
 
   final StateKey rootKey;
-  final DeepLinkRouteTable _deepLinkRouteTable;
+  final RouteTable _routeTable;
+  final Logger _log = Logger('TreeStateRouteInformationParser');
 
   @override
   Future<TreeStateRouteMatches> parseRouteInformation(
     RouteInformation routeInformation,
   ) {
-    var parsed = _deepLinkRouteTable.parseRouteInformation(routeInformation);
+    var parsed = _routeTable.parseRouteInformation(routeInformation);
     if (parsed != null) {
+      _log.fine(() =>
+          'Parsed route information to ${parsed.routes.map((e) => e.stateKey).join(', ')}');
       return SynchronousFuture(parsed);
     }
 
+    _log.fine('Route information was not parsed. Defaulting to empty matches');
     return SynchronousFuture(TreeStateRouteMatches.empty);
   }
 
@@ -40,6 +45,6 @@ class TreeStateRouteInformationParser
   RouteInformation? restoreRouteInformation(
     TreeStateRouteMatches configuration,
   ) {
-    return _deepLinkRouteTable.toRouteInformation(configuration.routes);
+    return _routeTable.toRouteInformation(configuration.routes);
   }
 }

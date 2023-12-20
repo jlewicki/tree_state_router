@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:tree_state_machine/build.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/route_provider.dart';
+import 'package:tree_state_router/src/route_table.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
 
@@ -28,12 +31,13 @@ typedef DefaultPageBuilder = Page<void>? Function(
 /// Routing information that describes how to display states in a [TreeStateMachine], and triggers
 /// routing navigation in response to state transitions within the state machine.
 class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
-  TreeStateRouter({
+  TreeStateRouter._({
     required this.stateMachine,
     required this.routes,
     this.defaultScaffolding,
     this.defaultPageBuilder,
     this.enableTransitions = true,
+    this.platformRoutingEnabled = false,
   }) : assert((() {
           routes.fold(<StateKey>{}, (keys, route) {
             if (keys.contains(route.config.stateKey)) {
@@ -46,12 +50,77 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
           return true;
         }()));
 
+  /// Constructs a [TreeStateRouter].
+  ///
+  /// The router will not have any integration with the Navigator 2.0 APIs, and as a result will
+  /// not sync route information with the underlying platform. If running in a web browser, there
+  /// will not URL changes or history entries in response to route changes.
+  factory TreeStateRouter({
+    TreeStateMachine? stateMachine,
+    StateTreeBuildProvider? stateTree,
+    required List<StateRouteConfigProvider> routes,
+    DefaultScaffoldingBuilder? defaultScaffolding,
+    DefaultPageBuilder? defaultPageBuilder,
+    bool enableTransitions = true,
+  }) {
+    assert(stateMachine != null || stateTree != null,
+        "Either stateMachine or stateTree must be provided ");
+    assert(!(stateMachine != null && stateTree != null),
+        "Only one of stateMachine or stateTree can be provided ");
+    return TreeStateRouter._(
+      stateMachine: stateMachine ?? TreeStateMachine(stateTree!),
+      routes: routes,
+      defaultScaffolding: defaultScaffolding,
+      defaultPageBuilder: defaultPageBuilder,
+      enableTransitions: enableTransitions,
+      platformRoutingEnabled: false,
+    );
+  }
+
+  /// Constructs a [TreeStateRouter] that integrates with Navigator 2.0 APIs.
+  ///
+  /// By default, the router will sync route path information with the underying platform, but
+  /// without any history support. If running in a web browser, the browser URL will update, but
+  /// no history entries updated.
+  factory TreeStateRouter.platformRouting({
+    required StateTreeBuildProvider stateTree,
+    required List<StateRouteConfigProvider> routes,
+    DefaultScaffoldingBuilder? defaultScaffolding,
+    DefaultPageBuilder? defaultPageBuilder,
+    bool enableTransitions = true,
+  }) {
+    // Extend state tree with routing filter
+    var builder = StateTreeBuilder(
+      stateTree,
+      createBuildContext: () => TreeBuildContext(
+        extendNodes: (b) {
+          if (b.nodeBuildInfo is RootNodeBuildInfo) {
+            b.filter(_routingFilter);
+          }
+        },
+      ),
+    );
+
+    return TreeStateRouter._(
+      stateMachine: TreeStateMachine.withBuilder(builder),
+      routes: routes,
+      defaultScaffolding: defaultScaffolding,
+      defaultPageBuilder: defaultPageBuilder,
+      enableTransitions: enableTransitions,
+      platformRoutingEnabled: true,
+    );
+  }
+
   /// The state machine providing the tree states that are routed by this [TreeStateRouter].
   final TreeStateMachine stateMachine;
 
   /// The list of routes that can be materialized by this router.  Each route should correspond to a
   /// a state in the [stateMachine].
   final List<StateRouteConfigProvider> routes;
+
+  /// Indictes if the router integrates with the platform routing engine, such tha web browser URLs
+  /// are updated in response to route changes.
+  final bool platformRoutingEnabled;
 
   /// {@template TreeStateRouter.defaultScaffolding}
   /// A function that can adorn the content of a route page, adding common layout or scaffolding.
@@ -90,13 +159,14 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
   /// {@endtemplate}
   final bool enableTransitions;
 
-  late final _routeTabke = DeepLinkRouteTable(stateMachine.rootNode, routes);
+  late final _routeTable = RouteTable(stateMachine.rootNode, routes);
 
   late final _routerDelegateConfig = TreeStateRouterDelegateConfig(
     routes.map((e) => e.config).toList(),
     defaultPageBuilder: defaultPageBuilder,
     defaultScaffolding: defaultScaffolding,
     enableTransitions: enableTransitions,
+    enablePlatformRouting: platformRoutingEnabled,
   );
 
   /// The [RouterDelegate] used by [TreeStateRouter].
@@ -104,201 +174,47 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
   late final routerDelegate = TreeStateRouterDelegate(
     config: _routerDelegateConfig,
     stateMachine: stateMachine,
-    routeTable: _routeTabke,
+    routeTable: _routeTable,
   );
 
   /// The [RootBackButtonDispatcher] used by [TreeStateRouter].
   @override
-  final backButtonDispatcher = RootBackButtonDispatcher();
+  final backButtonDispatcher = null; //RootBackButtonDispatcher();
 
   /// The [RouteInformationParser] used by [TreeStateRouter].
   @override
-  late final routeInformationParser = TreeStateRouteInformationParser(
-    stateMachine.rootNode.key,
-    _routeTabke,
-  );
+  late final routeInformationParser = platformRoutingEnabled
+      ? TreeStateRouteInformationParser(
+          stateMachine.rootNode.key,
+          _routeTable,
+        )
+      : null;
 
   /// The [RouteInformationProvider] used by [TreeStateRouter].
   @override
-  late final routeInformationProvider = PlatformRouteInformationProvider(
-      initialRouteInformation: RouteInformation(
-    uri: Uri.parse(
-      WidgetsBinding.instance.platformDispatcher.defaultRouteName,
-    ),
-  ));
-  // late final routeInformationProvider = TreeStateRouteInformationProvider(
-  //   routes,
-  //   stateMachine,
-  //   _deepLinkRouteTable,
-  // );
+  late final routeInformationProvider = platformRoutingEnabled
+      ? TreeStateRouteInformationProvider(
+          initialRouteInformation: RouteInformation(
+            uri: Uri.parse(
+              WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+            ),
+          ),
+          historyMode: SystemNavigatorHistoryMode.singleEntry,
+        )
+      : null;
 }
 
-class _RoutePath {
-  _RoutePath(this.path, this.routes);
-  final String path;
-  final List<StateRouteConfig> routes;
+class _GoToDeepLink {
+  _GoToDeepLink(this.target);
+  final StateKey target;
 }
 
-class DeepLinkRouteTable {
-  DeepLinkRouteTable._(
-    this._linkableRoutes,
-    this._routePaths,
-  );
-
-  factory DeepLinkRouteTable(
-    RootNodeInfo rootNode,
-    List<StateRouteConfigProvider> routes,
-  ) {
-    var linkableRoutes = _withDescendants(routes)
-        .where((r) => r.route.path?.isNotEmpty ?? false)
-        .toList();
-
-    var linkableRouteMap = Map.fromEntries(
-      linkableRoutes.map((r) => MapEntry(r.route.stateKey, r.route)),
-    );
-
-    // Complete set of full routeable paths. This is a naive data structure, but it is good enough
-    // for now
-    var routePaths = rootNode
-        .leaves()
-        .map((leaf) => leaf
-            .selfAndAncestors()
-            .toList()
-            .reversed
-            .map((node) => linkableRouteMap[node.key])
-            .where((r) => r != null && (r.path?.isNotEmpty ?? false))
-            .cast<StateRouteConfig>())
-        .where((routes) => routes.isNotEmpty)
-        .map((routes) => _RoutePath(
-              routes.map((r) => r.path!).join('/'),
-              routes.toList(),
-            ))
-        .toList();
-    return DeepLinkRouteTable._(linkableRouteMap, routePaths);
-  }
-
-  final Map<StateKey, StateRouteConfig> _linkableRoutes;
-  final List<_RoutePath> _routePaths;
-
-  RouteInformation? transitionRouteInformation(
-    Transition transition,
-  ) {
-    return toRouteInformation(_linkableRoutesForTransition(transition));
-  }
-
-  TreeStateRouteMatches? transitionRouteMatches(
-    Transition transition,
-  ) {
-    return TreeStateRouteMatches(
-      _linkableRoutesForTransition(transition).toList(),
-    );
-  }
-
-  RouteInformation? toRouteInformation(
-    Iterable<StateRouteConfig> linkableRoutes,
-  ) {
-    var path = linkableRoutes.map((e) {
-      assert(e.path != null);
-      return e.path!;
-    }).join('/');
-
-    if (path.isEmpty) {
-      return null;
-    }
-
-    path = '/$path';
-    var uri = Uri.parse(path);
-    return RouteInformation(uri: uri);
-  }
-
-  TreeStateRouteMatches? parseRouteInformation(
-    RouteInformation routeInformation,
-  ) {
-    var path = routeInformation.uri.path;
-    path = path.startsWith('/') ? path.substring(1) : path;
-    for (var routePath in _routePaths) {
-      if (routePath.path == path) {
-        // TODO: this will not work with path parameters (like path: 'pages/:pageId')
-        return TreeStateRouteMatches(routePath.routes);
-      }
-    }
-    return null;
-  }
-
-  Iterable<StateRouteConfig> _linkableRoutesForTransition(
-    Transition transition,
-  ) =>
-      // TODO: We need to look up routes by ancestor path for target state, not the entry states
-      transition.entryPath
-          .map(_getDeepLinkRoute)
-          .where((r) => r != null)
-          .cast<StateRouteConfig>();
-
-  StateRouteConfig? _getDeepLinkRoute(StateKey stateKey) =>
-      _linkableRoutes[stateKey];
-
-  /// Iterates through the routes and all of their descendants.
-  static Iterable<_RouteWithDepth> _withDescendants(
-    List<StateRouteConfigProvider> routes,
-  ) sync* {
-    for (var route in routes) {
-      yield* _selfAndDescendantsWithDepth(route.config);
-    }
-  }
-
-  static Iterable<_RouteWithDepth> _selfAndDescendantsWithDepth(
-    StateRouteConfig route,
-  ) sync* {
-    Iterable<_RouteWithDepth> selfAndDescendants_(
-      StateRouteConfig route,
-      int depth,
-    ) sync* {
-      yield _RouteWithDepth(route, depth);
-      for (var child in route.childRoutes) {
-        yield* selfAndDescendants_(child, depth + 1);
-      }
-    }
-
-    yield* selfAndDescendants_(route, 0);
-  }
-}
-
-class _RouteWithDepth {
-  _RouteWithDepth(this.route, this.depth);
-  final StateRouteConfig route;
-  final int depth;
-}
-
-extension TreeNodeInfoNavExtensions on TreeNodeInfo {
-  Iterable<TreeNodeInfo> ancestors() sync* {
-    TreeNodeInfo? parent(TreeNodeInfo node) {
-      return switch (node) {
-        LeafNodeInfo(parent: var p) => p,
-        InteriorNodeInfo(parent: var p) => p,
-        _ => null
-      };
-    }
-
-    var nextAncestor = parent(this);
-    while (nextAncestor != null) {
-      yield nextAncestor;
-      nextAncestor = parent(nextAncestor);
-    }
-  }
-
-  Iterable<TreeNodeInfo> selfAndAncestors() sync* {
-    yield this;
-    yield* ancestors();
-  }
-
-  Iterable<LeafNodeInfo> leaves() {
-    return selfAndDescendants().whereType<LeafNodeInfo>();
-  }
-}
-
-
-
-// static int _compareByDepth(_RouteWithDepth r1, _RouteWithDepth r2) =>
-//       r1.depth - r2.depth;
-//   static int _compareByPath(_RouteWithDepth r1, _RouteWithDepth r2) =>
-//       r1.route.path!.compareTo(r2.route.path!);
+final _routingFilter = TreeStateFilter(
+  name: 'TreeStateRouter-RoutingFilter',
+  onMessage: (msgCtx, next) {
+    return switch (msgCtx.message) {
+      _GoToDeepLink(target: var t) => SynchronousFuture(msgCtx.goTo(t)),
+      _ => next()
+    };
+  },
+);

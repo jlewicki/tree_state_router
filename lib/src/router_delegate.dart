@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_router/src/router_config.dart';
+import 'package:tree_state_router/src/route_table.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'package:tree_state_router/src/pages.dart';
 import 'package:tree_state_router/src/widgets/state_machine_error.dart';
@@ -25,11 +25,13 @@ class TreeStateRouterDelegateConfig {
     this.defaultPageBuilder,
     this.defaultScaffolding,
     this.enableTransitions = true,
+    this.enablePlatformRouting = false,
   });
   final List<StateRouteConfig> routes;
   final DefaultScaffoldingBuilder? defaultScaffolding;
   final DefaultPageBuilder? defaultPageBuilder;
   final bool enableTransitions;
+  final bool enablePlatformRouting;
 }
 
 // Error handling:
@@ -192,7 +194,7 @@ abstract class TreeStateRouterDelegateBase
 
   @protected
   bool _onPopPage(Route<dynamic> route, dynamic result) {
-    _log.finer(
+    _log.finer(() =>
         'Popping page for state ${(route.settings as StateRoute).stateKey}');
     if (!route.didPop(result)) return false;
     notifyListeners();
@@ -299,13 +301,17 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     required this.routeTable,
     super.displayStateMachineErrors,
   }) : super(
-          log: Logger('StateTreeRouterDelegate'),
-        );
+          log: Logger('TreeStateRouterDelegate'),
+        ) {
+    if (!config.enablePlatformRouting) {
+      _setCurrentConfiguration(TreeStateRouteMatches.empty);
+    }
+  }
 
   /// The [TreeStateMachine] that provides the state transition  notifications to this router.
   final TreeStateMachine stateMachine;
 
-  final DeepLinkRouteTable routeTable;
+  final RouteTable routeTable;
 
   /// The key used for retrieving the current navigator.
   @override
@@ -315,13 +321,12 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   @override
   // We have to implement this for the current routing configuration to be reported to the platform,
   // and consequently show up in the browser URL
-  TreeStateRouteMatches? get currentConfiguration {
-    return _currentConfiguration;
-  }
+  TreeStateRouteMatches? get currentConfiguration =>
+      config.enablePlatformRouting ? _currentConfiguration : null;
 
-  set currentConfiguration(TreeStateRouteMatches? value) {
-    _currentConfiguration = value;
-  }
+  // set currentConfiguration(TreeStateRouteMatches? value) {
+  //   _currentConfiguration = value;
+  // }
 
   TreeStateRouteMatches? _currentConfiguration = TreeStateRouteMatches.empty;
 
@@ -341,8 +346,8 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   Widget build(BuildContext context) {
     var curState = stateMachine.currentState;
     if (curState != null) {
-      _log.fine(
-          'Creating pages for active states ${curState.activeStates.join(', ')}');
+      _log.fine(() =>
+          'Creating pages for active states: ${curState.activeStates.join(', ')}');
     }
 
     var pages = <Page>[];
@@ -379,9 +384,14 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   }
 
   Future<void> _setCurrentConfiguration(TreeStateRouteMatches configuration) {
-    currentConfiguration = configuration;
-    return _startOrUpdateStateMachine(configuration)
-        .then((_) => notifyListeners());
+    _log.fine(
+      () => 'Setting current routing configuration. Matches: '
+          '${configuration.routes.map((e) => e.stateKey).join(', ')}',
+    );
+    _currentConfiguration = configuration;
+    return _startOrUpdateStateMachine(configuration).then((_) {
+      notifyListeners();
+    });
   }
 
   Future<void> _startOrUpdateStateMachine(
@@ -398,7 +408,9 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         return done;
       }
     } else {
-      return stateMachine.start(at: configuration.routes.lastOrNull?.stateKey);
+      var startState = configuration.routes.lastOrNull?.stateKey;
+      _log.fine("Starting state machine at state: '$startState'.");
+      return stateMachine.start(at: startState);
     }
   }
 

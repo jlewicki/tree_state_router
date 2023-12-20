@@ -8,6 +8,9 @@ class StateRoutingContext {
   final TreeStateRoutingState routingState = TreeStateRoutingState();
 }
 
+/// TBD: This will contain routing information parsed from the current URI.
+class TreeStateRoutingState {}
+
 /// Provides an accessor for a [StateRouteConfig] describing a route.
 abstract class StateRouteConfigProvider {
   /// A config object providing a generalized description of a route for a [TreeStateRouter].
@@ -63,10 +66,10 @@ class StateRouteConfig {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
-    this.path,
+    String? path,
     this.dependencies = const [],
     this.childRoutes = const [],
-  });
+  }) : path = path ?? stateKey.toString();
 
   /// The state key identifying the tree state associated with this route.
   final StateKey stateKey;

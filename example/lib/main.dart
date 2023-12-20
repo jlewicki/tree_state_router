@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'simple/state_tree.dart';
 import 'simple/pages.dart';
@@ -15,8 +14,8 @@ void main() {
   runApp(const MainApp());
 }
 
-final router = TreeStateRouter(
-  stateMachine: TreeStateMachine(simpleStateTree()),
+final router = TreeStateRouter.platformRouting(
+  stateTree: simpleStateTree(),
   defaultScaffolding: (_, pageContent) => Scaffold(
     body: StateTreeInspector(
       child: Center(
@@ -42,7 +41,7 @@ final router = TreeStateRouter(
     ),
     StateRoute(
       States.finished,
-      path: 'done',
+      //path: 'done',
       routeBuilder: finishedPage,
     ),
   ],
@@ -62,6 +61,6 @@ class MainApp extends StatelessWidget {
 void _initLogging() {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
-    log('${record.level.name}: ${record.loggerName}: ${record.time}: ${record.message} ${record.error?.toString() ?? ''}');
+    log('${record.loggerName}: ${record.message} ${record.error?.toString() ?? ''}');
   });
 }

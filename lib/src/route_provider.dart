@@ -1,77 +1,89 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_router/src/router_config.dart';
-import 'package:tree_state_router/tree_state_router.dart';
 
+enum SystemNavigatorHistoryMode {
+  singleEntry,
+  multiEntry,
+}
+
+/// A [RouteInformationProvider] providing some degree of control over whether single or multi-entry
+/// history is enabled for [SystemNavigator].
+///
+/// This implementation is based almost exactly on [PlatformRouteInformationProvider], with some
+/// tiny adjustments to [routerReportsNewRouteInformation]. Unfortunately it does not appear
+/// possible to achieve this just by extending [PlatformRouteInformationProvider], so the entire
+/// implementation was duplicated.
 class TreeStateRouteInformationProvider extends RouteInformationProvider
     with WidgetsBindingObserver, ChangeNotifier {
-  /// Constructs a [TreeStateRouteInformationProvider] that will provide routing information
-  /// based on the active states in [stateMachine]
-  TreeStateRouteInformationProvider(
-    List<StateRouteConfigProvider> routes,
-    this._stateMachine,
-    this._deepLinkRouteTable,
-  ) {
-    // As transitions occur, look for states that are entered whose routes are deep-linkable, and
-    // report those routes to the routing engine
-    _transitionsSubscription = _stateMachine.transitions
-        .map(_deepLinkRouteTable.transitionRouteInformation)
-        .where((r) => r != null)
-        .cast<RouteInformation>()
-        .listen(_onTransitionRouteInformation);
+  /// Create a platform route information provider.
+  ///
+  /// Use the [initialRouteInformation] to set the default route information for this
+  /// provider.
+  TreeStateRouteInformationProvider({
+    required RouteInformation initialRouteInformation,
+    required this.historyMode,
+  }) : _value = initialRouteInformation {
+    if (kFlutterMemoryAllocationsEnabled) {
+      ChangeNotifier.maybeDispatchObjectCreation(this);
+    }
   }
 
-  final TreeStateMachine _stateMachine;
-  final DeepLinkRouteTable _deepLinkRouteTable;
-  late RouteInformation _value = _initialRouteInformation(_stateMachine);
-  StreamSubscription? _transitionsSubscription;
-
-  @override
-  RouteInformation get value => _value;
-
-  static WidgetsBinding get _binding => WidgetsBinding.instance;
+  final SystemNavigatorHistoryMode historyMode;
 
   @override
   void routerReportsNewRouteInformation(
     RouteInformation routeInformation, {
     RouteInformationReportingType type = RouteInformationReportingType.none,
   }) {
-    final bool replace;
-    switch (type) {
-      // case RouteInformationReportingType.none:
-      //   if (_valueInEngine.location == routeInformation.location &&
-      //       const DeepCollectionEquality()
-      //           .equals(_valueInEngine.state, routeInformation.state)) {
-      //     return;
-      //   }
-      //   replace = _valueInEngine == _kEmptyRouteInformation;
-      //   break;
-      case RouteInformationReportingType.neglect:
-        replace = true;
-        break;
-      case RouteInformationReportingType.navigate:
-        replace = false;
-        break;
-      default:
-        replace = true;
-    }
+    final bool replace = type == RouteInformationReportingType.neglect ||
+        (type == RouteInformationReportingType.none &&
+            _equals(_valueInEngine.uri, routeInformation.uri));
+
+    // Even if historyMode == SystemNavigatorHistoryMode.singleEntry, apparently we want to
+    // call selectMultiEntryHistory() (even though selectEntryEntryHistory() would be more intuitive)
+    // Oherwise, in Chrome at least, we still end up with history entries and an active back button
+    // Seems weird. But the combination of
+    //  - selectMultiEntryHistory() and
+    //  - routeInformationUpdated(replace: true)
+    // appears to give the desired effect (updated URL but no history entries)
     SystemNavigator.selectMultiEntryHistory();
     SystemNavigator.routeInformationUpdated(
       uri: routeInformation.uri,
       state: routeInformation.state,
-      replace: replace,
+      replace: historyMode == SystemNavigatorHistoryMode.singleEntry
+          ? true
+          : replace,
     );
 
     _value = routeInformation;
+    _valueInEngine = routeInformation;
+  }
+
+  @override
+  RouteInformation get value => _value;
+  RouteInformation _value;
+
+  RouteInformation _valueInEngine = RouteInformation(
+      uri: Uri.parse(
+          WidgetsBinding.instance.platformDispatcher.defaultRouteName));
+
+  void _platformReportsNewRouteInformation(RouteInformation routeInformation) {
+    if (_value == routeInformation) {
+      return;
+    }
+    _value = routeInformation;
+    _valueInEngine = routeInformation;
+    notifyListeners();
   }
 
   @override
   void addListener(VoidCallback listener) {
     if (!hasListeners) {
-      _binding.addObserver(this);
+      WidgetsBinding.instance.addObserver(this);
     }
     super.addListener(listener);
   }
@@ -80,31 +92,34 @@ class TreeStateRouteInformationProvider extends RouteInformationProvider
   void removeListener(VoidCallback listener) {
     super.removeListener(listener);
     if (!hasListeners) {
-      _binding.removeObserver(this);
+      WidgetsBinding.instance.removeObserver(this);
     }
   }
 
   @override
   void dispose() {
+    // In practice, this will rarely be called. We assume that the listeners
+    // will be added and removed in a coherent fashion such that when the object
+    // is no longer being used, there's no listener, and so it will get garbage
+    // collected.
     if (hasListeners) {
-      _binding.removeObserver(this);
+      WidgetsBinding.instance.removeObserver(this);
     }
-    _transitionsSubscription?.cancel();
     super.dispose();
   }
 
-  RouteInformation _initialRouteInformation(TreeStateMachine stateMachine) {
-    if (stateMachine.lifecycle.value == LifecycleState.started) {}
-
-    return RouteInformation(
-      uri: Uri.parse(
-        WidgetsBinding.instance.platformDispatcher.defaultRouteName,
-      ),
-    );
+  @override
+  Future<bool> didPushRouteInformation(
+      RouteInformation routeInformation) async {
+    assert(hasListeners);
+    _platformReportsNewRouteInformation(routeInformation);
+    return true;
   }
 
-  void _onTransitionRouteInformation(RouteInformation routeInformation) {
-    _value = routeInformation;
-    notifyListeners();
+  static bool _equals(Uri a, Uri b) {
+    return a.path == b.path &&
+        a.fragment == b.fragment &&
+        const DeepCollectionEquality.unordered()
+            .equals(a.queryParametersAll, b.queryParametersAll);
   }
 }

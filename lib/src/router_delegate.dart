@@ -41,7 +41,7 @@ class TreeStateRouterDelegateConfig {
 // * Errors detected during build are presented as a page in the router
 // * Errors emitted from the state machine are detected and presented as a page in the router
 abstract class TreeStateRouterDelegateBase
-    extends RouterDelegate<TreeStateRouteMatches>
+    extends RouterDelegate<TreeStateRoutePath>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
   TreeStateRouterDelegateBase({
     required this.config,
@@ -304,7 +304,10 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
           log: Logger('TreeStateRouterDelegate'),
         ) {
     if (!config.enablePlatformRouting) {
-      _setCurrentConfiguration(TreeStateRouteMatches.empty);
+      // If platform routing is disabled, there will be no call to setNewRoutePath on app start,
+      // so we need to set the current configuration (and consequently start the state machine)
+      // here.
+      _setCurrentConfiguration(TreeStateRoutePath.empty);
     }
   }
 
@@ -321,21 +324,16 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   @override
   // We have to implement this for the current routing configuration to be reported to the platform,
   // and consequently show up in the browser URL
-  TreeStateRouteMatches? get currentConfiguration =>
+  TreeStateRoutePath? get currentConfiguration =>
       config.enablePlatformRouting ? _currentConfiguration : null;
 
-  // set currentConfiguration(TreeStateRouteMatches? value) {
-  //   _currentConfiguration = value;
-  // }
-
-  TreeStateRouteMatches? _currentConfiguration = TreeStateRouteMatches.empty;
+  TreeStateRoutePath? _currentConfiguration;
 
   // Called when new route information has been provided by the platform (via deep linking or
   // browser URI)
   @override
-  Future<void> setNewRoutePath(TreeStateRouteMatches configuration) async {
-    if (configuration != TreeStateRouteMatches.empty &&
-        currentConfiguration == configuration) {
+  Future<void> setNewRoutePath(TreeStateRoutePath configuration) async {
+    if (currentConfiguration == configuration) {
       return done;
     }
 
@@ -383,11 +381,11 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     }
   }
 
-  Future<void> _setCurrentConfiguration(TreeStateRouteMatches configuration) {
-    _log.fine(
-      () => 'Setting current routing configuration. Matches: '
-          '${configuration.routes.map((e) => e.stateKey).join(', ')}',
-    );
+  Future<void> _setCurrentConfiguration(TreeStateRoutePath? configuration) {
+    // _log.fine(
+    //   () => 'Setting current routing configuration. Matches: '
+    //       '${configuration.routes.map((e) => e.stateKey).join(', ')}',
+    // );
     _currentConfiguration = configuration;
     return _startOrUpdateStateMachine(configuration).then((_) {
       notifyListeners();
@@ -395,23 +393,33 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   }
 
   Future<void> _startOrUpdateStateMachine(
-    TreeStateRouteMatches configuration,
+    TreeStateRoutePath? configuration,
   ) {
-    if (stateMachine.lifecycle.isStarted && stateMachine.currentState != null) {
-      var activeStates = stateMachine.currentState!.activeStates;
-      var allRoutesActive =
-          configuration.routes.every((r) => activeStates.contains(r.stateKey));
-      if (allRoutesActive) {
-        return done;
+    if (configuration != null) {
+      if (stateMachine.lifecycle.isStarted &&
+          stateMachine.currentState != null) {
+        var activeStates = stateMachine.currentState!.activeStates;
+        var allRoutesActive = configuration.routes
+            .every((r) => activeStates.contains(r.stateKey));
+        if (allRoutesActive) {
+          return done;
+        } else {
+          // TODO: Add a special routing message and a filter that can handle the messge
+          return done;
+        }
       } else {
-        // TODO: Add a special routing message and a filter that can handle the messge
-        return done;
+        var startState = configuration.routes.lastOrNull?.stateKey;
+        _log.fine("Starting state machine at state: '$startState'.");
+        return stateMachine.start(at: startState);
       }
-    } else {
-      var startState = configuration.routes.lastOrNull?.stateKey;
-      _log.fine("Starting state machine at state: '$startState'.");
-      return stateMachine.start(at: startState);
+    } else if (stateMachine.lifecycle.isConstructed ||
+        stateMachine.lifecycle.isStopped) {
+      _log.fine('Starting state machine');
+      return stateMachine.start();
     }
+
+    _log.warning('_startOrUpdateStateMachine with null configuration');
+    return done;
   }
 
   Page _createLoadingPage(BuildContext context) {
@@ -468,7 +476,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       GlobalKey<NavigatorState>(debugLabel: 'ChildTreeStateRouterDelegate');
 
   @override
-  Future<void> setNewRoutePath(TreeStateRouteMatches configuration) {
+  Future<void> setNewRoutePath(TreeStateRoutePath configuration) {
     throw UnsupportedError('Setting route paths is not currently supported');
   }
 

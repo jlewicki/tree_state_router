@@ -98,10 +98,6 @@ class TreeStateRouteInformationProvider extends RouteInformationProvider
 
   @override
   void dispose() {
-    // In practice, this will rarely be called. We assume that the listeners
-    // will be added and removed in a coherent fashion such that when the object
-    // is no longer being used, there's no listener, and so it will get garbage
-    // collected.
     if (hasListeners) {
       WidgetsBinding.instance.removeObserver(this);
     }

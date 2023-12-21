@@ -1,29 +1,26 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
-class _RoutePath {
-  _RoutePath(this.path, this.routes);
-  final String path;
-  final List<StateRouteConfig> routes;
-}
-
 class RouteTable {
   RouteTable._(
-    this._linkableRoutes,
+    this._rootNode,
     this._routePaths,
+    this._routesByState,
+    this._routePathsByStartState,
+    this._routePathsByEndState,
   );
 
   factory RouteTable(
     RootNodeInfo rootNode,
     List<StateRouteConfigProvider> routes,
   ) {
-    var linkableRoutes = _withDescendants(routes)
-        .where((r) => r.route.path?.isNotEmpty ?? false)
-        .toList();
-
-    var linkableRouteMap = Map.fromEntries(
-      linkableRoutes.map((r) => MapEntry(r.route.stateKey, r.route)),
+    // Map of all known routes
+    var routesByState = Map.fromEntries(
+      _withDescendants(routes)
+          .toList()
+          .map((r) => MapEntry(r.route.stateKey, r.route)),
     );
 
     // Complete set of full routeable paths. This is a naive data structure, but it is good enough
@@ -34,39 +31,41 @@ class RouteTable {
             .selfAndAncestors()
             .toList()
             .reversed
-            .map((node) => linkableRouteMap[node.key])
+            .map((node) => routesByState[node.key])
             .where((r) => r != null && (r.path?.isNotEmpty ?? false))
             .cast<StateRouteConfig>())
         .where((routes) => routes.isNotEmpty)
-        .map((routes) => _RoutePath(
-              routes.map((r) => r.path!).join('/'),
-              routes.toList(),
-            ))
+        .map((routes) => TreeStateRoutePath(routes.toList()))
         .toList();
-    return RouteTable._(linkableRouteMap, routePaths);
+
+    var routePathsByStartState =
+        routePaths.groupSetsBy((e) => e.start.stateKey);
+    var routePathsByEndState =
+        Map.fromEntries(routePaths.map((e) => MapEntry(e.end.stateKey, e)));
+
+    return RouteTable._(
+      rootNode,
+      routePaths,
+      routesByState,
+      routePathsByStartState,
+      routePathsByEndState,
+    );
   }
 
-  final Map<StateKey, StateRouteConfig> _linkableRoutes;
-  final List<_RoutePath> _routePaths;
+  final RootNodeInfo _rootNode;
+  final List<TreeStateRoutePath> _routePaths;
+  final Map<StateKey, StateRouteConfig> _routesByState;
+  final Map<StateKey, Set<TreeStateRoutePath>> _routePathsByStartState;
+  final Map<StateKey, TreeStateRoutePath> _routePathsByEndState;
 
   RouteInformation? transitionRouteInformation(
     Transition transition,
   ) {
-    return toRouteInformation(_linkableRoutesForTransition(transition));
+    return toRouteInformation(_routesForTransition(transition));
   }
 
-  TreeStateRouteMatches? transitionRouteMatches(
-    Transition transition,
-  ) {
-    return TreeStateRouteMatches(
-      _linkableRoutesForTransition(transition).toList(),
-    );
-  }
-
-  RouteInformation? toRouteInformation(
-    Iterable<StateRouteConfig> linkableRoutes,
-  ) {
-    var path = linkableRoutes.map((e) {
+  RouteInformation? toRouteInformation(Iterable<StateRouteConfig> routes) {
+    var path = routes.map((e) {
       assert(e.path != null);
       return e.path!;
     }).join('/');
@@ -80,31 +79,30 @@ class RouteTable {
     return RouteInformation(uri: uri);
   }
 
-  TreeStateRouteMatches? parseRouteInformation(
-    RouteInformation routeInformation,
+  TreeStateRoutePath? transitionRouteMatches(
+    Transition transition,
   ) {
-    var path = routeInformation.uri.path;
-    path = path.startsWith('/') ? path.substring(1) : path;
-    for (var routePath in _routePaths) {
-      if (routePath.path == path) {
-        // TODO: this will not work with path parameters (like path: 'pages/:pageId')
-        return TreeStateRouteMatches(routePath.routes);
-      }
-    }
-    return null;
+    return TreeStateRoutePath(
+      _routesForTransition(transition).toList(),
+    );
   }
 
-  Iterable<StateRouteConfig> _linkableRoutesForTransition(
-    Transition transition,
-  ) =>
-      // TODO: We need to look up routes by ancestor path for target state, not the entry states
-      transition.entryPath
-          .map(_getDeepLinkRoute)
-          .where((r) => r != null)
-          .cast<StateRouteConfig>();
+  TreeStateRoutePath? parseRouteInformation(
+    RouteInformation routeInformation,
+  ) {
+    var path = Uri.decodeFull(routeInformation.uri.path);
+    path = path.startsWith('/') ? path.substring(1) : path;
+    // TODO: this will not work with path parameters (like path: 'pages/:pageId')
+    return _routePaths.firstWhereOrNull((r) => r.path == path);
+  }
 
-  StateRouteConfig? _getDeepLinkRoute(StateKey stateKey) =>
-      _linkableRoutes[stateKey];
+  Iterable<StateRouteConfig> _routesForTransition(
+    Transition transition,
+  ) {
+    var routeForTarget = _routePathsByEndState[transition.to];
+    assert(routeForTarget != null);
+    return routeForTarget!.routes;
+  }
 
   /// Iterates through the routes and all of their descendants.
   static Iterable<_RouteWithDepth> _withDescendants(

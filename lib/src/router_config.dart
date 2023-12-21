@@ -30,14 +30,14 @@ typedef DefaultPageBuilder = Page<void>? Function(
 
 /// Routing information that describes how to display states in a [TreeStateMachine], and triggers
 /// routing navigation in response to state transitions within the state machine.
-class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
+class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   TreeStateRouter._({
     required this.stateMachine,
     required this.routes,
     this.defaultScaffolding,
     this.defaultPageBuilder,
     this.enableTransitions = true,
-    this.platformRoutingEnabled = false,
+    this.enablePlatformRouting = false,
   }) : assert((() {
           routes.fold(<StateKey>{}, (keys, route) {
             if (keys.contains(route.config.stateKey)) {
@@ -73,7 +73,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
       defaultScaffolding: defaultScaffolding,
       defaultPageBuilder: defaultPageBuilder,
       enableTransitions: enableTransitions,
-      platformRoutingEnabled: false,
+      enablePlatformRouting: false,
     );
   }
 
@@ -107,7 +107,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
       defaultScaffolding: defaultScaffolding,
       defaultPageBuilder: defaultPageBuilder,
       enableTransitions: enableTransitions,
-      platformRoutingEnabled: true,
+      enablePlatformRouting: true,
     );
   }
 
@@ -120,7 +120,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
 
   /// Indictes if the router integrates with the platform routing engine, such tha web browser URLs
   /// are updated in response to route changes.
-  final bool platformRoutingEnabled;
+  final bool enablePlatformRouting;
 
   /// {@template TreeStateRouter.defaultScaffolding}
   /// A function that can adorn the content of a route page, adding common layout or scaffolding.
@@ -166,7 +166,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
     defaultPageBuilder: defaultPageBuilder,
     defaultScaffolding: defaultScaffolding,
     enableTransitions: enableTransitions,
-    enablePlatformRouting: platformRoutingEnabled,
+    enablePlatformRouting: enablePlatformRouting,
   );
 
   /// The [RouterDelegate] used by [TreeStateRouter].
@@ -183,7 +183,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
 
   /// The [RouteInformationParser] used by [TreeStateRouter].
   @override
-  late final routeInformationParser = platformRoutingEnabled
+  late final routeInformationParser = enablePlatformRouting
       ? TreeStateRouteInformationParser(
           stateMachine.rootNode.key,
           _routeTable,
@@ -192,7 +192,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRouteMatches> {
 
   /// The [RouteInformationProvider] used by [TreeStateRouter].
   @override
-  late final routeInformationProvider = platformRoutingEnabled
+  late final routeInformationProvider = enablePlatformRouting
       ? TreeStateRouteInformationProvider(
           initialRouteInformation: RouteInformation(
             uri: Uri.parse(

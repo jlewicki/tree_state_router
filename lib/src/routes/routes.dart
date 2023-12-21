@@ -3,12 +3,6 @@ import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'builder.dart';
 
-class RoutePath {
-  RoutePath(this.path, {this.linkable = false});
-  final String path;
-  bool linkable;
-}
-
 /// A route that creates visuals for a state in a state tree.
 ///
 /// {@template TreeStateRoute.propSummary}

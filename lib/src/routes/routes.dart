@@ -56,7 +56,7 @@ class StateRoute implements StateRouteConfigProvider {
     StateKey stateKey, {
     StateRoutePageBuilder? routePageBuilder,
     StateRouteBuilder? routeBuilder,
-    String? path,
+    RoutePathConfig? path,
   }) =>
       StateRoute._(
         stateKey,
@@ -71,7 +71,7 @@ class StateRoute implements StateRouteConfigProvider {
   factory StateRoute.popup(
     StateKey stateKey, {
     StateRouteBuilder? routeBuilder,
-    String? path,
+    RoutePathConfig? path,
   }) =>
       StateRoute._(stateKey,
           routeBuilder: routeBuilder,
@@ -118,7 +118,7 @@ class StateRoute implements StateRouteConfigProvider {
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
-    String? path,
+    RoutePathConfig? path,
   }) {
     var nestedRouter = NestedTreeStateRouter(
       key: ValueKey(stateKey),
@@ -179,7 +179,7 @@ class StateRoute implements StateRouteConfigProvider {
   /// If a value is provided, the route will be included when a routing URI is generated, *and*
   /// be deep-linkable when the platform sets the routing URI.
   /// {@endtemplate}
-  final String? path;
+  final RoutePathConfig? path;
 
   final List<StateRouteConfigProvider> childRoutes;
 
@@ -273,7 +273,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
 
-  final String? path;
+  final RoutePathConfig? path;
 
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc>(ancestorStateKey)
@@ -281,7 +281,13 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
 
   @override
   late final config = createDataStateRouteConfig1(
-      stateKey, routeBuilder, routePageBuilder, _resolvers, isPopup, path);
+    stateKey,
+    routeBuilder,
+    routePageBuilder,
+    _resolvers,
+    isPopup,
+    path,
+  );
 }
 
 /// A route that creates visuals for a state in a state tree, using state data of type [DAnc1] and

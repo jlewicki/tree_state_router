@@ -119,6 +119,9 @@ abstract class TreeStateRouterDelegateBase
     BuildContext context,
     CurrentState currentState,
   ) {
+    _log.fine(() =>
+        'Creating pages for active states: ${currentState.activeStates.join(', ')}');
+
     Iterable<StateRouteConfig> navigatorRoutes = _activeRoutes(currentState);
 
     // If we have a popup route, attempt to find a route for one of the exiting states. This route
@@ -342,16 +345,14 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
   @override
   Widget build(BuildContext context) {
-    var curState = stateMachine.currentState;
-    if (curState != null) {
-      _log.fine(() =>
-          'Creating pages for active states: ${curState.activeStates.join(', ')}');
-    }
+    assert(
+        stateMachine.lifecycle.isStarting || stateMachine.lifecycle.isStarted);
 
     var pages = <Page>[];
+    var currentState = stateMachine.currentState;
     try {
-      pages = curState != null
-          ? _buildActivePages(context, curState).toList()
+      pages = currentState != null
+          ? _buildActivePages(context, currentState).toList()
           : [
               // build() may be called before the setNewRoutePath future completes, so we display a
               // loading indicator while that is in progress
@@ -359,7 +360,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
             ];
 
       if (pages.isEmpty) {
-        throw _errors.noPagesForActiveStates(curState?.activeStates ?? []);
+        throw _errors.noPagesForActiveStates(currentState?.activeStates ?? []);
       }
     } catch (ex) {
       pages = [_createErrorPage(context, ex)];
@@ -367,59 +368,70 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
     return _buildNavigatorWidget(
       pages,
-      curState,
-      provideCurrentState: curState != null,
+      currentState,
+      provideCurrentState: currentState != null,
     );
   }
 
   @override
   void _onTransition(CurrentState currentState, Transition transition) {
     _transition = transition;
-    var routeMatches = routeTable.transitionRouteMatches(transition);
+    var routeMatches = routeTable.transitionRoutePath(transition);
     if (routeMatches != null) {
       _setCurrentConfiguration(routeMatches);
     }
   }
 
-  Future<void> _setCurrentConfiguration(TreeStateRoutePath? configuration) {
-    // _log.fine(
-    //   () => 'Setting current routing configuration. Matches: '
-    //       '${configuration.routes.map((e) => e.stateKey).join(', ')}',
-    // );
-    _currentConfiguration = configuration;
-    return _startOrUpdateStateMachine(configuration).then((_) {
+  Future<void> _setCurrentConfiguration(TreeStateRoutePath configuration) {
+    //_currentConfiguration = configuration;
+    return _startOrUpdateStateMachine(configuration).then((config) {
+      _currentConfiguration = config;
       notifyListeners();
     });
   }
 
-  Future<void> _startOrUpdateStateMachine(
-    TreeStateRoutePath? configuration,
+  Future<TreeStateRoutePath> _startOrUpdateStateMachine(
+    TreeStateRoutePath configuration,
   ) {
-    if (configuration != null) {
-      if (stateMachine.lifecycle.isStarted &&
-          stateMachine.currentState != null) {
-        var activeStates = stateMachine.currentState!.activeStates;
-        var allRoutesActive = configuration.routes
-            .every((r) => activeStates.contains(r.stateKey));
-        if (allRoutesActive) {
-          return done;
-        } else {
-          // TODO: Add a special routing message and a filter that can handle the messge
-          return done;
-        }
+    if (stateMachine.lifecycle.isStarted && stateMachine.currentState != null) {
+      var activeStates = stateMachine.currentState!.activeStates;
+      var allRoutesActive =
+          configuration.routes.every((r) => activeStates.contains(r.stateKey));
+      if (allRoutesActive) {
+        // All the routes in the requested configuration correspond to an active state in the
+        // state machine, so
+        return SynchronousFuture(configuration);
+      } else if (configuration.isLinkable) {
+        // TODO: Add a special deep-link routing message, and a filter that can handle the messge
+        // and force the goTo
+        return SynchronousFuture(configuration);
       } else {
-        var startState = configuration.routes.lastOrNull?.stateKey;
-        _log.fine("Starting state machine at state: '$startState'.");
-        return stateMachine.start(at: startState);
+        // Return current configuration, not requested one, since the requested one is not
+        // deep-linkable.
+        return SynchronousFuture(_currentConfiguration!);
       }
-    } else if (stateMachine.lifecycle.isConstructed ||
-        stateMachine.lifecycle.isStopped) {
-      _log.fine('Starting state machine');
-      return stateMachine.start();
+    }
+
+    var isStartable = stateMachine.lifecycle.isConstructed ||
+        stateMachine.lifecycle.isStopped;
+
+    if (isStartable) {
+      // Start the state machine, and yield the update configuration based on the initial transition
+      Future<TreeStateRoutePath> startMachine(StateKey? at) {
+        var initialTransitionFuture = stateMachine.transitions.first;
+        _log.fine("Starting state machine ${at != null ? "at: '$at'" : ''}");
+        stateMachine.start(at: at);
+        return initialTransitionFuture
+            .then((transition) => routeTable.transitionRoutePath(transition));
+      }
+
+      var startState =
+          configuration.isLinkable ? configuration.end.stateKey : null;
+      return startMachine(startState);
     }
 
     _log.warning('_startOrUpdateStateMachine with null configuration');
-    return done;
+    return SynchronousFuture(configuration);
   }
 
   Page _createLoadingPage(BuildContext context) {

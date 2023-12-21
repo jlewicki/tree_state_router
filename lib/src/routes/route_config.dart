@@ -56,6 +56,15 @@ typedef StateRoutePageBuilder = Page<void> Function(
   Widget Function(StateRouteBuilder buildPageContent) wrapPageContent,
 );
 
+class RoutePathConfig {
+  const RoutePathConfig(
+    this.path, {
+    this.isLinkable = false,
+  });
+  final String path;
+  final bool isLinkable;
+}
+
 /// A generalized description of a route that can be placed in a [TreeStateRouter].
 ///
 /// This is intended for use by [TreeStateRouter], and typically not used by an applciation
@@ -66,19 +75,17 @@ class StateRouteConfig {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
-    String? path,
+    RoutePathConfig? path,
     this.dependencies = const [],
     this.childRoutes = const [],
-  }) : path = path ?? stateKey.toString();
+  }) :
+        // TODO: decide what to do about DataStateKey
+        path = path ?? RoutePathConfig(stateKey.toString());
 
   /// The state key identifying the tree state associated with this route.
   final StateKey stateKey;
 
-  /// Optional path template indicating how the route appears as part of a routing URI.
-  ///
-  /// If a value is provided, the route will be included when a routing URI is generated, *and*
-  /// be deep-linkable when the platform sets the routing URI.
-  final String? path;
+  final RoutePathConfig path;
 
   /// {@macro StateRoute.routeBuilder}
   final StateRouteBuilder? routeBuilder;

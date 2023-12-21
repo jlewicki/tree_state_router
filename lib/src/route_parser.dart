@@ -9,28 +9,31 @@ import 'package:tree_state_router/tree_state_router.dart';
 /// system.
 
 class TreeStateRoutePath {
-  TreeStateRoutePath(this.routes);
+  TreeStateRoutePath(List<StateRouteConfig> routes)
+      : routes = List.unmodifiable(routes);
 
   static final empty = TreeStateRoutePath(const []);
 
   /// The routes to displayed, based on route information provided by the platform. Routes are
   /// ordered in a descending fashion, such that the leaf route is at the end of the list
   final List<StateRouteConfig> routes;
-  late final path =
-      // TODO: decide what to do about DataStateKey
-      routes.map((r) => r.path ?? r.stateKey.toString()).join('/');
+
+  late bool isEmpty = routes.isEmpty;
+
+  late final path = routes.map((r) => r.path.path).join('/');
+
+  /// The first route in the path.
+  ///
+  /// Throws an error if [isEmpty] is `true`.
   late final start = routes.first;
+
+  /// The last route in the path.
+  ///
+  /// Throws an error if [isEmpty] is `true`.
   late final end = routes.last;
+
+  late final isLinkable = routes.isNotEmpty && end.path.isLinkable;
 }
-
-// class TreeStateRoutePath {
-//   /// The routes to displayed, based on route information provided by the platform. Routes are
-//   /// ordered in a descending fashion, such that the leaf route is at the end of the list
-//   final List<StateRouteConfig> routes;
-//   TreeStateRoutePath(this.routes);
-
-//   static final empty = TreeStateRoutePath(List.unmodifiable([]));
-// }
 
 /// TBD: A [RouteInformationParser] that can parse route information and determine the active states
 /// of a [TreeStateMachine].
@@ -46,6 +49,8 @@ class TreeStateRouteInformationParser
   Future<TreeStateRoutePath> parseRouteInformation(
     RouteInformation routeInformation,
   ) {
+    _log.fine('Parsing route inforation: ${routeInformation.uri.path}');
+
     var parsed = _routeTable.parseRouteInformation(routeInformation);
     if (parsed != null) {
       _log.fine(() =>
@@ -58,9 +63,7 @@ class TreeStateRouteInformationParser
   }
 
   @override
-  RouteInformation? restoreRouteInformation(
-    TreeStateRoutePath configuration,
-  ) {
-    return _routeTable.toRouteInformation(configuration.routes);
+  RouteInformation? restoreRouteInformation(TreeStateRoutePath configuration) {
+    return _routeTable.toRouteInformation(configuration);
   }
 }

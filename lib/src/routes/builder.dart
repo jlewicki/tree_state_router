@@ -167,7 +167,7 @@ StateRouteConfig createDataStateRouteConfig1<D1>(
   DataStateRoutePageBuilder<D1>? routePageBuilder,
   List<StateDataResolver> resolvers,
   bool isPopup,
-  String? path,
+  RoutePathConfig? path,
 ) {
   DataStateBuilder createDataStateBuilder1(
     StateRoutingContext stateContext,

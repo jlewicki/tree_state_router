@@ -18,9 +18,7 @@ class RouteTable {
   ) {
     // Map of all known routes
     var routesByState = Map.fromEntries(
-      _withDescendants(routes)
-          .toList()
-          .map((r) => MapEntry(r.route.stateKey, r.route)),
+      _withDescendants(routes).toList().map((r) => MapEntry(r.stateKey, r)),
     );
 
     // Complete set of full routeable paths. This is a naive data structure, but it is good enough
@@ -32,7 +30,7 @@ class RouteTable {
             .toList()
             .reversed
             .map((node) => routesByState[node.key])
-            .where((r) => r != null && (r.path?.isNotEmpty ?? false))
+            .where((r) => r != null)
             .cast<StateRouteConfig>())
         .where((routes) => routes.isNotEmpty)
         .map((routes) => TreeStateRoutePath(routes.toList()))
@@ -58,28 +56,13 @@ class RouteTable {
   final Map<StateKey, Set<TreeStateRoutePath>> _routePathsByStartState;
   final Map<StateKey, TreeStateRoutePath> _routePathsByEndState;
 
-  RouteInformation? transitionRouteInformation(
-    Transition transition,
-  ) {
-    return toRouteInformation(_routesForTransition(transition));
-  }
-
-  RouteInformation? toRouteInformation(Iterable<StateRouteConfig> routes) {
-    var path = routes.map((e) {
-      assert(e.path != null);
-      return e.path!;
-    }).join('/');
-
-    if (path.isEmpty) {
-      return null;
-    }
-
-    path = '/$path';
-    var uri = Uri.parse(path);
+  RouteInformation? toRouteInformation(TreeStateRoutePath path) {
+    var uriPath = path.isEmpty ? '/' : '/${path.path}';
+    var uri = Uri.parse(uriPath);
     return RouteInformation(uri: uri);
   }
 
-  TreeStateRoutePath? transitionRouteMatches(
+  TreeStateRoutePath transitionRoutePath(
     Transition transition,
   ) {
     return TreeStateRoutePath(
@@ -105,7 +88,8 @@ class RouteTable {
   }
 
   /// Iterates through the routes and all of their descendants.
-  static Iterable<_RouteWithDepth> _withDescendants(
+  ///
+  static Iterable<StateRouteConfig> _withDescendants(
     List<StateRouteConfigProvider> routes,
   ) sync* {
     for (var route in routes) {
@@ -113,25 +97,48 @@ class RouteTable {
     }
   }
 
-  static Iterable<_RouteWithDepth> _selfAndDescendantsWithDepth(
+  static Iterable<StateRouteConfig> _selfAndDescendantsWithDepth(
     StateRouteConfig route,
   ) sync* {
-    Iterable<_RouteWithDepth> selfAndDescendants_(
+    Iterable<StateRouteConfig> selfAndDescendants_(
       StateRouteConfig route,
-      int depth,
     ) sync* {
-      yield _RouteWithDepth(route, depth);
+      yield route;
       for (var child in route.childRoutes) {
-        yield* selfAndDescendants_(child, depth + 1);
+        yield* selfAndDescendants_(child);
       }
     }
 
-    yield* selfAndDescendants_(route, 0);
+    yield* selfAndDescendants_(route);
   }
 }
+  // static Iterable<_RouteWithDepth> _withDescendants(
+  //   List<StateRouteConfigProvider> routes,
+  // ) sync* {
+  //   for (var route in routes) {
+  //     yield* _selfAndDescendantsWithDepth(route.config);
+  //   }
+  // }
 
-class _RouteWithDepth {
-  _RouteWithDepth(this.route, this.depth);
-  final StateRouteConfig route;
-  final int depth;
-}
+  // static Iterable<_RouteWithDepth> _selfAndDescendantsWithDepth(
+  //   StateRouteConfig route,
+  // ) sync* {
+  //   Iterable<_RouteWithDepth> selfAndDescendants_(
+  //     StateRouteConfig route,
+  //     int depth,
+  //   ) sync* {
+  //     yield _RouteWithDepth(route, depth);
+  //     for (var child in route.childRoutes) {
+  //       yield* selfAndDescendants_(child, depth + 1);
+  //     }
+  //   }
+
+  //   yield* selfAndDescendants_(route, 0);
+  // }
+
+// TODO: remove this.
+// class _RouteWithDepth {
+//   _RouteWithDepth(this.route, this.depth);
+//   final StateRouteConfig route;
+//   final int depth;
+//}

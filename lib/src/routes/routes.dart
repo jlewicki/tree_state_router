@@ -174,13 +174,22 @@ class StateRoute implements StateRouteConfigProvider {
   final bool isPopup;
 
   /// {@template StateRoute.path}
-  /// Optional path template indicating how the route appears as part of a routing URI.
+  /// Indicates how this route integrates with platform routing and deep linking.
   ///
-  /// If a value is provided, the route will be included when a routing URI is generated, *and*
-  /// be deep-linkable when the platform sets the routing URI.
+  /// If a value is provided, the [RoutePathConfig.path] value will be used when generating the URI
+  /// segment corresponding to this route. Otherwise, [stateKey] will be used for ths purpose.
+  ///
+  /// Note that [RoutePathConfig.enableDeepLink] is not yet supported.
   /// {@endtemplate}
   final RoutePathConfig? path;
 
+  /// {@template StateRoute.childRoutes}
+  /// The list of child routes that are are available for routing in the nested router of this shell
+  /// route.
+  ///
+  /// The tree states for these child routes must be descendant states of the states identifued by
+  /// [stateKey]
+  /// {@endtemplate}
   final List<StateRouteConfigProvider> childRoutes;
 
   @override
@@ -273,6 +282,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
 
+  /// {@macro StateRoute.path}
   final RoutePathConfig? path;
 
   late final List<StateDataResolver> _resolvers = [
@@ -306,6 +316,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
+    this.path,
   });
 
   /// Constructs a [StateRoute2].
@@ -315,6 +326,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
     required this.ancestor2StateKey,
     this.routeBuilder,
     this.routePageBuilder,
+    this.path,
   }) : isPopup = false;
 
   factory StateRoute2.popup(
@@ -359,6 +371,9 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
 
+  /// {@macro StateRoute.path}
+  final RoutePathConfig? path;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc1>(ancestor1StateKey),
     StateDataResolver<DAnc2>(ancestor2StateKey)
@@ -391,6 +406,7 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
+    this.path,
   });
 
   /// Constructs a [StateRoute3].
@@ -401,6 +417,7 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
     required this.ancestor3StateKey,
     this.routeBuilder,
     this.routePageBuilder,
+    this.path,
   }) : isPopup = false;
 
   factory StateRoute3.popup(
@@ -442,6 +459,9 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
   /// When called, this function is provided the current [DAnc1], [DAnc2], and [DAnc3] values
   /// obtained from the ancestor data states.
   final DataStateRoutePageBuilder3<DAnc1, DAnc2, DAnc3>? routePageBuilder;
+
+  /// {@macro StateRoute.path}
+  final RoutePathConfig? path;
 
   /// {@macro StateRoute.isPopup}
   final bool isPopup;

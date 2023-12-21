@@ -376,10 +376,8 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   @override
   void _onTransition(CurrentState currentState, Transition transition) {
     _transition = transition;
-    var routeMatches = routeTable.transitionRoutePath(transition);
-    if (routeMatches != null) {
-      _setCurrentConfiguration(routeMatches);
-    }
+    var routeMatches = routeTable.routePathForTransition(transition);
+    _setCurrentConfiguration(routeMatches);
   }
 
   Future<void> _setCurrentConfiguration(TreeStateRoutePath configuration) {
@@ -401,7 +399,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         // All the routes in the requested configuration correspond to an active state in the
         // state machine, so
         return SynchronousFuture(configuration);
-      } else if (configuration.isLinkable) {
+      } else if (configuration.isDeepLinkable) {
         // TODO: Add a special deep-link routing message, and a filter that can handle the messge
         // and force the goTo
         return SynchronousFuture(configuration);
@@ -416,18 +414,16 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         stateMachine.lifecycle.isStopped;
 
     if (isStartable) {
-      // Start the state machine, and yield the update configuration based on the initial transition
-      Future<TreeStateRoutePath> startMachine(StateKey? at) {
-        var initialTransitionFuture = stateMachine.transitions.first;
-        _log.fine("Starting state machine ${at != null ? "at: '$at'" : ''}");
-        stateMachine.start(at: at);
-        return initialTransitionFuture
-            .then((transition) => routeTable.transitionRoutePath(transition));
-      }
-
-      var startState =
-          configuration.isLinkable ? configuration.end.stateKey : null;
-      return startMachine(startState);
+      var startAt =
+          configuration.isDeepLinkable ? configuration.end.stateKey : null;
+      _log.fine(
+          "Starting state machine ${startAt != null ? "at: '$startAt'" : ''}");
+      var initTransFuture = stateMachine.transitions.first;
+      stateMachine.start(at: startAt);
+      return initTransFuture.then((initTrans) {
+        _log.fine("Started state machine. Current state: '${initTrans.to}'");
+        return routeTable.routePathForTransition(initTrans);
+      });
     }
 
     _log.warning('_startOrUpdateStateMachine with null configuration');

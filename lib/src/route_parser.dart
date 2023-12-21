@@ -32,7 +32,7 @@ class TreeStateRoutePath {
   /// Throws an error if [isEmpty] is `true`.
   late final end = routes.last;
 
-  late final isLinkable = routes.isNotEmpty && end.path.isLinkable;
+  late final isDeepLinkable = routes.isNotEmpty && end.path.enableDeepLink;
 }
 
 /// TBD: A [RouteInformationParser] that can parse route information and determine the active states

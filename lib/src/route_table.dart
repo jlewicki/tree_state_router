@@ -62,12 +62,13 @@ class RouteTable {
     return RouteInformation(uri: uri);
   }
 
-  TreeStateRoutePath transitionRoutePath(
+  TreeStateRoutePath routePathForTransition(
     Transition transition,
   ) {
-    return TreeStateRoutePath(
-      _routesForTransition(transition).toList(),
-    );
+    var routeForTarget = _routePathsByEndState[transition.to];
+    return routeForTarget != null
+        ? TreeStateRoutePath(routeForTarget.routes)
+        : TreeStateRoutePath.empty;
   }
 
   TreeStateRoutePath? parseRouteInformation(
@@ -77,14 +78,6 @@ class RouteTable {
     path = path.startsWith('/') ? path.substring(1) : path;
     // TODO: this will not work with path parameters (like path: 'pages/:pageId')
     return _routePaths.firstWhereOrNull((r) => r.path == path);
-  }
-
-  Iterable<StateRouteConfig> _routesForTransition(
-    Transition transition,
-  ) {
-    var routeForTarget = _routePathsByEndState[transition.to];
-    assert(routeForTarget != null);
-    return routeForTarget!.routes;
   }
 
   /// Iterates through the routes and all of their descendants.
@@ -112,33 +105,3 @@ class RouteTable {
     yield* selfAndDescendants_(route);
   }
 }
-  // static Iterable<_RouteWithDepth> _withDescendants(
-  //   List<StateRouteConfigProvider> routes,
-  // ) sync* {
-  //   for (var route in routes) {
-  //     yield* _selfAndDescendantsWithDepth(route.config);
-  //   }
-  // }
-
-  // static Iterable<_RouteWithDepth> _selfAndDescendantsWithDepth(
-  //   StateRouteConfig route,
-  // ) sync* {
-  //   Iterable<_RouteWithDepth> selfAndDescendants_(
-  //     StateRouteConfig route,
-  //     int depth,
-  //   ) sync* {
-  //     yield _RouteWithDepth(route, depth);
-  //     for (var child in route.childRoutes) {
-  //       yield* selfAndDescendants_(child, depth + 1);
-  //     }
-  //   }
-
-  //   yield* selfAndDescendants_(route, 0);
-  // }
-
-// TODO: remove this.
-// class _RouteWithDepth {
-//   _RouteWithDepth(this.route, this.depth);
-//   final StateRouteConfig route;
-//   final int depth;
-//}

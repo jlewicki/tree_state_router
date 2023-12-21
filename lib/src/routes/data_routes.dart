@@ -157,6 +157,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
 
+  /// {@macro StateRoute.path}
   final RoutePathConfig? path;
 
   late final List<StateDataResolver> _resolvers = [
@@ -199,6 +200,7 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
+    this.path,
   });
 
   /// Constructs a [DataStateRoute2].
@@ -207,6 +209,7 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
     required this.ancestorStateKey,
     this.routeBuilder,
     this.routePageBuilder,
+    this.path,
   }) : isPopup = false;
 
   factory DataStateRoute2.popup(
@@ -241,6 +244,9 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
 
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
+
+  /// {@macro StateRoute.path}
+  final RoutePathConfig? path;
 
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey),
@@ -287,6 +293,7 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
+    this.path,
   });
 
   /// Constructs a [DataStateRoute3].
@@ -296,6 +303,7 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     required this.ancestor2StateKey,
     this.routeBuilder,
     this.routePageBuilder,
+    this.path,
   }) : isPopup = false;
 
   factory DataStateRoute3.popup(
@@ -335,6 +343,9 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
 
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
+
+  /// {@macro StateRoute.path}
+  final RoutePathConfig? path;
 
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey),

@@ -118,12 +118,14 @@ class StateRoute implements StateRouteConfigProvider {
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
+    DefaultScaffoldingBuilder? defaultScaffolding,
     RoutePathConfig? path,
   }) {
     var nestedRouter = NestedTreeStateRouter(
       key: ValueKey(stateKey),
       parentStateKey: stateKey,
       routes: routes,
+      defaultScaffolding: defaultScaffolding,
       enableTransitions: enableTransitions,
     );
 

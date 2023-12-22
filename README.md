@@ -171,3 +171,53 @@ StateRoute.shell(
 )
 ```
 
+## Web
+If the `TreeStateRouter.platformRouting` factory is used, the router will integrate with the 
+Navigator 2.0 APIs.
+
+### Route URIs
+ URIs representing the current report path are reported to the platform. When targeting the web 
+platform, this means the browser URL will be updated as state transitions occur.
+
+Each active route contributes a segment to the URI, and the specific text of this segment can 
+controlled by the `path` value for the route. 
+
+```dart
+final router = TreeStateRouter.platformRouting(
+  stateTree: routePathsStateTree(),
+  routes: [
+    StateRoute.shell(
+      States.root,
+      path: const RoutePathConfig('root'),
+      routeBuilder: rootPage,
+      routes: [
+        StateRoute.shell(
+          States.parent1,
+          path: const RoutePathConfig('parent-1'),
+          routeBuilder: parent1Page,
+          routes: [
+            DataStateRoute(
+              States.child1,
+              // The URI path will be '/root/parent-1/child/1' when this route is active 
+              path: const RoutePathConfig('child/1'),
+              routeBuilder: child1Page,
+            ),
+            StateRoute(
+              States.child2,
+              path: const RoutePathConfig('child/2'),
+              routeBuilder: child2Page,
+            )
+          ],
+        ),
+    ),
+  ],
+);
+```
+
+
+If `path` is left undefined, the `stateKey` will be used as a fallback to generate the URI segment.
+This is unlikely to be appropriate for end users, so it is recommended that `path` values be 
+provided for all routes. 
+
+## Deep Linking
+Not eyet supported.

@@ -46,7 +46,7 @@ DeclarativeStateTreeBuilder simpleStateTree() {
 
   b.dataState<String>(
     States.showUppercase,
-    InitialData.run((ctx) => (ctx.payload as String).toUpperCase()),
+    InitialData.run((ctx) => ((ctx.payload ?? '') as String).toUpperCase()),
     (b) {
       b.onMessageValue(Messages.finish, (b) => b.goTo(States.finished));
     },
@@ -54,7 +54,7 @@ DeclarativeStateTreeBuilder simpleStateTree() {
 
   b.dataState<String>(
     States.showLowercase,
-    InitialData.run((ctx) => (ctx.payload as String).toLowerCase()),
+    InitialData.run((ctx) => ((ctx.payload ?? '') as String).toLowerCase()),
     (b) {
       b.onMessageValue(Messages.finish, (b) => b.goTo(States.finished));
     },

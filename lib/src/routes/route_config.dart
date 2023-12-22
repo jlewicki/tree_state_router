@@ -8,6 +8,9 @@ class StateRoutingContext {
   final TreeStateRoutingState routingState = TreeStateRoutingState();
 }
 
+/// TBD: This will contain routing information parsed from the current URI.
+class TreeStateRoutingState {}
+
 /// Provides an accessor for a [StateRouteConfig] describing a route.
 abstract class StateRouteConfigProvider {
   /// A config object providing a generalized description of a route for a [TreeStateRouter].
@@ -53,6 +56,21 @@ typedef StateRoutePageBuilder = Page<void> Function(
   Widget Function(StateRouteBuilder buildPageContent) wrapPageContent,
 );
 
+/// Describes how a route integrates with platform (i.e. Navigator 2.0) routing.
+class RoutePathConfig {
+  const RoutePathConfig(
+    this.path, {
+    this.enableDeepLink = false,
+  });
+  // The path segment to use for the associated route, when a routing URI needs to be generated.
+  final String path;
+
+  /// Indicates if the route supports deep linking.
+  ///
+  /// Note that this feature is not yet supported.
+  final bool enableDeepLink;
+}
+
 /// A generalized description of a route that can be placed in a [TreeStateRouter].
 ///
 /// This is intended for use by [TreeStateRouter], and typically not used by an applciation
@@ -63,11 +81,18 @@ class StateRouteConfig {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
+    RoutePathConfig? path,
     this.dependencies = const [],
-  });
+    this.childRoutes = const [],
+  }) :
+        // TODO: decide what to do about DataStateKey
+        path = path ?? RoutePathConfig(stateKey.toString());
 
   /// The state key identifying the tree state associated with this route.
   final StateKey stateKey;
+
+  /// {@macro StateRoute.path}
+  final RoutePathConfig path;
 
   /// {@macro StateRoute.routeBuilder}
   final StateRouteBuilder? routeBuilder;
@@ -84,4 +109,7 @@ class StateRouteConfig {
   /// In general these will be ancestor states of [stateKey], although if [stateKey] is a
   /// [DataStateKey] it will be present in the list as well.
   final List<DataStateKey> dependencies;
+
+  /// {@macro StateRoute.childRoutes}
+  final List<StateRouteConfig> childRoutes;
 }

@@ -1,6 +1,6 @@
 name: tree_state_router
 description: "Flutter navigation and routing based on hierarchical state machines"
-version: 0.0.1-dev.3
+version: 0.0.1-dev.4
 homepage: https://github.com/jlewicki/tree_state_router
 
 environment:
@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
   collection: ^1.18.0
   logging: ^1.2.0
-  tree_state_machine: ^3.0.0-dev.6
+  tree_state_machine: ^3.0.0-dev.8
 
 dev_dependencies:
   flutter_lints: ^3.0.0

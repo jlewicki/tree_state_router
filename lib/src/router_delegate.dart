@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
+import 'package:tree_state_router/src/route_table.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'package:tree_state_router/src/pages.dart';
 import 'package:tree_state_router/src/widgets/state_machine_error.dart';
@@ -23,11 +25,13 @@ class TreeStateRouterDelegateConfig {
     this.defaultPageBuilder,
     this.defaultScaffolding,
     this.enableTransitions = true,
+    this.enablePlatformRouting = false,
   });
   final List<StateRouteConfig> routes;
   final DefaultScaffoldingBuilder? defaultScaffolding;
   final DefaultPageBuilder? defaultPageBuilder;
   final bool enableTransitions;
+  final bool enablePlatformRouting;
 }
 
 // Error handling:
@@ -37,7 +41,7 @@ class TreeStateRouterDelegateConfig {
 // * Errors detected during build are presented as a page in the router
 // * Errors emitted from the state machine are detected and presented as a page in the router
 abstract class TreeStateRouterDelegateBase
-    extends RouterDelegate<TreeStateRouteInfo>
+    extends RouterDelegate<TreeStateRoutePath>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
   TreeStateRouterDelegateBase({
     required this.config,
@@ -115,12 +119,10 @@ abstract class TreeStateRouterDelegateBase
     BuildContext context,
     CurrentState currentState,
   ) {
-    /// Return the deepest page that maps to an active state. By deepest, we mean the page that
-    /// maps to a state as far as possible from the root state. This gives the current leaf state
-    /// priority in determining the page to display, followed by its parent state, etc.
-    var activeRoutes =
-        _findRoutesFor(currentState.activeStates.reversed).toList();
-    var navigatorRoutes = activeRoutes.take(1);
+    _log.fine(() =>
+        'Creating pages for active states: ${currentState.activeStates.join(', ')}');
+
+    Iterable<StateRouteConfig> navigatorRoutes = _activeRoutes(currentState);
 
     // If we have a popup route, attempt to find a route for one of the exiting states. This route
     // will be pushed on to the navigator below the popup route, so that the popup looks like it
@@ -151,6 +153,15 @@ abstract class TreeStateRouterDelegateBase
 
     return navigatorRoutes
         .map((r) => _buildRoutePage(r, context, currentState));
+  }
+
+  /// Return the deepest route that maps to an active state. By deepest, we mean the route that
+  /// maps to a state as far as possible from the root state. This gives the current leaf state
+  /// priority in determining the route to display, followed by its parent state, etc.
+  List<StateRouteConfig> _activeRoutes(CurrentState currentState) {
+    // Is the order right here?
+    var activeRoutes = _findRoutesFor(currentState.activeStates.reversed);
+    return activeRoutes.take(1).toList();
   }
 
   @protected
@@ -186,7 +197,7 @@ abstract class TreeStateRouterDelegateBase
 
   @protected
   bool _onPopPage(Route<dynamic> route, dynamic result) {
-    _log.finer(
+    _log.finer(() =>
         'Popping page for state ${(route.settings as StateRoute).stateKey}');
     if (!route.didPop(result)) return false;
     notifyListeners();
@@ -290,13 +301,23 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     required this.stateMachine,
     // TODO: validate data dependencies (dependencies must be self or ancestor states)
     required super.config,
+    required this.routeTable,
     super.displayStateMachineErrors,
   }) : super(
-          log: Logger('StateTreeRouterDelegate'),
-        );
+          log: Logger('TreeStateRouterDelegate'),
+        ) {
+    if (!config.enablePlatformRouting) {
+      // If platform routing is disabled, there will be no call to setNewRoutePath on app start,
+      // so we need to set the current configuration (and consequently start the state machine)
+      // here.
+      _setCurrentConfiguration(TreeStateRoutePath.empty);
+    }
+  }
 
   /// The [TreeStateMachine] that provides the state transition  notifications to this router.
   final TreeStateMachine stateMachine;
+
+  final RouteTable routeTable;
 
   /// The key used for retrieving the current navigator.
   @override
@@ -304,25 +325,42 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       GlobalKey<NavigatorState>(debugLabel: 'TreeStateRouterDelegate');
 
   @override
-  Widget build(BuildContext context) {
-    var curState = stateMachine.currentState;
-    if (curState != null) {
-      _log.fine(
-          'Creating pages for active states ${curState.activeStates.join(', ')}');
+  // We have to implement this for the current routing configuration to be reported to the platform,
+  // and consequently show up in the browser URL
+  TreeStateRoutePath? get currentConfiguration =>
+      config.enablePlatformRouting ? _currentConfiguration : null;
+
+  TreeStateRoutePath? _currentConfiguration;
+
+  // Called when new route information has been provided by the platform (via deep linking or
+  // browser URI)
+  @override
+  Future<void> setNewRoutePath(TreeStateRoutePath configuration) async {
+    if (currentConfiguration == configuration) {
+      return done;
     }
 
+    return _setCurrentConfiguration(configuration);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    assert(
+        stateMachine.lifecycle.isStarting || stateMachine.lifecycle.isStarted);
+
     var pages = <Page>[];
+    var currentState = stateMachine.currentState;
     try {
-      pages = curState != null
-          ? _buildActivePages(context, curState).toList()
-          // build() may be called before the setNewRoutePath future completes, so we display a loading
-          // indicator while that is in progress
+      pages = currentState != null
+          ? _buildActivePages(context, currentState).toList()
           : [
+              // build() may be called before the setNewRoutePath future completes, so we display a
+              // loading indicator while that is in progress
               if (stateMachine.lifecycle.isStarting) _createLoadingPage(context)
             ];
 
       if (pages.isEmpty) {
-        throw _errors.noPagesForActiveStates(curState?.activeStates ?? []);
+        throw _errors.noPagesForActiveStates(currentState?.activeStates ?? []);
       }
     } catch (ex) {
       pages = [_createErrorPage(context, ex)];
@@ -330,19 +368,66 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
     return _buildNavigatorWidget(
       pages,
-      curState,
-      provideCurrentState: curState != null,
+      currentState,
+      provideCurrentState: currentState != null,
     );
   }
 
   @override
-  Future<void> setNewRoutePath(TreeStateRouteInfo configuration) async {
-    if (stateMachine.lifecycle.isStarted) {
-      throw UnsupportedError(
-          'Routing after the state machine has started is not yet supported.');
-    } else {
-      await stateMachine.start(at: configuration.currentState);
+  void _onTransition(CurrentState currentState, Transition transition) {
+    _transition = transition;
+    var routeMatches = routeTable.routePathForTransition(transition);
+    _setCurrentConfiguration(routeMatches);
+  }
+
+  Future<void> _setCurrentConfiguration(TreeStateRoutePath configuration) {
+    //_currentConfiguration = configuration;
+    return _startOrUpdateStateMachine(configuration).then((config) {
+      _currentConfiguration = config;
+      notifyListeners();
+    });
+  }
+
+  Future<TreeStateRoutePath> _startOrUpdateStateMachine(
+    TreeStateRoutePath configuration,
+  ) {
+    if (stateMachine.lifecycle.isStarted && stateMachine.currentState != null) {
+      var activeStates = stateMachine.currentState!.activeStates;
+      var allRoutesActive =
+          configuration.routes.every((r) => activeStates.contains(r.stateKey));
+      if (allRoutesActive) {
+        // All the routes in the requested configuration correspond to an active state in the
+        // state machine, so
+        return SynchronousFuture(configuration);
+      } else if (configuration.isDeepLinkable) {
+        // TODO: Add a special deep-link routing message, and a filter that can handle the messge
+        // and force the goTo
+        return SynchronousFuture(configuration);
+      } else {
+        // Return current configuration, not requested one, since the requested one is not
+        // deep-linkable.
+        return SynchronousFuture(_currentConfiguration!);
+      }
     }
+
+    var isStartable = stateMachine.lifecycle.isConstructed ||
+        stateMachine.lifecycle.isStopped;
+
+    if (isStartable) {
+      var startAt =
+          configuration.isDeepLinkable ? configuration.end.stateKey : null;
+      _log.fine(
+          "Starting state machine ${startAt != null ? "at: '$startAt'" : ''}");
+      var initTransFuture = stateMachine.transitions.first;
+      stateMachine.start(at: startAt);
+      return initTransFuture.then((initTrans) {
+        _log.fine("Started state machine. Current state: '${initTrans.to}'");
+        return routeTable.routePathForTransition(initTrans);
+      });
+    }
+
+    _log.warning('_startOrUpdateStateMachine with null configuration');
+    return SynchronousFuture(configuration);
   }
 
   Page _createLoadingPage(BuildContext context) {
@@ -353,6 +438,8 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
           child: Text('Loading'),
         ));
   }
+
+  static final done = SynchronousFuture<void>(null);
 }
 
 /// The [RouterDelegate] used by [NestedTreeStateRouter].
@@ -397,7 +484,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       GlobalKey<NavigatorState>(debugLabel: 'ChildTreeStateRouterDelegate');
 
   @override
-  Future<void> setNewRoutePath(TreeStateRouteInfo configuration) {
+  Future<void> setNewRoutePath(TreeStateRoutePath configuration) {
     throw UnsupportedError('Setting route paths is not currently supported');
   }
 
@@ -454,7 +541,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     List<StateKey> invalidRoutes = [];
     for (var routedState in routedStates) {
       var ancestor =
-          ancestors(routedState).firstWhereOrNull((e) => e.key == parentKey);
+          routedState.ancestors().firstWhereOrNull((e) => e.key == parentKey);
       if (ancestor == null) {
         invalidRoutes.add(routedState.key);
       }
@@ -471,22 +558,6 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     _transition = transition;
     if (!transition.isToFinalState || supportsFinalRoute) {
       super._onTransition(currentState, transition);
-    }
-  }
-
-  Iterable<TreeNodeInfo> ancestors(TreeNodeInfo node) sync* {
-    TreeNodeInfo? parent(TreeNodeInfo node) {
-      return switch (node) {
-        LeafNodeInfo(parent: var p) => p,
-        InteriorNodeInfo(parent: var p) => p,
-        _ => null
-      };
-    }
-
-    var nextAncestor = parent(node);
-    while (nextAncestor != null) {
-      yield nextAncestor;
-      nextAncestor = parent(nextAncestor);
     }
   }
 }

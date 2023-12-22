@@ -167,6 +167,7 @@ StateRouteConfig createDataStateRouteConfig1<D1>(
   DataStateRoutePageBuilder<D1>? routePageBuilder,
   List<StateDataResolver> resolvers,
   bool isPopup,
+  RoutePathConfig? path,
 ) {
   DataStateBuilder createDataStateBuilder1(
     StateRoutingContext stateContext,
@@ -199,6 +200,7 @@ StateRouteConfig createDataStateRouteConfig1<D1>(
         : null,
     isPopup: isPopup,
     dependencies: resolvers.map((e) => e.stateKey!).toList(),
+    path: path,
   );
 }
 

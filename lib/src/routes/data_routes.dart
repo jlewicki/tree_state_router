@@ -111,9 +111,9 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     bool enableTransitions = false,
     DefaultScaffoldingBuilder? defaultScaffolding,
   }) {
-    var nestedRouter = NestedTreeStateRouter(
+    var nestedRouter = DescendantStatesRouter(
       key: ValueKey(stateKey),
-      parentStateKey: stateKey,
+      anchorKey: stateKey,
       routes: routes,
       enableTransitions: enableTransitions,
       defaultScaffolding: defaultScaffolding,

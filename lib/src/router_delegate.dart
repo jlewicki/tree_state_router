@@ -36,7 +36,7 @@ class TreeStateRouterDelegateConfig {
 
 // Error handling:
 //
-// * Assertions are used for internalo invariants, not to validate configuration
+// * Assertions are used for internal invariants, not to validate configuration
 // * RouterDelegates will throw TreeStateRouterError for errors due to route configuration errors
 // * Errors detected during build are presented as a page in the router
 // * Errors emitted from the state machine are detected and presented as a page in the router
@@ -442,34 +442,28 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   static final done = SynchronousFuture<void>(null);
 }
 
-/// The [RouterDelegate] used by [NestedTreeStateRouter].
+/// The [RouterDelegate] used by [DescendantStatesRouter]. The routes provided to this router
+/// delegate via [config] must correspond to descendant states of [anchorKey].
 ///
-/// An application configures [NestedTreeStateRouterDelegate] that indicate how individual states in
-/// the state machine should be visualized. This router does not need to be with a state machine
-/// instance. because this router delegate is intended to be nested within an ancestor router
-/// configured with a [TreeStateRouterDelegate]. This router will share the same state machine
-/// instance with the ancestor [TreeStateRouterDelegate].
-///
-/// As state transitions occur within the parent state machine, this router delegate will determine
-/// if there is a [StateRoute] that corresponds to the an active state of the state machine. If
-/// a route is available, it is displayed by the [Navigator] returned by [build].
-class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
-  NestedTreeStateRouterDelegate({
+/// This router requires that an inherited state machine be available in the widget tree via
+/// [TreeStateMachineProvider].
+class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
+  DescendantStatesRouterDelegate({
     required super.config,
-    required this.parentKey,
+    required this.anchorKey,
     super.displayStateMachineErrors,
     this.supportsFinalRoute = true,
   }) : super(
           log: Logger('ChildTreeStateRouterDelegate'),
         );
 
-  /// {@template NestedTreeStateRouterDelegate.parentKey}
+  /// {@template NestedTreeStateRouterDelegate.anchorKey}
   /// Identifies the tree state that anchors the state transitions that are routed by this router.
   ///
   /// Only state transitions such that this state remains active are routed. In other words, routing
   /// only occurs if the transition is between two descendants of this state.
   /// {@endtemplate}
-  final StateKey parentKey;
+  final StateKey anchorKey;
 
   /// If `true` (the default), an error page will be displayed if the state machine reaches a final
   /// state, and there is no route that can display that state.
@@ -529,7 +523,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       pages,
       currentState,
       provideCurrentState: false,
-      transitionEventRootState: parentKey,
+      transitionEventRootState: anchorKey,
     );
   }
 
@@ -541,7 +535,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     List<StateKey> invalidRoutes = [];
     for (var routedState in routedStates) {
       var ancestor =
-          routedState.ancestors().firstWhereOrNull((e) => e.key == parentKey);
+          routedState.ancestors().firstWhereOrNull((e) => e.key == anchorKey);
       if (ancestor == null) {
         invalidRoutes.add(routedState.key);
       }
@@ -549,7 +543,7 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
     if (invalidRoutes.isNotEmpty) {
       throw _errors.nestedRoutesAreNotDescendantsOfParent(
-          parentKey, invalidRoutes);
+          anchorKey, invalidRoutes);
     }
   }
 
@@ -558,6 +552,76 @@ class NestedTreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     _transition = transition;
     if (!transition.isToFinalState || supportsFinalRoute) {
       super._onTransition(currentState, transition);
+    }
+  }
+}
+
+/// The [RouterDelegate] used by [DescendantStatesRouter] to route states in a nested state machine.
+///
+/// The state identified by [machineStateKey] must be nested machine state.
+class NestedMachineRouterDelegate extends TreeStateRouterDelegateBase {
+  NestedMachineRouterDelegate({
+    required super.config,
+    required this.machineStateKey,
+    super.displayStateMachineErrors,
+  }) : super(
+          log: Logger('NestedMachineRouterDelegate'),
+        );
+
+  /// {@template NestedMachineRouterDelegate.machineStateKey}
+  /// Identifies the state that is the host state for a nested state machine.
+  /// {@endtemplate}
+  DataStateKey<NestedMachineData> machineStateKey;
+
+  /// The key used for retrieving the current navigator.
+  @override
+  final navigatorKey =
+      GlobalKey<NavigatorState>(debugLabel: 'NestedMachineRouterDelegate');
+
+  @override
+  Future<void> setNewRoutePath(TreeStateRoutePath configuration) {
+    throw UnsupportedError('Setting route paths is not currently supported');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Page> pages = [];
+    CurrentState? currentState;
+    try {
+      var stateMachineInfo = TreeStateMachineProvider.of(context);
+      if (stateMachineInfo == null) {
+        throw _errors.missingStateMachine();
+      }
+
+      currentState = stateMachineInfo.currentState;
+      var nestedMachineData = currentState.dataValue<NestedMachineData>();
+      if (nestedMachineData == null) {
+        throw _errors.noNestedStateMachineData(currentState.activeStates);
+      }
+
+      currentState = nestedMachineData.nestedCurrentState;
+      pages = _buildActivePages(context, currentState).toList();
+    } catch (ex) {
+      pages = [_createErrorPage(context, ex)];
+    }
+
+    return _buildNavigatorWidget(
+      pages,
+      currentState,
+      provideCurrentState: true,
+    );
+  }
+
+  @override
+  void _onTransition(CurrentState currentState, Transition transition) {
+    // Do not notify when the nested state machine reaches a final state. If we were to notify, then
+    // we would schedule a call to build for this router.  However, the parent machine tree state
+    // that owns the nested state machine transition to a different state when the final state is
+    // reached, which means that when the scheduled build actually runs,
+    // currentState.dataValue<NestedMachineData>() will no longer find a nested state machine, and
+    // the build method will fail.
+    if (!transition.isToFinalState) {
+      notifyListeners();
     }
   }
 }
@@ -628,6 +692,13 @@ class _RouterErrors {
         "for parent state '$parentKey', because the following routed states are "
         'not descendants of the parent state:\n'
         '${routedStates.join('\n')}';
+    _log.severe(message);
+    return TreeStateRouterError(message);
+  }
+
+  TreeStateRouterError noNestedStateMachineData(List<StateKey> activeStates) {
+    var message = 'Unable to find nested machine data in active states '
+        '${activeStates.map((e) => "'${e.toString()}'").join(', ')}.';
     _log.severe(message);
     return TreeStateRouterError(message);
   }

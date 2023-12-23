@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
+import 'package:tree_state_router/src/widgets/nested_machine_router.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'builder.dart';
 
@@ -121,9 +122,9 @@ class StateRoute implements StateRouteConfigProvider {
     DefaultScaffoldingBuilder? defaultScaffolding,
     RoutePathConfig? path,
   }) {
-    var nestedRouter = NestedTreeStateRouter(
+    var nestedRouter = DescendantStatesRouter(
       key: ValueKey(stateKey),
-      parentStateKey: stateKey,
+      anchorKey: stateKey,
       routes: routes,
       defaultScaffolding: defaultScaffolding,
       enableTransitions: enableTransitions,
@@ -131,6 +132,54 @@ class StateRoute implements StateRouteConfigProvider {
 
     return StateRoute._(
       stateKey,
+      routeBuilder: routeBuilder != null
+          ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter)
+          : null,
+      routePageBuilder: routePageBuilder != null
+          ? (buildContext, wrapPageContent) => routePageBuilder(
+              buildContext,
+              (buildPageContent) =>
+                  wrapPageContent((context, stateContext) => buildPageContent(
+                        context,
+                        stateContext,
+                        nestedRouter,
+                      )))
+          : null,
+      isPopup: false,
+      path: path,
+      childRoutes: routes,
+    );
+  }
+
+  /// Constructs a [StateRoute] for a machine state that serves as a host for a state machine nested
+  /// within a parent state machine.
+  ///
+  /// A list of [routes] must be provided that determine the routing for states within the nested
+  /// state machine, *not* the outer state machine.
+  ///
+  /// In a similar manner to [StateRoute.shell], when the [routeBuilder] and [routePageBuilder]
+  /// functions are called, they are provided a `nestedRouter` widget that displays the visuals for
+  /// the active descendant states. The builder functions can place this widget as desired in their
+  /// layout.
+  factory StateRoute.machine(
+    DataStateKey<NestedMachineData> machineStateKey, {
+    required List<StateRouteConfigProvider> routes,
+    ShellStateRouteBuilder? routeBuilder,
+    ShellStateRoutePageBuilder? routePageBuilder,
+    bool enableTransitions = false,
+    DefaultScaffoldingBuilder? defaultScaffolding,
+    RoutePathConfig? path,
+  }) {
+    var nestedRouter = NestedStateMachineRouter(
+      key: ValueKey(machineStateKey),
+      machineStateKey: machineStateKey,
+      routes: routes,
+      defaultScaffolding: defaultScaffolding,
+      enableTransitions: enableTransitions,
+    );
+
+    return StateRoute._(
+      machineStateKey,
       routeBuilder: routeBuilder != null
           ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter)
           : null,

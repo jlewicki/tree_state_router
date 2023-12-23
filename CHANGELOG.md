@@ -2,6 +2,7 @@
 - Add initial Navigator 2.0 support. 
    - Route URLs are generated as transitins occur
    - Deep linking is not yet supported
+- Add support for routing nested state machines.
 
 ## 0.0.1-dev.3
 - Improve error messages

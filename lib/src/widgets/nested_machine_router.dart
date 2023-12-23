@@ -3,25 +3,19 @@ import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
-/// A routing widget that provides visuals for the active states in a state tree, intended for use as
-/// a descendant of a top-level [TreeStateRouter].
-///
-/// While it is possible to include this widget directly in a widget tree, nested routing is more
-/// commonly implemented with [StateRoute.shell] or [DataStateRoute.shell], which will implicitly
-/// construct [NestedTreeStateRouter].
-class NestedTreeStateRouter extends StatelessWidget {
-  /// Constructs a [NestedTreeStateRouter].
-  NestedTreeStateRouter({
+class NestedStateMachineRouter extends StatelessWidget {
+  /// Constructs a [NestedStateMachineRouter].
+  NestedStateMachineRouter({
     super.key,
-    required this.parentStateKey,
+    required this.machineStateKey,
     required this.routes,
     this.defaultPageBuilder,
     this.defaultScaffolding,
     this.enableTransitions = true,
   });
 
-  /// {@macro NestedTreeStateRouterDelegate.parentKey}
-  final StateKey parentStateKey;
+  /// {@macroNestedMachineRouterDelegate.machineStateKey}
+  final DataStateKey<NestedMachineData> machineStateKey;
 
   /// The list of routes that can be materialized by this router.
   final List<StateRouteConfigProvider> routes;
@@ -40,8 +34,8 @@ class NestedTreeStateRouter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Router(
-      routerDelegate: NestedTreeStateRouterDelegate(
-        parentKey: parentStateKey,
+      routerDelegate: NestedMachineRouterDelegate(
+        machineStateKey: machineStateKey,
         config: TreeStateRouterDelegateConfig(
           _routeConfigs,
           defaultPageBuilder: defaultPageBuilder,

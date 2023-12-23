@@ -16,7 +16,7 @@ export 'src/routes/routes.dart';
 export 'src/routes/data_routes.dart';
 export 'src/widgets/inspector.dart';
 export 'src/widgets/state_machine_provider.dart';
-export 'src/widgets/nested_router.dart';
+export 'src/widgets/descendant_states_router.dart';
 
 // To publish:
 // dart pub publish --dry-run

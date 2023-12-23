@@ -5,10 +5,10 @@ import 'package:tree_state_router/tree_state_router.dart';
 
 class RouteTable {
   RouteTable._(
-    this._rootNode,
     this._routePaths,
-    this._routesByState,
-    this._routePathsByStartState,
+    // this._rootNode,
+    // this._routesByState,
+    // this._routePathsByStartState,
     this._routePathsByEndState,
   );
 
@@ -36,24 +36,24 @@ class RouteTable {
         .map((routes) => TreeStateRoutePath(routes.toList()))
         .toList();
 
-    var routePathsByStartState =
-        routePaths.groupSetsBy((e) => e.start.stateKey);
+    // var routePathsByStartState =
+    //     routePaths.groupSetsBy((e) => e.start.stateKey);
     var routePathsByEndState =
         Map.fromEntries(routePaths.map((e) => MapEntry(e.end.stateKey, e)));
 
     return RouteTable._(
-      rootNode,
       routePaths,
-      routesByState,
-      routePathsByStartState,
+      // rootNode,
+      // routesByState,
+      // routePathsByStartState,
       routePathsByEndState,
     );
   }
 
-  final RootNodeInfo _rootNode;
   final List<TreeStateRoutePath> _routePaths;
-  final Map<StateKey, StateRouteConfig> _routesByState;
-  final Map<StateKey, Set<TreeStateRoutePath>> _routePathsByStartState;
+  // final RootNodeInfo _rootNode;
+  // final Map<StateKey, StateRouteConfig> _routesByState;
+  // final Map<StateKey, Set<TreeStateRoutePath>> _routePathsByStartState;
   final Map<StateKey, TreeStateRoutePath> _routePathsByEndState;
 
   RouteInformation? toRouteInformation(TreeStateRoutePath path) {

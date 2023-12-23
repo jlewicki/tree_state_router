@@ -35,8 +35,8 @@ Widget parentPage(
         ),
       ),
       IntrinsicHeight(
-        child: NestedTreeStateRouter(
-          parentStateKey: States.parent,
+        child: DescendantStatesRouter(
+          anchorKey: States.parent,
           enableTransitions: false,
           routes: [
             DataStateRoute(States.child1, routeBuilder: child1Page),

@@ -1,5 +1,5 @@
+import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
 
 //
 // State keys
@@ -8,7 +8,7 @@ class States {
   static const enterText = StateKey('enterText');
   static const showUppercase = DataStateKey<String>('showUppercase');
   static const showLowercase = DataStateKey<String>('showLowercase');
-  static const finished = StateKey('finished');
+  static const finished = DataStateKey<String>('finished');
 }
 
 //
@@ -30,37 +30,42 @@ class ToLowercase {
 
 /// A simple flat (non-hierarchial) state tree illustrating simple branching and passing data between
 /// states.
-DeclarativeStateTreeBuilder simpleStateTree() {
-  var b = DeclarativeStateTreeBuilder(
-    initialChild: States.enterText,
-    logName: 'simple',
-    label: 'Simple State Tree',
+StateTree simpleStateTree() {
+  return StateTree(
+    InitialChild(States.enterText),
+    childStates: [
+      State(
+        States.enterText,
+        onMessage: (ctx) => switch (ctx.message) {
+          ToUppercase(text: var text) =>
+            ctx.goTo(States.showUppercase, payload: text),
+          ToLowercase(text: var text) =>
+            ctx.goTo(States.showLowercase, payload: text),
+          _ => ctx.unhandled()
+        },
+      ),
+      DataState(
+        States.showUppercase,
+        InitialData.run((ctx) => (ctx.payload as String).toUpperCase()),
+        onMessage: (ctx) => ctx.message == Messages.finish
+            ? ctx.goTo(States.finished,
+                payload: ctx.data(States.showUppercase).value)
+            : ctx.unhandled(),
+      ),
+      DataState(
+        States.showLowercase,
+        InitialData.run((ctx) => (ctx.payload as String).toLowerCase()),
+        onMessage: (ctx) => ctx.message == Messages.finish
+            ? ctx.goTo(States.finished,
+                payload: ctx.data(States.showLowercase).value)
+            : ctx.unhandled(),
+      ),
+    ],
+    finalStates: [
+      FinalDataState(
+        States.finished,
+        InitialData.run((ctx) => ((ctx.payload ?? '') as String)),
+      ),
+    ],
   );
-
-  b.state(States.enterText, (b) {
-    b.onMessage<ToUppercase>((b) =>
-        b.goTo(States.showUppercase, payload: (ctx) => ctx.message.text));
-    b.onMessage<ToLowercase>((b) =>
-        b.goTo(States.showLowercase, payload: (ctx) => ctx.message.text));
-  });
-
-  b.dataState<String>(
-    States.showUppercase,
-    InitialData.run((ctx) => ((ctx.payload ?? '') as String).toUpperCase()),
-    (b) {
-      b.onMessageValue(Messages.finish, (b) => b.goTo(States.finished));
-    },
-  );
-
-  b.dataState<String>(
-    States.showLowercase,
-    InitialData.run((ctx) => ((ctx.payload ?? '') as String).toLowerCase()),
-    (b) {
-      b.onMessageValue(Messages.finish, (b) => b.goTo(States.finished));
-    },
-  );
-
-  b.finalState(States.finished, emptyFinalState);
-
-  return b;
 }

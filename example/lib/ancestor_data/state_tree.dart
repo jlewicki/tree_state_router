@@ -1,5 +1,5 @@
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
+import 'package:tree_state_machine/delegate_builders.dart';
 
 //
 // State keys
@@ -31,40 +31,34 @@ class ChildData {
   final String value;
 }
 
-DeclarativeStateTreeBuilder readAncestorDataStateTree() {
-  var b = DeclarativeStateTreeBuilder.withDataRoot<RootData>(
+StateTree readAncestorDataStateTree() {
+  return StateTree.dataRoot<RootData>(
     States.root,
     InitialData(() => RootData('RootValue')),
-    emptyState,
     InitialChild(States.parent),
-    logName: 'hierarchicalData',
-    label: 'Hierarchical Data State Tree',
+    childStates: [
+      DataState.composite(
+        States.parent,
+        InitialData(() => ParentData("ParentValue")),
+        InitialChild(States.child),
+        childStates: [
+          DataState(
+            States.dataChild,
+            InitialData(() => ChildData("ChildValue")),
+            onMessage: (ctx) => switch (ctx.message) {
+              Messages.goToChild => ctx.goTo(States.child),
+              _ => ctx.unhandled(),
+            },
+          ),
+          State(
+            States.child,
+            onMessage: (ctx) => switch (ctx.message) {
+              Messages.goToDataChild => ctx.goTo(States.dataChild),
+              _ => ctx.unhandled(),
+            },
+          ),
+        ],
+      ),
+    ],
   );
-
-  b.dataState<ParentData>(
-    States.parent,
-    InitialData(() => ParentData("ParentValue")),
-    emptyState,
-    initialChild: InitialChild(States.child),
-    parent: States.root,
-  );
-
-  b.dataState<ChildData>(
-    States.dataChild,
-    InitialData(() => ChildData("ChildValue")),
-    (b) {
-      b.onMessageValue(Messages.goToChild, (b) => b.goTo(States.child));
-    },
-    parent: States.parent,
-  );
-
-  b.state(
-    States.child,
-    (b) {
-      b.onMessageValue(Messages.goToDataChild, (b) => b.goTo(States.dataChild));
-    },
-    parent: States.parent,
-  );
-
-  return b;
 }

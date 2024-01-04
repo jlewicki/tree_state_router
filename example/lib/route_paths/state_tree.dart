@@ -1,5 +1,5 @@
+import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
 
 //
 // State keys
@@ -25,54 +25,44 @@ enum Messages {
   goToChild2,
 }
 
-DeclarativeStateTreeBuilder routePathsStateTree() {
-  var b = DeclarativeStateTreeBuilder.withRoot(
+StateTree routePathsStateTree() {
+  return StateTree.root(
     States.root,
     InitialChild(States.parent1),
-    emptyState,
-    logName: 'routePaths',
-    label: 'Route Paths State Tree',
+    childStates: [
+      State.composite(
+        States.parent1,
+        InitialChild(States.child1),
+        childStates: [
+          State(
+            States.child1,
+            onMessage: (ctx) => switch (ctx.message) {
+              Messages.goToChild2 => ctx.goTo(States.child2),
+              Messages.goToParent2 => ctx.goTo(States.parent2),
+              _ => ctx.unhandled(),
+            },
+          ),
+          State(
+            States.child2,
+            onMessage: (ctx) => switch (ctx.message) {
+              Messages.goToChild1 => ctx.goTo(States.child1),
+              _ => ctx.unhandled(),
+            },
+          )
+        ],
+      ),
+      State.composite(
+        States.parent2,
+        InitialChild(States.child3),
+        childStates: [
+          State(
+            States.child3,
+            onMessage: (ctx) => ctx.message == Messages.goToParent1
+                ? ctx.goTo(States.parent1)
+                : ctx.unhandled(),
+          ),
+        ],
+      ),
+    ],
   );
-
-  b.state(
-    States.parent1,
-    emptyState,
-    parent: States.root,
-    initialChild: InitialChild(States.child1),
-  );
-
-  b.dataState(
-    States.child1,
-    InitialData(() => ChildData("Hi")),
-    (b) {
-      b.onMessageValue(Messages.goToParent2, (b) => b.goTo(States.parent2));
-      b.onMessageValue(Messages.goToChild2, (b) => b.goTo(States.child2));
-    },
-    parent: States.parent1,
-  );
-
-  b.state(
-    States.child2,
-    (b) {
-      b.onMessageValue(Messages.goToChild1, (b) => b.goTo(States.child1));
-    },
-    parent: States.parent1,
-  );
-
-  b.state(
-    States.parent2,
-    emptyState,
-    parent: States.root,
-    initialChild: InitialChild(States.child3),
-  );
-
-  b.state(
-    States.child3,
-    (b) {
-      b.onMessageValue(Messages.goToParent1, (b) => b.goTo(States.parent1));
-    },
-    parent: States.parent2,
-  );
-
-  return b;
 }

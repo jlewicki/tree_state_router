@@ -162,7 +162,7 @@ class StateRoute implements StateRouteConfigProvider {
   /// the active descendant states. The builder functions can place this widget as desired in their
   /// layout.
   factory StateRoute.machine(
-    DataStateKey<NestedMachineData> machineStateKey, {
+    DataStateKey<MachineTreeStateData> machineStateKey, {
     required List<StateRouteConfigProvider> routes,
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,

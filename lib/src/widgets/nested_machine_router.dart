@@ -15,7 +15,7 @@ class NestedStateMachineRouter extends StatelessWidget {
   });
 
   /// {@macroNestedMachineRouterDelegate.machineStateKey}
-  final DataStateKey<NestedMachineData> machineStateKey;
+  final DataStateKey<MachineTreeStateData> machineStateKey;
 
   /// The list of routes that can be materialized by this router.
   final List<StateRouteConfigProvider> routes;

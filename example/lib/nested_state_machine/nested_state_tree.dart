@@ -1,5 +1,5 @@
+import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
 
 class States {
   static const step1 = StateKey('step1');
@@ -11,27 +11,23 @@ enum Messages {
   next,
 }
 
-DeclarativeStateTreeBuilder threeStepsStateMachine() {
-  var b = DeclarativeStateTreeBuilder(initialChild: States.step1);
-
-  b.state(
-    States.step1,
-    (b) {
-      b.onMessageValue(Messages.next, (b) => b.goTo(States.step2));
-    },
+StateTree threeStepsStateMachine() {
+  return StateTree(
+    InitialChild(States.step1),
+    childStates: [
+      State(
+        States.step1,
+        onMessage: (ctx) => ctx.message == Messages.next
+            ? ctx.goTo(States.step2)
+            : ctx.unhandled(),
+      ),
+      State(
+        States.step2,
+        onMessage: (ctx) => ctx.message == Messages.next
+            ? ctx.goTo(States.step3)
+            : ctx.unhandled(),
+      ),
+    ],
+    finalStates: [FinalState(States.step3)],
   );
-
-  b.state(
-    States.step2,
-    (b) {
-      b.onMessageValue(Messages.next, (b) => b.goTo(States.step3));
-    },
-  );
-
-  b.finalState(
-    States.step3,
-    emptyFinalState,
-  );
-
-  return b;
 }

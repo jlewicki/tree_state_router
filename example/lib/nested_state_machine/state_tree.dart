@@ -1,13 +1,13 @@
 import 'package:tree_state_machine/build.dart';
+import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
 import 'nested_state_tree.dart' as nested;
 
 class States {
   static const root = StateKey('root');
   static const nestedMachineReady = StateKey('nestedMachineReady');
   static const nestedMachineRunning =
-      DataStateKey<NestedMachineData>('nestedMachineRunning');
+      DataStateKey<MachineTreeStateData>('nestedMachineRunning');
   static const nestedMachineDone = StateKey('nestedMachineRunning');
 }
 
@@ -16,46 +16,30 @@ enum Messages {
   reset,
 }
 
-DeclarativeStateTreeBuilder nestedStateMachineStateTree() {
-  var b = DeclarativeStateTreeBuilder.withRoot(
+StateTree nestedStateMachineStateTree() {
+  return StateTree.root(
     States.root,
     InitialChild(States.nestedMachineReady),
-    emptyState,
-    logName: 'nestedStateMachine',
-    label: 'Nested State Machine',
+    childStates: [
+      State(
+        States.nestedMachineReady,
+        onMessage: (ctx) => ctx.message == Messages.startNestedMachine
+            ? ctx.goTo(States.nestedMachineRunning)
+            : ctx.unhandled(),
+      ),
+      MachineState(
+        States.nestedMachineRunning,
+        InitialMachine.fromStateTree(
+          (transCtx) => nested.threeStepsStateMachine(),
+        ),
+        onMachineDone: (ctx, _) => ctx.goTo(States.nestedMachineDone),
+      ),
+      State(
+        States.nestedMachineDone,
+        onMessage: (ctx) => ctx.message == Messages.reset
+            ? ctx.goTo(States.nestedMachineReady)
+            : ctx.unhandled(),
+      ),
+    ],
   );
-
-  b.state(
-    States.nestedMachineReady,
-    (b) {
-      b.onMessageValue(
-        Messages.startNestedMachine,
-        (b) => b.goTo(States.nestedMachineRunning),
-      );
-    },
-    parent: States.root,
-  );
-
-  b.machineState(
-    States.nestedMachineRunning,
-    InitialMachine.fromTree(
-      (_) => StateTreeBuilder(nested.threeStepsStateMachine()),
-      label: 'Hierarchical Data State Machine',
-    ),
-    (b) => b.onMachineDone((b) => b.goTo(States.nestedMachineDone)),
-    parent: States.root,
-  );
-
-  b.state(
-    States.nestedMachineDone,
-    (b) {
-      b.onMessageValue(
-        Messages.reset,
-        (b) => b.goTo(States.nestedMachineReady),
-      );
-    },
-    parent: States.root,
-  );
-
-  return b;
 }

@@ -2,7 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
+import 'package:tree_state_machine/delegate_builders.dart';
+import 'package:tree_state_machine/delegate_builders.dart' as b;
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
@@ -23,13 +24,18 @@ class States {
 
 class AMessage {}
 
-DeclarativeStateTreeBuilder simpleStateTree() {
-  var b = DeclarativeStateTreeBuilder(initialChild: States.state1);
-  b.state(States.state1, (b) {
-    b.onMessage<AMessage>((b) => b.goTo(States.state2));
-  });
-  b.state(States.state2, emptyState);
-  return b;
+StateTree simpleStateTree() {
+  return StateTree(
+    InitialChild(States.state1),
+    childStates: [
+      b.State(
+        States.state1,
+        onMessage: (ctx) =>
+            ctx.message == AMessage ? ctx.goTo(States.state2) : ctx.unhandled(),
+      ),
+      b.State(States.state2),
+    ],
+  );
 }
 
 // Define a router with routes for states in the state tree

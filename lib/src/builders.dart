@@ -84,14 +84,11 @@ class DataTreeStateBuilder<D> extends BaseDataTreeStateBuilder {
     Key? key,
     required StateKey stateKey,
     required DataTreeStateWidgetBuilder<D> builder,
-    DataStateKey<D>? dataStateKey,
+    required DataStateKey<D> dataStateKey,
   }) : super(
             key,
             stateKey,
-            [
-              StateDataResolver<D>(dataStateKey ??
-                  (stateKey is DataStateKey<D> ? stateKey : null))
-            ],
+            [StateDataResolver<D>(dataStateKey)],
             (context, dataList, currentState) => builder(
                   context,
                   currentState,
@@ -114,8 +111,8 @@ class DataTreeStateBuilder2<D1, D2> extends BaseDataTreeStateBuilder {
     Key? key,
     required StateKey stateKey,
     required DataTreeStateWidgetBuilder2<D1, D2> builder,
-    DataStateKey<D1>? dataStateKey1,
-    DataStateKey<D2>? dataStateKey2,
+    required DataStateKey<D1> dataStateKey1,
+    required DataStateKey<D2> dataStateKey2,
   }) : super(
             key,
             stateKey,
@@ -146,9 +143,9 @@ class DataTreeStateBuilder3<D1, D2, D3> extends BaseDataTreeStateBuilder {
     Key? key,
     required StateKey stateKey,
     required DataTreeStateWidgetBuilder3<D1, D2, D3> builder,
-    DataStateKey<D1>? dataStateKey1,
-    DataStateKey<D2>? dataStateKey2,
-    DataStateKey<D3>? dataStateKey3,
+    required DataStateKey<D1> dataStateKey1,
+    required DataStateKey<D2> dataStateKey2,
+    required DataStateKey<D3> dataStateKey3,
   }) : super(
             key,
             stateKey,
@@ -286,11 +283,11 @@ class _TypeLiteral<T> {
 // Helper class to re-use resolver instances so that that we don't do extraneous work in
 // _TreeStateBuilderState.didUpdateWidget
 class StateDataResolver<D> {
-  final DataStateKey<D>? stateKey;
+  final DataStateKey<D> stateKey;
   static final _resolversByType = <String, StateDataResolver>{};
   StateDataResolver._(this.stateKey);
 
-  factory StateDataResolver([DataStateKey<D>? stateKey]) {
+  factory StateDataResolver(DataStateKey<D> stateKey) {
     var key = '$stateKey-$D';
     var resolver = _resolversByType[key];
     if (resolver == null) {

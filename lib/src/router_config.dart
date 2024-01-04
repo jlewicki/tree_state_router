@@ -94,7 +94,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
       stateTree,
       createBuildContext: () => TreeBuildContext(
         extendNodes: (b) {
-          if (b.nodeBuildInfo is RootNodeBuildInfo) {
+          if (b.nodeBuildInfo is RootNodeInfo) {
             b.filter(_routingFilter);
           }
         },

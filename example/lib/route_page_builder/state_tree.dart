@@ -1,5 +1,5 @@
+import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
 
 //
 // State keys
@@ -41,53 +41,50 @@ class GoToDataChild {}
 
 class GoToChild {}
 
-DeclarativeStateTreeBuilder hierarchicalDataStateTree() {
-  var b = DeclarativeStateTreeBuilder(
-    initialChild: States.parent,
-    logName: 'hierarchicalData',
-    label: 'Hierarchical Data State Tree',
+StateTree hierarchicalDataStateTree() {
+  return StateTree(
+    InitialChild(States.parent),
+    childStates: [
+      DataState.composite(
+        States.dataParent,
+        InitialData(() => ParentData('Parent-1')),
+        InitialChild(States.child),
+        onMessage: (ctx) {
+          if (ctx.message case UpdateParentData(newValue: var nv)) {
+            ctx.data(States.dataParent).update((current) => ParentData(nv));
+            return ctx.stay();
+          }
+          return ctx.unhandled();
+        },
+        childStates: [
+          State(
+            States.child,
+            onMessage: (ctx) => switch (ctx.message) {
+              GoToDataChild() => ctx.goTo(States.dataChild),
+              _ => ctx.unhandled(),
+            },
+          )
+        ],
+      ),
+      State.composite(
+        States.parent,
+        InitialChild(States.dataChild),
+        childStates: [
+          DataState(
+            States.dataChild,
+            InitialData(() => ChildData("Child-1")),
+            onMessage: (ctx) {
+              if (ctx.message case UpdateChildData(newValue: var nv)) {
+                ctx.data(States.dataChild).update((current) => ChildData(nv));
+                return ctx.stay();
+              } else if (ctx.message is GoToChild) {
+                return ctx.goTo(States.child);
+              }
+              return ctx.unhandled();
+            },
+          )
+        ],
+      ),
+    ],
   );
-
-  b.dataState<ParentData>(
-    States.dataParent,
-    InitialData(() => ParentData('Parent-1')),
-    (b) {
-      b.onMessage<UpdateParentData>(
-        (b) => b.stay(
-            action:
-                b.act.updateOwnData((ctx) => ParentData(ctx.message.newValue))),
-      );
-    },
-    initialChild: InitialChild(States.child),
-  );
-
-  b.state(
-    States.parent,
-    emptyState,
-    initialChild: InitialChild(States.dataChild),
-  );
-
-  b.dataState<ChildData>(
-    States.dataChild,
-    InitialData(() => ChildData("Child-1")),
-    (b) {
-      b.onMessage<UpdateChildData>(
-        (b) => b.stay(
-            action:
-                b.act.updateOwnData((ctx) => ChildData(ctx.message.newValue))),
-      );
-      b.onMessage<GoToChild>((b) => b.goTo(States.child));
-    },
-    parent: States.parent,
-  );
-
-  b.state(
-    States.child,
-    (b) {
-      b.onMessage<GoToDataChild>((b) => b.goTo(States.dataChild));
-    },
-    parent: States.dataParent,
-  );
-
-  return b;
 }

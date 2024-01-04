@@ -1,5 +1,5 @@
+import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
 
 class CounterData {
   CounterData(this.counter);
@@ -14,42 +14,37 @@ class States {
 
 enum Messages { increment, decrement, edit, endEdit }
 
-/// A state tree with states for viewing and editing a counter value stored in a parent state.
-DeclarativeStateTreeBuilder countingStateTree() {
-  var b = DeclarativeStateTreeBuilder.withDataRoot<CounterData>(
+StateTree countingStateTree() {
+  return StateTree.dataRoot(
     States.counting,
     InitialData(() => CounterData(0)),
-    emptyState,
     InitialChild(States.view),
-    logName: 'simple',
-    label: 'Simple State Tree',
-  );
-
-  b.state(
-    States.view,
-    (b) {
-      b.onMessageValue(Messages.edit, (b) => b.goTo(States.edit));
-    },
-    parent: States.counting,
-  );
-
-  b.state(States.edit, (b) {
-    b.onMessageValue(
-      Messages.increment,
-      (b) => b.stay(
-        action: b.act.updateData<CounterData>(
-            (ctx, data) => CounterData(data.counter + 1)),
+    childStates: [
+      State(
+        States.view,
+        onMessage: (ctx) => ctx.message == Messages.edit
+            ? ctx.goTo(States.edit)
+            : ctx.unhandled(),
       ),
-    );
-    b.onMessageValue(
-      Messages.decrement,
-      (b) => b.stay(
-        action: b.act.updateData<CounterData>(
-            (ctx, data) => CounterData(data.counter - 1)),
+      State(
+        States.edit,
+        onMessage: (ctx) {
+          if (ctx.message == Messages.increment) {
+            ctx
+                .data(States.counting)
+                .update((current) => CounterData(current.counter + 1));
+            return ctx.stay();
+          } else if (ctx.message == Messages.increment) {
+            ctx
+                .data(States.counting)
+                .update((current) => CounterData(current.counter - 1));
+            return ctx.stay();
+          } else if (ctx.message == Messages.endEdit) {
+            return ctx.goTo(States.view);
+          }
+          return ctx.unhandled();
+        },
       ),
-    );
-    b.onMessageValue(Messages.endEdit, (b) => b.goTo(States.view));
-  }, parent: States.counting);
-
-  return b;
+    ],
+  );
 }

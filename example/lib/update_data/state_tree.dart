@@ -1,5 +1,5 @@
+import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
-import 'package:tree_state_machine/declarative_builders.dart';
 
 class CounterData {
   CounterData(this.counter);
@@ -16,25 +16,28 @@ enum Messages {
 }
 
 /// A state tree with a single data state that keeps track of a counter.
-DeclarativeStateTreeBuilder countingStateTree() {
-  var b = DeclarativeStateTreeBuilder(
-    initialChild: States.counting,
-    logName: 'simple',
-    label: 'Simple State Tree',
+StateTree countingStateTree() {
+  return StateTree(
+    InitialChild(States.counting),
+    childStates: [
+      DataState(
+        States.counting,
+        InitialData(() => CounterData(0)),
+        onMessage: (ctx) {
+          if (ctx.message == Messages.increment) {
+            ctx
+                .data(States.counting)
+                .update((current) => CounterData(current.counter + 1));
+            return ctx.stay();
+          } else if (ctx.message == Messages.increment) {
+            ctx
+                .data(States.counting)
+                .update((current) => CounterData(current.counter - 1));
+            return ctx.stay();
+          }
+          return ctx.unhandled();
+        },
+      )
+    ],
   );
-
-  b.dataState(States.counting, InitialData(() => CounterData(0)), (b) {
-    b.onMessageValue(
-        Messages.increment,
-        (b) => b.stay(
-            action: b.act
-                .updateOwnData((ctx) => CounterData(ctx.data.counter + 1))));
-    b.onMessageValue(
-        Messages.decrement,
-        (b) => b.stay(
-            action: b.act
-                .updateOwnData((ctx) => CounterData(ctx.data.counter - 1))));
-  });
-
-  return b;
 }

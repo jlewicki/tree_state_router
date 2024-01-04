@@ -125,12 +125,11 @@ class DataStateBuilderState extends State<DataStateBuilder> {
 }
 
 class StateDataResolver<D> {
-  // TODO: make non-nullable
-  final DataStateKey<D>? stateKey;
+  final DataStateKey<D> stateKey;
   static final _resolversByType = <String, StateDataResolver>{};
   StateDataResolver._(this.stateKey);
 
-  factory StateDataResolver([DataStateKey<D>? stateKey]) {
+  factory StateDataResolver(DataStateKey<D> stateKey) {
     var key = '$stateKey-$D';
     var resolver = _resolversByType[key];
     if (resolver == null) {
@@ -199,7 +198,7 @@ StateRouteConfig createDataStateRouteConfig1<D1>(
             )
         : null,
     isPopup: isPopup,
-    dependencies: resolvers.map((e) => e.stateKey!).toList(),
+    dependencies: resolvers.map((e) => e.stateKey).toList(),
     path: path,
   );
 }
@@ -242,7 +241,7 @@ StateRouteConfig createDataStateRouteConfig2<D1, D2>(
             )
         : null,
     isPopup: isPopup,
-    dependencies: resolvers.map((e) => e.stateKey!).toList(),
+    dependencies: resolvers.map((e) => e.stateKey).toList(),
   );
 }
 
@@ -285,6 +284,6 @@ StateRouteConfig createDataStateRouteConfig3<D1, D2, D3>(
             )
         : null,
     isPopup: isPopup,
-    dependencies: resolvers.map((e) => e.stateKey!).toList(),
+    dependencies: resolvers.map((e) => e.stateKey).toList(),
   );
 }

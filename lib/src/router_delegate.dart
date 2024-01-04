@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:tree_state_machine/build.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/route_table.dart';
 import 'package:tree_state_router/tree_state_router.dart';
@@ -571,7 +572,7 @@ class NestedMachineRouterDelegate extends TreeStateRouterDelegateBase {
   /// {@template NestedMachineRouterDelegate.machineStateKey}
   /// Identifies the state that is the host state for a nested state machine.
   /// {@endtemplate}
-  DataStateKey<NestedMachineData> machineStateKey;
+  DataStateKey<MachineTreeStateData> machineStateKey;
 
   /// The key used for retrieving the current navigator.
   @override
@@ -594,7 +595,7 @@ class NestedMachineRouterDelegate extends TreeStateRouterDelegateBase {
       }
 
       currentState = stateMachineInfo.currentState;
-      var nestedMachineData = currentState.dataValue<NestedMachineData>();
+      var nestedMachineData = currentState.dataValue(machineStateKey);
       if (nestedMachineData == null) {
         throw _errors.noNestedStateMachineData(currentState.activeStates);
       }

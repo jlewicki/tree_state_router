@@ -13,15 +13,17 @@ class TreeStateRoutingState {}
 
 /// Provides an accessor for a [StateRouteConfig] describing a route.
 abstract class StateRouteConfigProvider {
-  /// A config object providing a generalized description of a route for a [TreeStateRouter].
+  /// A config object providing a generalized description of a route for a
+  /// [TreeStateRouter].
   StateRouteConfig get config;
 }
 
 /// {@template StateRouteBuilder}
-/// A function that can build a widget providing a visualization of an active state in a state tree.
+/// A function that can build a widget providing a visualization of an active
+/// state in a state tree.
 ///
-/// The function is provided a build [context], and a [stateContext] that describes the state to be
-/// visualized.
+/// The function is provided a build [context], and a [stateContext] that
+/// describes the state to be visualized.
 /// {@endtemplate}
 typedef StateRouteBuilder = Widget Function(
   BuildContext context,
@@ -29,14 +31,15 @@ typedef StateRouteBuilder = Widget Function(
 );
 
 /// {@template StateRoutePageBuilder}
-/// A function that can build a routing [Page] that provides a visualization of an active state in
-/// a state tree.
+/// A function that can build a routing [Page] that provides a visualization of
+/// an active state in a state tree.
 ///
-/// The function is provided a build [context], and a [wrapPageContent] function. [wrapPageContent]
-/// must be called in order to wrap the contents of the route in a specialized widget that detects
-/// state transitions and re-renders this route as necessary, as well as including any
-/// [TreeStateRouter.defaultScaffolding] defined by the router. The return value of
-/// [wrapPageContent] function should be used as the contents of the page.
+/// The function is provided a build [context], and a [wrapPageContent] function.
+/// [wrapPageContent] must be called in order to wrap the contents of the route
+/// in a specialized widget that detects state transitions and re-renders this
+/// route as necessary, as well as including any
+/// [TreeStateRouter.defaultScaffolding] defined by the router. The return value
+/// of [wrapPageContent] function should be used as the contents of the page.
 ///
 /// ```dart
 /// var routerConfig = TreeStateRouter(
@@ -62,7 +65,9 @@ class RoutePathConfig {
     this.path, {
     this.enableDeepLink = false,
   });
-  // The path segment to use for the associated route, when a routing URI needs to be generated.
+
+  // The path segment to use for the associated route, when a routing URI needs
+  // to be generated.
   final String path;
 
   /// Indicates if the route supports deep linking.
@@ -71,10 +76,11 @@ class RoutePathConfig {
   final bool enableDeepLink;
 }
 
-/// A generalized description of a route that can be placed in a [TreeStateRouter].
+/// A generalized description of a route that can be placed in a
+/// [TreeStateRouter].
 ///
-/// This is intended for use by [TreeStateRouter], and typically not used by an applciation
-/// directly.
+/// This is intended for use by [TreeStateRouter], and typically not used by an
+/// application directly.
 class StateRouteConfig {
   StateRouteConfig(
     this.stateKey, {
@@ -103,11 +109,11 @@ class StateRouteConfig {
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
 
-  /// A list (possibly empty) of keys indentifying the data states whose data are used when
-  /// producing the visuals for the state.
+  /// A list (possibly empty) of keys indentifying the data states whose data
+  /// are used when producing the visuals for the state.
   ///
-  /// In general these will be ancestor states of [stateKey], although if [stateKey] is a
-  /// [DataStateKey] it will be present in the list as well.
+  /// In general these will be ancestor states of [stateKey], although if
+  /// [stateKey] is a [DataStateKey] it will be present in the list as well.
   final List<DataStateKey> dependencies;
 
   /// {@macro StateRoute.childRoutes}

@@ -13,8 +13,9 @@ import 'package:tree_state_router/src/pages.dart';
 import 'package:tree_state_router/src/widgets/state_machine_error.dart';
 import 'package:tree_state_router/src/widgets/state_machine_events.dart';
 
-/// The error thrown when an unrecoverable error occurs with a [TreeStateRouter], typically caused
-/// by a configuration error that must be addressed by a developer.
+/// The error thrown when an unrecoverable error occurs with a
+/// [TreeStateRouter], typically caused by a configuration error that must be
+/// addressed by a developer.
 class TreeStateRouterError extends Error {
   TreeStateRouterError(this.message);
   final String message;
@@ -38,9 +39,11 @@ class TreeStateRouterDelegateConfig {
 // Error handling:
 //
 // * Assertions are used for internal invariants, not to validate configuration
-// * RouterDelegates will throw TreeStateRouterError for errors due to route configuration errors
+// * RouterDelegates will throw TreeStateRouterError for errors due to route
+//   configuration errors
 // * Errors detected during build are presented as a page in the router
-// * Errors emitted from the state machine are detected and presented as a page in the router
+// * Errors emitted from the state machine are detected and presented as a page
+//   in the router
 abstract class TreeStateRouterDelegateBase
     extends RouterDelegate<TreeStateRoutePath>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
@@ -50,7 +53,8 @@ abstract class TreeStateRouterDelegateBase
     this.displayStateMachineErrors = false,
   }) : _log = log;
 
-  /// Configuration information for this router delegate describing the available routes.
+  /// Configuration information for this router delegate describing the
+  /// vailable routes.
   final TreeStateRouterDelegateConfig config;
 
   /// If `true`, this router delegate will display an [ErrorWidget] when the
@@ -70,7 +74,8 @@ abstract class TreeStateRouterDelegateBase
   /// The routes routed by this delegate, indexed by state key.
   late final _routeMap = _mapRoutes(config.routes);
 
-  // Used to create Page<Object> when routes are unopinionated about which Page type to use.
+  // Used to create Page<Object> when routes are unopinionated about which Page
+  // type to use.
   (PageBuilder pageBuilder, PageBuilder popupPageBuilder)? _pageBuilders;
 
   Widget _buildNavigatorWidget(
@@ -111,32 +116,35 @@ abstract class TreeStateRouterDelegateBase
     return widget;
   }
 
-  /// Calculates the stack of routes that should display the current state of the state tree.
+  /// Calculates the stack of routes that should display the current state of
+  /// the state tree.
   ///
-  /// Currently this returns a collection of 0 or 1 pages, but once a history feature is added to
-  /// tree_state_machine, this will return a history stack which can be popped by the navigator.
+  /// Currently this returns a collection of 0 or 1 pages, but once a history
+  /// feature is added to tree_state_machine, this will return a history stack
+  /// which can be popped by the navigator.
   @protected
   Iterable<Page<void>> _buildActivePages(
     BuildContext context,
     CurrentState currentState,
   ) {
-    _log.fine(() =>
-        'Creating pages for active states: ${currentState.activeStates.join(', ')}');
+    _log.fine(() => 'Creating pages for active states: '
+        '${currentState.activeStates.join(', ')}');
 
     Iterable<StateRouteConfig> navigatorRoutes = _activeRoutes(currentState);
 
-    // If we have a popup route, attempt to find a route for one of the exiting states. This route
-    // will be pushed on to the navigator below the popup route, so that the popup looks like it
-    // appears over something.
+    // If we have a popup route, attempt to find a route for one of the exiting
+    // states. This route will be pushed on to the navigator below the popup
+    // route, so that the popup looks like it appears over something.
     if (navigatorRoutes.isNotEmpty && navigatorRoutes.first.isPopup) {
       assert(_transition != null);
       var belowPopupRoutes = _findRoutesFor(_transition!.exitPath)
           .where((r) {
-            // The exiting route can only be used if the route accesses state data from the
-            // transition lca (or  higher), otherwise the state data that the route expects will not
-            // be available. Even then, it may be risky to try an show the route, since the widget
-            // content of the route may have additional unknown assumptions/dependencies on the
-            // corresponding tree state being active.
+            // The exiting route can only be used if the route accesses state
+            // data from the transition lca (or  higher), otherwise the state
+            // data that the route expects will not be available. Even then, it
+            // may be risky to try an show the route, since the widget content
+            // of the route may have additional unknown assumptions/dependencies
+            // on the corresponding tree state being active.
             return !r.dependencies.contains(r.stateKey);
           })
           .take(1)
@@ -156,9 +164,10 @@ abstract class TreeStateRouterDelegateBase
         .map((r) => _buildRoutePage(r, context, currentState));
   }
 
-  /// Return the deepest route that maps to an active state. By deepest, we mean the route that
-  /// maps to a state as far as possible from the root state. This gives the current leaf state
-  /// priority in determining the route to display, followed by its parent state, etc.
+  /// Return the deepest route that maps to an active state. By deepest, we mean
+  /// the route that maps to a state as far as possible from the root state.
+  /// This gives the current leaf state priority in determining the route to
+  /// display, followed by its parent state, etc.
   List<StateRouteConfig> _activeRoutes(CurrentState currentState) {
     // Is the order right here?
     var activeRoutes = _findRoutesFor(currentState.activeStates.reversed);
@@ -189,7 +198,8 @@ abstract class TreeStateRouterDelegateBase
   @protected
   void _onTransition(CurrentState currentState, Transition transition) {
     _transition = transition;
-    // Only notify (i.e. rebuild the navigator) if the transition applies to one of the routes.
+    // Only notify (i.e. rebuild the navigator) if the transition applies to one
+    // of the routes.
     var shouldNotify = transition.path.any(_routeMap.containsKey);
     if (shouldNotify) {
       notifyListeners();
@@ -290,35 +300,38 @@ abstract class TreeStateRouterDelegateBase
   }
 }
 
-// A [RouterDelegate] that receives routing information from the state transitions of a
-/// [TreeStateMachine].
+/// A [RouterDelegate] that receives routing information from the state
+/// transitions of a [TreeStateMachine].
 ///
-/// As state transitions occur within the state machine, the router delegate will determine if there
-/// are [StateRoute]s that correspond to a active state of the state machine.  If a route is
-/// available, it is displayed by the [Navigator] returned by [build].
+/// As state transitions occur within the state machine, the router delegate
+/// will determine if there are [StateRoute]s that correspond to a active state
+/// of the state machine.  If a route is available, it is displayed by the
+///  [Navigator] returned by [build].
 class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   // TODO: make this delegate rebuild when routing config changes
   TreeStateRouterDelegate({
     required this.stateMachine,
     // TODO: validate data dependencies (dependencies must be self or ancestor states)
     required super.config,
-    required this.routeTable,
+    required RouteTable routeTable,
     super.displayStateMachineErrors,
-  }) : super(
+  })  : _routeTable = routeTable,
+        super(
           log: Logger('TreeStateRouterDelegate'),
         ) {
     if (!config.enablePlatformRouting) {
-      // If platform routing is disabled, there will be no call to setNewRoutePath on app start,
-      // so we need to set the current configuration (and consequently start the state machine)
-      // here.
+      // If platform routing is disabled, there will be no call to
+      // setNewRoutePath on app start, so we need to set the current
+      // configuration (and consequently start the state machine) here.
       _setCurrentConfiguration(TreeStateRoutePath.empty);
     }
   }
 
-  /// The [TreeStateMachine] that provides the state transition  notifications to this router.
+  /// The [TreeStateMachine] that provides the state transition notifications to
+  /// this router.
   final TreeStateMachine stateMachine;
 
-  final RouteTable routeTable;
+  final RouteTable _routeTable;
 
   /// The key used for retrieving the current navigator.
   @override
@@ -377,7 +390,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   @override
   void _onTransition(CurrentState currentState, Transition transition) {
     _transition = transition;
-    var routeMatches = routeTable.routePathForTransition(transition);
+    var routeMatches = _routeTable.routePathForTransition(transition);
     _setCurrentConfiguration(routeMatches);
   }
 
@@ -423,7 +436,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       stateMachine.start(at: startAt);
       return initTransFuture.then((initTrans) {
         _log.fine("Started state machine. Current state: '${initTrans.to}'");
-        return routeTable.routePathForTransition(initTrans);
+        return _routeTable.routePathForTransition(initTrans);
       });
     }
 

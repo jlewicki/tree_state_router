@@ -22,8 +22,8 @@ class RouteTable {
       _withDescendants(routes).toList().map((r) => MapEntry(r.stateKey, r)),
     );
 
-    // Complete set of full routeable paths. This is a naive data structure, but it is good enough
-    // for now
+    // Complete set of full routeable paths. This is a naive data structure, but
+    // it is good enough for now
     var routePaths = rootNode
         .leaves()
         .map((leaf) => leaf
@@ -82,16 +82,15 @@ class RouteTable {
   }
 
   /// Iterates through the routes and all of their descendants.
-  ///
   static Iterable<StateRouteConfig> _withDescendants(
     List<StateRouteConfigProvider> routes,
   ) sync* {
     for (var route in routes) {
-      yield* _selfAndDescendantsWithDepth(route.config);
+      yield* _selfAndDescendants(route.config);
     }
   }
 
-  static Iterable<StateRouteConfig> _selfAndDescendantsWithDepth(
+  static Iterable<StateRouteConfig> _selfAndDescendants(
     StateRouteConfig route,
   ) sync* {
     Iterable<StateRouteConfig> selfAndDescendants_(

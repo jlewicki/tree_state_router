@@ -35,8 +35,8 @@ class TreeStateRoutePath {
   late final isDeepLinkable = routes.isNotEmpty && end.path.enableDeepLink;
 }
 
-/// TBD: A [RouteInformationParser] that can parse route information and determine the active states
-/// of a [TreeStateMachine].
+/// TBD: A [RouteInformationParser] that can parse route information and
+/// determine the active states of a [TreeStateMachine].
 class TreeStateRouteInformationParser
     extends RouteInformationParser<TreeStateRoutePath> {
   TreeStateRouteInformationParser(this.rootKey, this._routeTable);
@@ -49,7 +49,7 @@ class TreeStateRouteInformationParser
   Future<TreeStateRoutePath> parseRouteInformation(
     RouteInformation routeInformation,
   ) {
-    _log.fine('Parsing route inforation: ${routeInformation.uri.path}');
+    _log.fine('Parsing route information: ${routeInformation.uri.path}');
 
     var parsed = _routeTable.parseRouteInformation(routeInformation);
     if (parsed != null) {
@@ -64,6 +64,7 @@ class TreeStateRouteInformationParser
 
   @override
   RouteInformation? restoreRouteInformation(TreeStateRoutePath configuration) {
+    _log.fine('Restoring route information.');
     return _routeTable.toRouteInformation(configuration);
   }
 }

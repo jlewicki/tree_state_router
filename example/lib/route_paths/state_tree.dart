@@ -34,8 +34,9 @@ StateTree routePathsStateTree() {
         States.parent1,
         InitialChild(States.child1),
         childStates: [
-          State(
+          DataState(
             States.child1,
+            InitialData(() => ChildData('child data')),
             onMessage: (ctx) => switch (ctx.message) {
               Messages.goToChild2 => ctx.goTo(States.child2),
               Messages.goToParent2 => ctx.goTo(States.parent2),

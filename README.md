@@ -28,7 +28,7 @@ The following example ilustrates these steps.
 ```dart
 
 import 'package:flutter/material.dart';
-import 'package:tree_state_machine/tree_builders.dart';
+import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
@@ -44,13 +44,19 @@ class States {
 
 class AMessage {}
 
-StateTreeBuilder simpleStateTree() {
-  var b = StateTreeBuilder(initialChild: States.state1);
-  b.state(States.state1, (b) {
-    b.onMessage<AMessage>((b) => b.goTo(States.state2));
-  });
-  b.state(States.state2, emptyState);
-  return b;
+StateTree simpleStateTree() {
+  return StateTree(
+    InitialChild(States.state1),
+    childStates: [
+      State(
+         States.state1,
+         onMessage: (ctx) => switch(ctx.message) {
+            AMessage() => ctx.goTo(States.state2),
+            _ => ctx.unhandled(),
+         }),
+      State(States.state2),
+    ],
+  );
 }
 
 // Define a router with routes for each state in the state tree
@@ -117,20 +123,24 @@ StateRoute(
    routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
       return Center(
          child: Column(
-         mainAxisAlignment: MainAxisAlignment.center,
-         children: [
-            const Text('This is state 1'),
-            ElevatedButton(
-               // When the button is pressed, send a message to the state machine
-               onPressed: () => stateCtx.currentState.post(AMessage()),
-               child: const Text('Send a message'),
-            )
-         ],
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+               const Text('This is state 1'),
+               ElevatedButton(
+                  // When the button is pressed, send a message to the state machine
+                  onPressed: () => stateCtx.currentState.post(AMessage()),
+                  child: const Text('Send a message'),
+               )
+            ],
          ),
       );
    },
 ),
 ```
+
+There are several related convenience classes (`StateRoute1<DAnc>`, `StateRoute2<DAnc1, DAnc2>`, 
+etc.) that work in a similar way to `StateRoute`, but provide data from ancestor data states to the
+route builder functions. 
 
 ### DataStateRoute
 TODO
@@ -220,4 +230,4 @@ This is unlikely to be appropriate for end users, so it is recommended that `pat
 provided for all routes. 
 
 ## Deep Linking
-Not eyet supported.
+Not yet supported.

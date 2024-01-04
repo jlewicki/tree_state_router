@@ -7,10 +7,11 @@ import 'package:tree_state_router/src/route_table.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
 
-/// A function that can adorn the content of a route page, adding common layout or scaffolding.
+/// A function that can adorn the content of a route page, adding common layout
+/// or scaffolding.
 ///
-/// The function is provided a [buildFor] indicating the reason the page is being built, and
-/// the [pageContent] to display in the page.
+/// The function is provided a [buildFor] indicating the reason the page is
+/// being built, and the [pageContent] to display in the page.
 typedef DefaultScaffoldingBuilder = Widget Function(
   PageBuildFor buildFor,
   Widget pageContent,
@@ -18,18 +19,20 @@ typedef DefaultScaffoldingBuilder = Widget Function(
 
 /// A function that can create a [Page] to display the content of a route.
 ///
-/// The function is provided a [buildFor] indicating the reason the page is being built, and
-/// the [pageContent] to display in the page.
+/// The function is provided a [buildFor] indicating the reason the page is
+/// being built, and the [pageContent] to display in the page.
 ///
-/// The function can return `null` if the application does not require specialized page under
-/// certain conditions, in which case the router will use a default [Page].
+/// The function can return `null` if the application does not require
+/// specialized page under certain conditions, in which case the router will use
+/// a default [Page].
 typedef DefaultPageBuilder = Page<void>? Function(
   PageBuildFor buildFor,
   Widget pageContent,
 );
 
-/// Routing information that describes how to display states in a [TreeStateMachine], and triggers
-/// routing navigation in response to state transitions within the state machine.
+/// Routing information that describes how to display states in a
+/// [TreeStateMachine], and triggers routing navigation in response to state
+/// transitions within the state machine.
 class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   TreeStateRouter._({
     required this.stateMachine,
@@ -41,8 +44,8 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   }) : assert((() {
           routes.fold(<StateKey>{}, (keys, route) {
             if (keys.contains(route.config.stateKey)) {
-              throw AssertionError(
-                  "There is more than one route for state '${route.config.stateKey}' defined");
+              throw AssertionError("There is more than one route for state "
+                  "'${route.config.stateKey}' defined");
             }
             keys.add(route.config.stateKey);
             return keys;
@@ -52,9 +55,10 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
 
   /// Constructs a [TreeStateRouter].
   ///
-  /// The router will not have any integration with the Navigator 2.0 APIs, and as a result will
-  /// not sync route information with the underlying platform. If running in a web browser, there
-  /// will not URL changes or history entries in response to route changes.
+  /// The router will not have any integration with the Navigator 2.0 APIs, and
+  /// as a result will not sync route information with the underlying platform.
+  /// If running in a web browser, there will not URL changes or history entries
+  /// in response to route changes.
   factory TreeStateRouter({
     TreeStateMachine? stateMachine,
     StateTreeBuildProvider? stateTree,
@@ -79,9 +83,9 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
 
   /// Constructs a [TreeStateRouter] that integrates with Navigator 2.0 APIs.
   ///
-  /// By default, the router will sync route path information with the underying platform, but
-  /// without any history support. If running in a web browser, the browser URL will update, but
-  /// no history entries updated.
+  /// By default, the router will sync route path information with the underying
+  /// platform, but without any history support. If running in a web browser,
+  /// the browser URL will update, but no history entries updated.
   factory TreeStateRouter.platformRouting({
     required StateTreeBuildProvider stateTree,
     required List<StateRouteConfigProvider> routes,
@@ -111,26 +115,28 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     );
   }
 
-  /// The state machine providing the tree states that are routed by this [TreeStateRouter].
+  /// The state machine providing the tree states that are routed by this
+  /// [TreeStateRouter].
   final TreeStateMachine stateMachine;
 
-  /// The list of routes that can be materialized by this router.  Each route should correspond to a
-  /// a state in the [stateMachine].
+  /// The list of routes that can be materialized by this router.  Each route
+  /// should correspond to a a state in the [stateMachine].
   final List<StateRouteConfigProvider> routes;
 
-  /// Indictes if the router integrates with the platform routing engine, such tha web browser URLs
-  /// are updated in response to route changes.
+  /// Indictes if the router integrates with the platform routing engine, such
+  /// that web browser URLs are updated in response to route changes.
   final bool enablePlatformRouting;
 
   /// {@template TreeStateRouter.defaultScaffolding}
-  /// A function that can adorn the content of a route page, adding common layout or scaffolding.
+  /// A function that can adorn the content of a route page, adding common
+  /// layout or scaffolding.
   ///
-  /// The function is provided a `buildFor` indicating the reason the page is being built, and
-  /// the `pageContent` to display in the page.
+  /// The function is provided a `buildFor` indicating the reason the page is
+  /// being built, and the `pageContent` to display in the page.
   /// {@endtemplate}
   ///
-  /// For example, this can be used to wrap the content of each page of a tree state router in a
-  /// Material Scaffold widget:
+  /// For example, this can be used to wrap the content of each page of a tree
+  /// state router in a Material Scaffold widget:
   ///
   /// ```dart
   /// TreeStateRouterConfig( {
@@ -143,19 +149,19 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   /// {@template TreeStateRouter.defaultPageBuilder}
   /// A function that can create a [Page] to display the content of a route.
   ///
-  /// The function is provided a `buildFor` indicating the reason the page is being built, and
-  /// the `pageContent` to display in the page.
+  /// The function is provided a `buildFor` indicating the reason the page is
+  /// being built, and the `pageContent` to display in the page.
   /// {@endtemplate}
   final DefaultPageBuilder? defaultPageBuilder;
 
   /// {@template TreeStateRouter.enableTransitions}
   /// Indicates if page transitions within the router should be animated.
   ///
-  /// If enabled, the particular animations that occur are determined by the [Page]s associated with
-  /// the routes that are undergoing a transition.
+  /// If enabled, the particular animations that occur are determined by the
+  /// [Page]s associated with the routes that are undergoing a transition.
   ///
-  /// See [StateRoute.routePageBuilder] and [TreeStateRouter.defaultPageBuilder] for details on
-  /// choosing a [Page] type.
+  /// See [StateRoute.routePageBuilder] and [TreeStateRouter.defaultPageBuilder]
+  /// for details on choosing a [Page] type.
   /// {@endtemplate}
   final bool enableTransitions;
 

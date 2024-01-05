@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:logging/logging.dart';
 import 'package:tree_state_machine/build.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/route_provider.dart';
@@ -99,7 +100,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
       createBuildContext: () => TreeBuildContext(
         extendNodes: (b) {
           if (b.nodeBuildInfo is RootNodeInfo) {
-            b.filter(_routingFilter);
+            b.filter(_createRoutingFilter());
           }
         },
       ),
@@ -210,17 +211,21 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
       : null;
 }
 
-class _GoToDeepLink {
-  _GoToDeepLink(this.target);
+class GoToDeepLink {
+  GoToDeepLink(this.target);
   final StateKey target;
 }
 
-final _routingFilter = TreeStateFilter(
-  name: 'TreeStateRouter-RoutingFilter',
-  onMessage: (msgCtx, next) {
-    return switch (msgCtx.message) {
-      _GoToDeepLink(target: var t) => SynchronousFuture(msgCtx.goTo(t)),
-      _ => next()
-    };
-  },
-);
+TreeStateFilter _createRoutingFilter([Logger? log]) {
+  var log_ = log ?? Logger('tree_state_router.DeepLinkFilter');
+  return TreeStateFilter(
+    name: 'TreeStateRouter-RoutingFilter',
+    onMessage: (msgCtx, next) {
+      if (msgCtx.message case GoToDeepLink(target: var t)) {
+        log_.fine("Deep link routing to state '$t'");
+        return SynchronousFuture(msgCtx.goTo(t));
+      }
+      return next();
+    },
+  );
+}

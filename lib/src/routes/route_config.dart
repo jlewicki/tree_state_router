@@ -91,7 +91,8 @@ class StateRouteConfig {
     this.dependencies = const [],
     this.childRoutes = const [],
   }) :
-        // TODO: decide what to do about DataStateKey
+        // TODO: decide what to do about DataStateKey. It has an ugly toString()
+        // output.
         path = path ?? RoutePathConfig(stateKey.toString());
 
   /// The state key identifying the tree state associated with this route.

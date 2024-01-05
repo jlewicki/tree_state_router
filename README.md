@@ -1,7 +1,7 @@
 # tree_state_router
 
-A routing package for Flutter than provides application navigation in response to the state transitions that take 
-place in a [tree_state_machine](https://pub.dev/packages/tree_state_machine) 
+A routing package for Flutter than provides application navigation in response to the state 
+transitions that take place in a [tree_state_machine](https://pub.dev/packages/tree_state_machine).
 
 
 ## Features
@@ -13,16 +13,18 @@ place in a [tree_state_machine](https://pub.dev/packages/tree_state_machine)
 
 ## Getting started
 
-The `tree_state_router` package assumes you are using the `tree_state_machine` package, and would like to provide 
-visuals for the states in a `TreeStateMachine`, transitioning between pages as the active states change.
+The `tree_state_router` package assumes you are using the `tree_state_machine` package, and would 
+like to provide visuals for the states in a `TreeStateMachine`, transitioning between pages as the 
+active states change.
 
-Once a `TreeStateMachine` has been created, it can be passed to a `TreeStateRouter`, along with a collection of 
-`TreeStateRoute`s that indicate how states in the state machine should be displayed. 
+Once a `TreeStateMachine` has been created, it can be passed to a `TreeStateRouter`, along with a 
+collection of `TreeStateRoute`s that indicate how states in the state machine should be displayed. 
 
-Each route specifies a builder function that is called to produce a `Widget` that displays a particular tree state. 
-The function is passed an accessor for the `CurrentState` of the state machine, which can be used to post messages to 
-the state machine in response to user input, potentially triggering a transition to a new tree state. The 
-`TreeStateRouter` detects the transition, and navigates to the `TreeStateRoute` corresponding to the new state. 
+Each route specifies a builder function that is called to produce a `Widget` that displays a 
+particular tree state. The function is passed an accessor for the `CurrentState` of the state 
+machine, which can be used to post messages to the state machine in response to user input, 
+potentially triggering a transition to a new tree state. The `TreeStateRouter` detects the 
+transition, and navigates to the `TreeStateRoute` corresponding to the new state. 
 
 The following example ilustrates these steps.
 ```dart
@@ -106,12 +108,12 @@ class MainApp extends StatelessWidget {
 
 ## Routes
 ### StateRoute
-A `StateRoute` provides visuals for a plain state (that is, not a data state). When the state is active in the state 
-tree, `TreeStateRouter` will call the builder from the route to obtain the `Widget` that displays the state, and place
-it on top of the navigation stack.  
+A `StateRoute` provides visuals for a plain state (that is, not a data state). When the state is 
+active in the state tree, `TreeStateRouter` will call the builder from the route to obtain the 
+`Widget` that displays the state, and place it on top of the navigation stack.  
 
-The builder function is provided a `TreeStateRoutingContext` that may be used to post messages to the state machine 
-in response to user input.
+The builder function is provided a `TreeStateRoutingContext` that may be used to post messages to 
+the state machine in response to user input.
 
 For example:
 
@@ -149,13 +151,15 @@ TODO
 TODO
 
 ### Shell Routes
-Both `StateRoute` and `DataStateRoute` provide `shell` factory methods. These factories permit a route for a parent 
-state to provide page content that wraps the visuals of its descendant states. In other words, the parent route can 
-provide a common layout or 'shell' that is wraps the visuals of its descendant states.
+Both `StateRoute` and `DataStateRoute` provide `shell` factory methods. These factories permit a 
+route for a parent state to provide page content that wraps the visuals of its descendant states. In
+other words, the parent route can provide a common layout or 'shell' that is wraps the visuals of 
+its descendant states.
 
-When calling the `shell` method, a list of routes corresponding to descendant states must be provided. Additionally,
-the `routeBuilder` or `routePageBuilder` functions accept a `nestedRouter` widget that reprents the visuals for active
-descendant states.  The builder implementation can the decide where in its layout it would like to place that content. 
+When calling the `shell` method, a list of routes corresponding to descendant states must be 
+provided. Additionally, the `routeBuilder` or `routePageBuilder` functions accept a `nestedRouter` 
+widget that reprents the visuals for active descendant states.  The builder implementation can the 
+decide where in its layout it would like to place that content. 
 
 ```dart
 StateRoute.shell(
@@ -230,4 +234,12 @@ This is unlikely to be appropriate for end users, so it is recommended that `pat
 provided for all routes. 
 
 ## Deep Linking
-Not yet supported.
+A route can be enabled for deep-linking by setting `enableDeepLink` to `true` when specifying the 
+`path` for the route. If the application is launched with a deep-link URI, and that URI corresponds
+to a deep-link enabled route, the state machine will be transitioned to the corresponding state for 
+the deep link route.  
+
+It should be noted that enabling deep linking for a route effectively introduces state transitions 
+that are not defined by the underlying state tree in use by the router. While in many cases this is
+desirable, care should be taken ensure that invariants established and expected by the state tree 
+are not violated when enabling a route for linking.

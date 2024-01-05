@@ -339,15 +339,15 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       GlobalKey<NavigatorState>(debugLabel: 'TreeStateRouterDelegate');
 
   @override
-  // We have to implement this for the current routing configuration to be reported to the platform,
-  // and consequently show up in the browser URL
+  // We have to implement this for the current routing configuration to be
+  // reported to the platform, and consequently show up in the browser URL
   TreeStateRoutePath? get currentConfiguration =>
       config.enablePlatformRouting ? _currentConfiguration : null;
 
   TreeStateRoutePath? _currentConfiguration;
 
-  // Called when new route information has been provided by the platform (via deep linking or
-  // browser URI)
+  // Called when new route information has been provided by the platform (via
+  // deep linking or browser URI)
   @override
   Future<void> setNewRoutePath(TreeStateRoutePath configuration) async {
     if (currentConfiguration == configuration) {
@@ -368,8 +368,9 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       pages = currentState != null
           ? _buildActivePages(context, currentState).toList()
           : [
-              // build() may be called before the setNewRoutePath future completes, so we display a
-              // loading indicator while that is in progress
+              // build() may be called before the setNewRoutePath future
+              // completes, so we display a loading indicator while that is in
+              // progress.
               if (stateMachine.lifecycle.isStarting) _createLoadingPage(context)
             ];
 
@@ -406,20 +407,31 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     TreeStateRoutePath configuration,
   ) {
     if (stateMachine.lifecycle.isStarted && stateMachine.currentState != null) {
-      var activeStates = stateMachine.currentState!.activeStates;
+      var currentState = stateMachine.currentState!;
+      var activeStates = currentState.activeStates;
       var allRoutesActive =
           configuration.routes.every((r) => activeStates.contains(r.stateKey));
       if (allRoutesActive) {
-        // All the routes in the requested configuration correspond to an active state in the
-        // state machine, so
+        // All the routes in the requested configuration correspond to an active
+        // state in the state machine, so there is nothing more to do.
         return SynchronousFuture(configuration);
       } else if (configuration.isDeepLinkable) {
-        // TODO: Add a special deep-link routing message, and a filter that can handle the messge
-        // and force the goTo
-        return SynchronousFuture(configuration);
+        // The state machine is started, but not in the requested configuration,
+        // so dispatch a special message that is handled by the routing filter
+        // to trigger a transition to the desited configuration.
+        var deepLinkTarget = configuration.end.stateKey;
+        var goToFuture = currentState.post(GoToDeepLink(deepLinkTarget));
+        return goToFuture.then((value) {
+          if (value case HandledMessage(transition: var t) when t != null) {
+            _log.fine(
+                'Transitioned state machine to deep link: ${configuration.path}');
+            return _routeTable.routePathForTransition(t);
+          }
+          throw _errors.deepLinkFailure(currentState.key, deepLinkTarget);
+        });
       } else {
-        // Return current configuration, not requested one, since the requested one is not
-        // deep-linkable.
+        // Return current configuration, not requested one, since the requested
+        // one is not deep-linkable.
         return SynchronousFuture(_currentConfiguration!);
       }
     }
@@ -456,11 +468,12 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   static final done = SynchronousFuture<void>(null);
 }
 
-/// The [RouterDelegate] used by [DescendantStatesRouter]. The routes provided to this router
-/// delegate via [config] must correspond to descendant states of [anchorKey].
+/// The [RouterDelegate] used by [DescendantStatesRouter]. The routes provided
+/// to this router delegate via [config] must correspond to descendant states of
+/// [anchorKey].
 ///
-/// This router requires that an inherited state machine be available in the widget tree via
-/// [TreeStateMachineProvider].
+/// This router requires that an inherited state machine be available in the
+/// widget tree via [TreeStateMachineProvider].
 class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
   DescendantStatesRouterDelegate({
     required super.config,
@@ -472,15 +485,18 @@ class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
         );
 
   /// {@template NestedTreeStateRouterDelegate.anchorKey}
-  /// Identifies the tree state that anchors the state transitions that are routed by this router.
+  /// Identifies the tree state that anchors the state transitions that are
+  /// routed by this router.
   ///
-  /// Only state transitions such that this state remains active are routed. In other words, routing
-  /// only occurs if the transition is between two descendants of this state.
+  /// Only state transitions such that this state remains active are routed. In
+  /// other words, routing only occurs if the transition is between two
+  /// descendants of this state.
   /// {@endtemplate}
   final StateKey anchorKey;
 
-  /// If `true` (the default), an error page will be displayed if the state machine reaches a final
-  /// state, and there is no route that can display that state.
+  /// If `true` (the default), an error page will be displayed if the state
+  /// machine reaches a final state, and there is no route that can display that
+  /// state.
   final bool supportsFinalRoute;
 
   /// Records if nested route topology has been validated
@@ -518,12 +534,13 @@ class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
       pages = _buildActivePages(context, currentState).toList();
       if (pages.isEmpty) {
         if (currentState.stateMachine.isDone && !supportsFinalRoute) {
-          // If the current state machine is running as a nested machine, then there is likely a
-          // Router with a NestedStateTreeRouterDelegate higher in the widget tree, which will render
-          // a different page when the nested state machine finishes. In this case, a developer will
-          // probably not add a page for the final state to this router delegate (since after all it
-          // will never be displayed), so to avoid emitting warnings just use a transient page with
-          // no visible content.
+          // If the current state machine is running as a nested machine, then
+          // there is likely a Router with a NestedStateTreeRouterDelegate
+          // higher in the widget tree, which will render a different page when
+          // the nested state machine finishes. In this case, a developer will
+          // probably not add a page for the final state to this router delegate
+          // (since after all it will never be displayed), so to avoid emitting
+          // warnings just use a transient page with no visible content.
           pages = [MaterialPage(child: Container())];
         } else {
           throw _errors.noPagesForActiveStates(currentState.activeStates);
@@ -570,7 +587,8 @@ class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
   }
 }
 
-/// The [RouterDelegate] used by [DescendantStatesRouter] to route states in a nested state machine.
+/// The [RouterDelegate] used by [DescendantStatesRouter] to route states in a
+/// nested state machine.
 ///
 /// The state identified by [machineStateKey] must be nested machine state.
 class NestedMachineRouterDelegate extends TreeStateRouterDelegateBase {
@@ -628,12 +646,13 @@ class NestedMachineRouterDelegate extends TreeStateRouterDelegateBase {
 
   @override
   void _onTransition(CurrentState currentState, Transition transition) {
-    // Do not notify when the nested state machine reaches a final state. If we were to notify, then
-    // we would schedule a call to build for this router.  However, the parent machine tree state
-    // that owns the nested state machine transition to a different state when the final state is
-    // reached, which means that when the scheduled build actually runs,
-    // currentState.dataValue<NestedMachineData>() will no longer find a nested state machine, and
-    // the build method will fail.
+    // Do not notify when the nested state machine reaches a final state. If we
+    // were to notify, then we would schedule a call to build for this router.
+    // However, the parent machine tree state that owns the nested state machine
+    // transition to a different state when the final state is reached, which
+    // means that when the scheduled build actually runs,
+    // currentState.dataValue<MachineTreeStateData>() will no longer find a
+    // nested state machine, and the build method will fail.
     if (!transition.isToFinalState) {
       notifyListeners();
     }
@@ -716,11 +735,21 @@ class _RouterErrors {
     _log.severe(message);
     return TreeStateRouterError(message);
   }
+
+  TreeStateRouterError deepLinkFailure(
+    StateKey currentState,
+    StateKey requestedState,
+  ) {
+    var message =
+        "Failure to transition to deep link target '$requestedState'. "
+        "Actual target: '$currentState'.";
+    return TreeStateRouterError(message);
+  }
 }
 
-/// Overrides [resolve] to so that calls to [RouteTransitionRecord] that trigger animations are
-/// rediirected to ones that do not. None of the core logic in DefaultTransitionDelegate (which is a
-/// little tricky) is altered.
+/// Overrides [resolve] to so that calls to [RouteTransitionRecord] that trigger
+/// animations are rediirected to ones that do not. None of the core logic in
+/// DefaultTransitionDelegate (which is a little tricky) is altered.
 class _NoTransitionsTransitionDelegate extends DefaultTransitionDelegate {
   const _NoTransitionsTransitionDelegate();
   @override
@@ -738,14 +767,15 @@ class _NoTransitionsTransitionDelegate extends DefaultTransitionDelegate {
       locationToExitingPageRoute: locationToExitingPageRoute,
       pageRouteToPagelessRoutes: pageRouteToPagelessRoutes,
     );
-    // DefaultTransitionDelegate assumes records are _RouteEntry, so we need to unwrap
-    // _NoTransitionRouteTransitionRecord before returning the results.
+    // DefaultTransitionDelegate assumes records are _RouteEntry, so we need to
+    //  unwrap _NoTransitionRouteTransitionRecord before returning the results.
     return records
         .map((r) => r is _NoTransitionsRouteTransitionRecord ? r.inner : r);
   }
 }
 
-/// Wraps a [RouteTransitionRecord] and redirects calls that trigger animations to calls that do not.
+/// Wraps a [RouteTransitionRecord] and redirects calls that trigger animations
+/// to calls that do not.
 class _NoTransitionsRouteTransitionRecord implements RouteTransitionRecord {
   _NoTransitionsRouteTransitionRecord(this.inner);
 

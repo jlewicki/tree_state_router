@@ -8,7 +8,8 @@ import 'pages.dart';
 
 //
 // This example demonstrates use of RoutePathConfig with routes to control how routes are converted
-// to path segments in the route URL.
+// to path segments in the route URL, as well as enabling some routes for
+// deep-linking.
 //
 void main() {
   _initLogging();
@@ -30,7 +31,7 @@ final router = TreeStateRouter.platformRouting(
           routes: [
             DataStateRoute(
               States.child1,
-              path: const RoutePathConfig('child/1'),
+              path: const RoutePathConfig('child/1', enableDeepLink: true),
               routeBuilder: child1Page,
             ),
             StateRoute(
@@ -47,7 +48,7 @@ final router = TreeStateRouter.platformRouting(
           routes: [
             StateRoute(
               States.child3,
-              path: const RoutePathConfig('child-3'),
+              path: const RoutePathConfig('child-3', enableDeepLink: true),
               routeBuilder: child3Page,
             )
           ],
@@ -71,6 +72,6 @@ class MainApp extends StatelessWidget {
 void _initLogging() {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
-    log('${record.level.name}: ${record.loggerName}: ${record.time}: ${record.message} ${record.error?.toString() ?? ''}');
+    log('${record.level.name}: ${record.loggerName}: ${record.message} ${record.error?.toString() ?? ''}');
   });
 }

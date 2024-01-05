@@ -145,7 +145,48 @@ etc.) that work in a similar way to `StateRoute`, but provide data from ancestor
 route builder functions. 
 
 ### DataStateRoute
-TODO
+`DataStateRoute<D>` provides visuals for a data state, and works in a similar manner to 
+`StateRoute`. The main difference is that the `routeBuilder` for a `DataStateRoute` is provided the current value of the state data for the state, allowing it to be used when displaying the state. If
+the state data changes as a result of message processing by the state machine, the `routeBuilder`
+will be called again with the updated data.
+
+```dart
+class CounterData {
+  CounterData(this.counter);
+  final int counter;
+}
+
+class States {
+  static const counting = DataStateKey<CounterData>("counting");
+}
+
+var stateTree = StateTree(
+    InitialChild(States.counting),
+    childStates: [
+      DataState(
+        States.counting,
+        InitialData(() => CounterData(1)),
+      )
+    ],
+  );
+
+
+var router = TreeStateRouter(
+  stateMachine: TreeStateMachine(stateTree),
+  routes: [
+    DataStateRoute(
+      States.counting,
+      // The route builder for a DataStateRoute is provided the current state data 
+      routeBuilder: (BuildContext ctx, StateRoutingContext stateCtx, CounterData data) {
+         return Center(
+            child: Text('The value is ${data.counter}'),
+         );
+      },
+    ),
+  ],
+);
+
+```
 
 ### Popup Routes
 TODO

@@ -227,7 +227,7 @@ class StateRoute implements StateRouteConfigProvider {
   /// {@template StateRoute.path}
   /// Indicates how this route integrates with platform routing and deep linking.
   ///
-  /// If a value is provided, the [RoutePathConfig.path] value will be used when generating the URI
+  /// If a value is provided, the [RoutePathConfig.pathTemplate] value will be used when generating the URI
   /// segment corresponding to this route. Otherwise, [stateKey] will be used for ths purpose.
   ///
   /// Note that [RoutePathConfig.enableDeepLink] is not yet supported.

@@ -1,6 +1,6 @@
 name: tree_state_router_examples
 description: "Examples of using the tree_state_router package"
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
@@ -11,9 +11,12 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   logging: ^1.2.0
-  tree_state_machine: ^3.0.0-dev.10
+# tree_state_machine: ^3.0.0-dev.11
+  tree_state_machine:
+    path: ../../tree_state_machine
   tree_state_router:
     path: ..
+
 
 dev_dependencies:
   flutter_test:

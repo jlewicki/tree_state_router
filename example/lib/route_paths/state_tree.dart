@@ -14,11 +14,14 @@ class States {
 }
 
 class ChildData {
-  ChildData(this.value);
-  final String value;
+  ChildData(this.id, this.value);
+  final int id;
+  final int value;
 }
 
 enum Messages {
+  increment,
+  decrement,
   goToParent1,
   goToParent2,
   goToChild1,
@@ -36,11 +39,20 @@ StateTree routePathsStateTree() {
         childStates: [
           DataState(
             States.child1,
-            InitialData(() => ChildData('child data')),
-            onMessage: (ctx) => switch (ctx.message) {
-              Messages.goToChild2 => ctx.goTo(States.child2),
-              Messages.goToParent2 => ctx.goTo(States.parent2),
-              _ => ctx.unhandled(),
+            InitialData(() => ChildData(1, 1)),
+            onMessage: (ctx) {
+              if (ctx.message == Messages.increment) {
+                ctx.data(States.child1).update(
+                    (current) => ChildData(current.id, current.value + 1));
+              } else if (ctx.message == Messages.decrement) {
+                ctx.data(States.child1).update(
+                    (current) => ChildData(current.id, current.value - 1));
+              }
+              return switch (ctx.message) {
+                Messages.goToChild2 => ctx.goTo(States.child2),
+                Messages.goToParent2 => ctx.goTo(States.parent2),
+                _ => ctx.unhandled(),
+              };
             },
           ),
           State(

@@ -59,23 +59,6 @@ typedef StateRoutePageBuilder = Page<void> Function(
   Widget Function(StateRouteBuilder buildPageContent) wrapPageContent,
 );
 
-/// Describes how a route integrates with platform (i.e. Navigator 2.0) routing.
-class RoutePathConfig {
-  const RoutePathConfig(
-    this.path, {
-    this.enableDeepLink = false,
-  });
-
-  // The path segment to use for the associated route, when a routing URI needs
-  // to be generated.
-  final String path;
-
-  /// Indicates if the route supports deep linking.
-  ///
-  /// Note that this feature is not yet supported.
-  final bool enableDeepLink;
-}
-
 /// A generalized description of a route that can be placed in a
 /// [TreeStateRouter].
 ///
@@ -93,7 +76,7 @@ class StateRouteConfig {
   }) :
         // TODO: decide what to do about DataStateKey. It has an ugly toString()
         // output.
-        path = path ?? RoutePathConfig(stateKey.toString());
+        path = path ?? RoutePath(stateKey.toString());
 
   /// The state key identifying the tree state associated with this route.
   final StateKey stateKey;

@@ -11,6 +11,7 @@ export 'src/pages.dart'
         cupertinoPopupPageBuilder;
 export 'src/route_parser.dart';
 export 'src/router_config.dart';
+export 'src/routes/route_path_config.dart';
 export 'src/routes/route_config.dart';
 export 'src/routes/routes.dart';
 export 'src/routes/data_routes.dart';

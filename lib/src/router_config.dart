@@ -5,6 +5,7 @@ import 'package:tree_state_machine/build.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/route_provider.dart';
 import 'package:tree_state_router/src/route_table.dart';
+import 'package:tree_state_router/src/routes/route_utility.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
 
@@ -94,13 +95,26 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,
   }) {
-    // Extend state tree with routing filter
+    // Find data routes that have route parameters. Theses routes will have
+    // tree state filters installed that can initialize state data
+    var dataRoutesWithParams = Map.fromEntries(routes
+        .expand((r) => r.config.selfAndDescendants())
+        .where((r) =>
+            r.path is DataRoutePath &&
+            (r.path as DataRoutePath).initialData != null)
+        .map((r) => MapEntry(r.stateKey, r.path as DataRoutePath)));
+
+    // Extend state tree with routing filters
     var builder = StateTreeBuilder(
       stateTree,
       createBuildContext: () => TreeBuildContext(
         extendNodes: (b) {
           if (b.nodeBuildInfo is RootNodeInfo) {
             b.filter(_createRoutingFilter());
+          }
+          var dataRoute = dataRoutesWithParams[b.nodeBuildInfo.key];
+          if (dataRoute != null) {
+            b.filter(dataRoute.createFilter());
           }
         },
       ),
@@ -166,7 +180,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   /// {@endtemplate}
   final bool enableTransitions;
 
-  late final _routeTable = RouteTable(stateMachine.rootNode, routes);
+  late final _routeTable = RouteTable(stateMachine, routes);
 
   late final _routerDelegateConfig = TreeStateRouterDelegateConfig(
     routes.map((e) => e.config).toList(),
@@ -212,20 +226,77 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
 }
 
 class GoToDeepLink {
-  GoToDeepLink(this.target);
+  GoToDeepLink(this.target, {this.initialStateData = const {}});
   final StateKey target;
+  final Map<DataStateKey<dynamic>, Object> initialStateData;
+}
+
+class _InitialDataPayload {
+  _InitialDataPayload(this.initialStateData);
+  final Map<DataStateKey<dynamic>, dynamic> initialStateData;
 }
 
 TreeStateFilter _createRoutingFilter([Logger? log]) {
-  var log_ = log ?? Logger('tree_state_router.DeepLinkFilter');
+  var filterName = 'tree_state_router.DeepLinkFilter';
+  var log_ = log ?? Logger(filterName);
   return TreeStateFilter(
-    name: 'TreeStateRouter-RoutingFilter',
+    name: filterName,
     onMessage: (msgCtx, next) {
-      if (msgCtx.message case GoToDeepLink(target: var t)) {
+      if (msgCtx.message
+          case GoToDeepLink(target: var t, initialStateData: var d)) {
         log_.fine("Deep link routing to state '$t'");
-        return SynchronousFuture(msgCtx.goTo(t));
+        return SynchronousFuture(msgCtx.goTo(
+          t,
+          payload: _InitialDataPayload(d),
+          reenterTarget: true,
+        ));
       }
       return next();
     },
   );
+}
+
+// TreeStateFilter _createInitializeStateDataFilter([Logger? log]) {
+//   var filterName = 'tree_state_router.InitialDataFilter';
+//   var log_ = log ?? Logger(filterName);
+//   return TreeStateFilter(
+//     name: filterName,
+//     onEnter: (ctx, next) {
+//       if (ctx.payload case _InitialDataPayload(initialStateData: var d)) {
+//         if (ctx.handlingState is DataStateKey) {
+//           var dataKey = ctx.handlingState as DataStateKey;
+//           var initData = d[dataKey];
+//           if (initData != null) {
+//             log_.fine("Setting initial data for data state '$dataKey'");
+//             var updateFunction = ctx.data(dataKey).update;
+//             initData.call(updateFunction);
+//           }
+//         }
+//       }
+//       return next();
+//     },
+//   );
+// }
+
+class InitializeStateDataFilter<D> extends TreeStateFilter {
+  InitializeStateDataFilter({Logger? log}) : _log = log ?? Logger(_filterName);
+
+  final Logger _log;
+  static const _filterName = 'tree_state_router.InitialDataFilter';
+
+  @override
+  Future<void> onEnter(TransitionContext ctx, Future<void> Function() next) {
+    if (ctx.payload case _InitialDataPayload(initialStateData: var d)) {
+      if (ctx.handlingState is DataStateKey<D>) {
+        var dataKey = ctx.handlingState as DataStateKey<D>;
+        var initData = d[dataKey];
+        if (initData != null) {
+          assert(initData is D);
+          _log.fine("Setting initial data for data state '$dataKey'");
+          ctx.data(dataKey).update((_) => initData as D);
+        }
+      }
+    }
+    return next();
+  }
 }

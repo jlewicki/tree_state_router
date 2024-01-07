@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tree_state_router/tree_state_router.dart';
+import 'package:tree_state_router_examples/helpers/helpers.dart';
 import 'state_tree.dart';
 
 Widget rootPage(
@@ -18,7 +19,6 @@ Widget rootPage(
             padding: const EdgeInsets.all(8),
             child: const Text('Root'),
           ),
-          //nestedRouter,
           Expanded(child: nestedRouter),
         ],
       ),
@@ -38,7 +38,6 @@ Widget parent1Page(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          //crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(8),
@@ -89,7 +88,15 @@ Widget child1Page(
         children: <Widget>[
           Container(
             padding: const EdgeInsets.all(8),
-            child: const Text('Child 1'),
+            child: Text('Child 1 - ID: ${data.id}'),
+          ),
+          button(
+            'Increment',
+            () => stateContext.currentState.post(Messages.increment),
+          ),
+          button(
+            'Decrement',
+            () => stateContext.currentState.post(Messages.decrement),
           ),
           ElevatedButton(
             onPressed: () =>

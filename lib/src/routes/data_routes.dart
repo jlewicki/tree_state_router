@@ -158,7 +158,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
   final bool isPopup;
 
   /// {@macro StateRoute.path}
-  final RoutePathConfig? path;
+  final DataRoutePath<D>? path;
 
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey)

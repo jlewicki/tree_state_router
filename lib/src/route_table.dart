@@ -2,10 +2,12 @@ import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/build.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
+import 'package:tree_state_router/src/routes/route_utility.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
 class RouteTable {
   RouteTable._(
+    this._stateMachine,
     this._routePaths,
     // this._rootNode,
     // this._routesByState,
@@ -14,7 +16,7 @@ class RouteTable {
   );
 
   factory RouteTable(
-    RootNodeInfo rootNode,
+    TreeStateMachine stateMachine,
     List<StateRouteConfigProvider> routes,
   ) {
     // Map of all known routes
@@ -24,6 +26,7 @@ class RouteTable {
 
     // Complete set of full routeable paths. This is a naive data structure, but
     // it is good enough for now
+    var rootNode = stateMachine.rootNode;
     var routePaths = rootNode
         .leaves()
         .map((leaf) => leaf
@@ -35,6 +38,10 @@ class RouteTable {
             .cast<StateRouteConfig>())
         .where((routes) => routes.isNotEmpty)
         .map((routes) => TreeStateRoutePath(routes.toList()))
+        .sorted(
+          // Sort by number of route parameters, descending
+          (r1, r2) => r2.parameters.length.compareTo(r1.parameters.length),
+        )
         .toList();
 
     // var routePathsByStartState =
@@ -43,6 +50,7 @@ class RouteTable {
         Map.fromEntries(routePaths.map((e) => MapEntry(e.end.stateKey, e)));
 
     return RouteTable._(
+      stateMachine,
       routePaths,
       // rootNode,
       // routesByState,
@@ -51,6 +59,7 @@ class RouteTable {
     );
   }
 
+  final TreeStateMachine _stateMachine;
   final List<TreeStateRoutePath> _routePaths;
   // final RootNodeInfo _rootNode;
   // final Map<StateKey, StateRouteConfig> _routesByState;
@@ -58,7 +67,10 @@ class RouteTable {
   final Map<StateKey, TreeStateRoutePath> _routePathsByEndState;
 
   RouteInformation? toRouteInformation(TreeStateRoutePath path) {
-    var uriPath = path.isEmpty ? '/' : '/${path.path}';
+    assert(_stateMachine.currentState != null);
+    var uriPath = path.isEmpty
+        ? '/'
+        : '/${path.generateUriPath(_stateMachine.currentState!)}';
     var uri = Uri.parse(uriPath);
     return RouteInformation(uri: uri);
   }
@@ -76,9 +88,22 @@ class RouteTable {
     RouteInformation routeInformation,
   ) {
     var path = Uri.decodeFull(routeInformation.uri.path);
-    path = path.startsWith('/') ? path.substring(1) : path;
-    // TODO: this will not work with path parameters (like path: 'pages/:pageId')
-    return _routePaths.firstWhereOrNull((r) => r.path == path);
+    if (path == '/') {
+      return null;
+    }
+    // path = path.startsWith('/') ? path.substring(1) : path;
+    // if (path.isEmpty) {
+    //   return null;
+    // }
+
+    return _routePaths.map((routePath) {
+      var matched = routePath.matchUriPath(path);
+      return matched != null
+          ? TreeStateRoutePath(routePath.routes, matched)
+          : null;
+    }).firstWhere(
+      (routePath) => routePath != null,
+    );
   }
 
   /// Iterates through the routes and all of their descendants.
@@ -86,22 +111,7 @@ class RouteTable {
     List<StateRouteConfigProvider> routes,
   ) sync* {
     for (var route in routes) {
-      yield* _selfAndDescendants(route.config);
+      yield* route.config.selfAndDescendants();
     }
-  }
-
-  static Iterable<StateRouteConfig> _selfAndDescendants(
-    StateRouteConfig route,
-  ) sync* {
-    Iterable<StateRouteConfig> selfAndDescendants_(
-      StateRouteConfig route,
-    ) sync* {
-      yield route;
-      for (var child in route.childRoutes) {
-        yield* selfAndDescendants_(child);
-      }
-    }
-
-    yield* selfAndDescendants_(route);
   }
 }

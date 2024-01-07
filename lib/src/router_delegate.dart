@@ -396,7 +396,6 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   }
 
   Future<void> _setCurrentConfiguration(TreeStateRoutePath configuration) {
-    //_currentConfiguration = configuration;
     return _startOrUpdateStateMachine(configuration).then((config) {
       _currentConfiguration = config;
       notifyListeners();
@@ -411,7 +410,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       var activeStates = currentState.activeStates;
       var allRoutesActive =
           configuration.routes.every((r) => activeStates.contains(r.stateKey));
-      if (allRoutesActive) {
+      if (allRoutesActive && configuration.initialStateData.isEmpty) {
         // All the routes in the requested configuration correspond to an active
         // state in the state machine, so there is nothing more to do.
         return SynchronousFuture(configuration);
@@ -420,11 +419,14 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         // so dispatch a special message that is handled by the routing filter
         // to trigger a transition to the desited configuration.
         var deepLinkTarget = configuration.end.stateKey;
-        var goToFuture = currentState.post(GoToDeepLink(deepLinkTarget));
+        var goToFuture = currentState.post(GoToDeepLink(
+          deepLinkTarget,
+          initialStateData: configuration.initialStateData,
+        ));
         return goToFuture.then((value) {
           if (value case HandledMessage(transition: var t) when t != null) {
             _log.fine(
-                'Transitioned state machine to deep link: ${configuration.path}');
+                'Transitioned state machine to deep link: ${configuration.pathTemplate}');
             return _routeTable.routePathForTransition(t);
           }
           throw _errors.deepLinkFailure(currentState.key, deepLinkTarget);
@@ -440,12 +442,20 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         stateMachine.lifecycle.isStopped;
 
     if (isStartable) {
-      var startAt =
-          configuration.isDeepLinkable ? configuration.end.stateKey : null;
+      var cfg = configuration;
+      var intialDataMap = cfg.initialStateData;
+      var startAt = cfg.isDeepLinkable ? cfg.end.stateKey : null;
+      var withData = cfg.isDeepLinkable && intialDataMap.isNotEmpty
+          ? (InitialStateDataBuilder builder) {
+              for (var forState in intialDataMap.keys) {
+                builder.initialData(forState, intialDataMap[forState]!);
+              }
+            }
+          : null;
       _log.fine(
           "Starting state machine ${startAt != null ? "at: '$startAt'" : ''}");
       var initTransFuture = stateMachine.transitions.first;
-      stateMachine.start(at: startAt);
+      stateMachine.start(at: startAt, withData: withData);
       return initTransFuture.then((initTrans) {
         _log.fine("Started state machine. Current state: '${initTrans.to}'");
         return _routeTable.routePathForTransition(initTrans);

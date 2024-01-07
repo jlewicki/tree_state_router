@@ -179,18 +179,17 @@ packages:
   tree_state_machine:
     dependency: "direct main"
     description:
-      name: tree_state_machine
-      sha256: "4e63855a049a38971b59d939cde03ba55c6038cf3b477166b51b83ac142cfe42"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0-dev.10"
+      path: "../../tree_state_machine"
+      relative: true
+    source: path
+    version: "3.0.0-dev.11"
   tree_state_router:
     dependency: "direct main"
     description:
       path: ".."
       relative: true
     source: path
-    version: "0.0.1-dev.4"
+    version: "0.0.1-dev.3"
   vector_math:
     dependency: transitive
     description:

@@ -45,7 +45,7 @@ var router = TreeStateRouter(
   routes: [
     StateRoute(
       States.state1,
-      path: const RoutePathConfig('s1'),
+      path: RoutePath('s1'),
       routeBuilder: (BuildContext ctx, StateRoutingContext stateCtx) {
         return Center(
           child: Column(
@@ -63,7 +63,7 @@ var router = TreeStateRouter(
     ),
     StateRoute(
       States.state2,
-      path: const RoutePathConfig('s2'),
+      path: RoutePath('s2'),
       routeBuilder: (BuildContext ctx, StateRoutingContext stateCtx) {
         return const Center(child: Text('This is state 2'));
       },

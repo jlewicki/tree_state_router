@@ -34,7 +34,8 @@ class DataStateBuilderState extends State<DataStateBuilder> {
   @override
   void didUpdateWidget(DataStateBuilder oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.stateKey != oldWidget.stateKey ||
+    if (_combinedDataSubscription == null ||
+        widget.stateKey != oldWidget.stateKey ||
         !_areResolversEqual(oldWidget._stateDataResolvers)) {
       _unsubscribe();
       _subscribe();
@@ -98,9 +99,16 @@ class DataStateBuilderState extends State<DataStateBuilder> {
       onError: (err, stackTrace) {
         setState(() => _error = AsyncError(err, stackTrace));
       },
-      onDone: () => {
-        _log.finer(
-            'CombineLatestDone for data streams ${widget._stateDataResolvers.map((e) => e.stateKey.toString()).join(', ')}')
+      onDone: () {
+        _log.finer('CombineLatestDone for data streams '
+            '${widget._stateDataResolvers.map(
+                  (e) => e.stateKey.toString(),
+                ).join(', ')}');
+        // If a data state is re-entered, the its value stream will
+        // be ended, but the current state of the state machine will not change.
+        // So set this subscription to null so we can tell that we will need to
+        // re-subscribe to pick up the latest value.
+        _combinedDataSubscription = null;
       },
     );
   }

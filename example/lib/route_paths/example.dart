@@ -21,34 +21,41 @@ final router = TreeStateRouter.platformRouting(
   routes: [
     StateRoute.shell(
       States.root,
-      path: const RoutePathConfig('root'),
+      path: RoutePath('root'),
       routeBuilder: rootPage,
       routes: [
         StateRoute.shell(
           States.parent1,
-          path: const RoutePathConfig('parent-1'),
+          path: RoutePath('parent-1'),
           routeBuilder: parent1Page,
           routes: [
-            DataStateRoute(
+            DataStateRoute<ChildData>(
               States.child1,
-              path: const RoutePathConfig('child/1', enableDeepLink: true),
+              path: DataRoutePath.withParams(
+                'child1/:id',
+                pathArgs: (data) => {"id": data.id.toString()},
+                initialData: (pathArgs) {
+                  return ChildData(int.parse(pathArgs['id']!), 0);
+                },
+                enableDeepLink: true,
+              ),
               routeBuilder: child1Page,
             ),
             StateRoute(
               States.child2,
-              path: const RoutePathConfig('child/2'),
+              path: RoutePath('child2'),
               routeBuilder: child2Page,
             )
           ],
         ),
         StateRoute.shell(
           States.parent2,
-          path: const RoutePathConfig('parent-2'),
+          path: RoutePath('parent-2'),
           routeBuilder: parent2Page,
           routes: [
             StateRoute(
               States.child3,
-              path: const RoutePathConfig('child-3', enableDeepLink: true),
+              path: RoutePath('child-3', enableDeepLink: true),
               routeBuilder: child3Page,
             )
           ],

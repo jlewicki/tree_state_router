@@ -256,30 +256,10 @@ TreeStateFilter _createRoutingFilter([Logger? log]) {
   );
 }
 
-// TreeStateFilter _createInitializeStateDataFilter([Logger? log]) {
-//   var filterName = 'tree_state_router.InitialDataFilter';
-//   var log_ = log ?? Logger(filterName);
-//   return TreeStateFilter(
-//     name: filterName,
-//     onEnter: (ctx, next) {
-//       if (ctx.payload case _InitialDataPayload(initialStateData: var d)) {
-//         if (ctx.handlingState is DataStateKey) {
-//           var dataKey = ctx.handlingState as DataStateKey;
-//           var initData = d[dataKey];
-//           if (initData != null) {
-//             log_.fine("Setting initial data for data state '$dataKey'");
-//             var updateFunction = ctx.data(dataKey).update;
-//             initData.call(updateFunction);
-//           }
-//         }
-//       }
-//       return next();
-//     },
-//   );
-// }
-
 class InitializeStateDataFilter<D> extends TreeStateFilter {
-  InitializeStateDataFilter({Logger? log}) : _log = log ?? Logger(_filterName);
+  InitializeStateDataFilter({Logger? log})
+      : _log = log ?? Logger(_filterName),
+        super(name: _filterName);
 
   final Logger _log;
   static const _filterName = 'tree_state_router.InitialDataFilter';

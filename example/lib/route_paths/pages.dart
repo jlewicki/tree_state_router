@@ -88,7 +88,7 @@ Widget child1Page(
         children: <Widget>[
           Container(
             padding: const EdgeInsets.all(8),
-            child: Text('Child 1 - ID: ${data.id}'),
+            child: Text('Child 1 - ID: ${data.id} Value: ${data.value}'),
           ),
           button(
             'Increment',

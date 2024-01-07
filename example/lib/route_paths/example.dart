@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+//import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_router/tree_state_router.dart';
@@ -12,6 +12,7 @@ import 'pages.dart';
 // deep-linking.
 //
 void main() {
+  //usePathUrlStrategy();
   _initLogging();
   runApp(const MainApp());
 }

@@ -43,16 +43,12 @@ class TreeStateRoutePath {
   /// Throws an error if [isEmpty] is `true`.
   late final end = routes.last;
 
-  // The compleye set of parameters
+  /// The complete set of parameters in this route path, combining the
+  /// [RoutePathConfig.parameters] for all the routes in the path.
   late final List<String> parameters =
       routes.expand((e) => e.path.parameters).toList();
 
   late final isDeepLinkable = routes.isNotEmpty && end.path.enableDeepLink;
-
-  late final uriPathRegExp = RegExp(
-    '^${routes.map((r) => r.path.uriPathPattern).join('\\/')}',
-    caseSensitive: false,
-  );
 
   /// Generates a path appropriate for a URI representing all the routes in
   /// this route path.

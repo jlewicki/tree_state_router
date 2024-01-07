@@ -1,8 +1,18 @@
 import 'package:logging/logging.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
+/// A function that can build a map of parameter values that will be used when
+/// generating a URI from a [RoutePath.pathTemplate].
 typedef GeneratePathArgs = Map<String, String> Function();
+
+/// A function that can build a map of parameter values that will be used when
+/// generating a URI from a [DataRoutePath.pathTemplate]. The function is
+/// provided the current data value of the data route.
 typedef GenerateDataPathArgs<D> = Map<String, String> Function(D data);
+
+/// A function that can build a generate an initial state data value from path
+/// arguments parsed from a URI. This is used if a data route has been declared
+/// as eligible for deep-linking.
 typedef GenerateInitialData<D> = D Function(Map<String, String> pathArgs);
 
 class UriPathMatch {
@@ -30,8 +40,12 @@ sealed class RoutePathConfig {
     this.enableDeepLink = false,
   }) : assert(pathTemplate.isNotEmpty, 'pathTemplate cannot be empty');
 
-  /// The path segment template to use for the associated route, when a routing
-  /// URI needs to be generated.
+  /// The path template to use for the associated route, when a routing URI
+  /// needs to be generated.
+  ///
+  /// This can be a literal, such as `user`, or can potentially contain one or
+  /// more parameters, prefixed by a colon. For example:
+  /// `user/:userId/address/:addressId`
   final String pathTemplate;
 
   /// The names of parameters in [pathTemplate].
@@ -45,13 +59,15 @@ sealed class RoutePathConfig {
   /// Indicates if the route supports deep linking.
   final bool enableDeepLink;
 
-  late final String uriPathPattern = _replaceTemplateParameters((paramName) {
+  /// A regex pattern representing [pathTemplate] that includes a named capture
+  /// group for each parameter in the template.
+  late final String _uriPathPattern = _replaceTemplateParameters((paramName) {
     // Replace the :paramName token with a named capture group that can match
     // capture the parameter value when it occurs within a URI path
     return '(?<$paramName>[^/]+)';
   });
 
-  late final _uriPathRegEx = RegExp('^/$uriPathPattern', caseSensitive: false);
+  late final _uriPathRegEx = RegExp('^/$_uriPathPattern', caseSensitive: false);
 
   /// Generates a path appropriate for a URI representing all the routes in
   /// this route path.
@@ -124,7 +140,8 @@ sealed class RoutePathConfig {
   Object? _generateInitialData(Map<String, String> pathArgs);
 }
 
-/// Describes how a route integrates with platform (i.e. Navigator 2.0) routing.
+/// Describes how a [StateRoute] integrates with platform (i.e. Navigator 2.0)
+/// routing.
 class RoutePath extends RoutePathConfig {
   RoutePath._(
     super.pathTemplate,
@@ -136,6 +153,11 @@ class RoutePath extends RoutePathConfig {
           'Invalid pathTemplate',
         );
 
+  /// Constructs a [RoutePath], with a literal [pathTemplate].
+  ///
+  /// If [enableDeepLink] is true, the associated route can be navigated to
+  /// directly when the application receives a deep link to the route from the
+  /// platform
   factory RoutePath(String pathTemplate, {bool enableDeepLink = false}) {
     assert(
       !_pathParamsRegEx.hasMatch(pathTemplate),
@@ -221,8 +243,8 @@ class DataRoutePath<D> extends RoutePathConfig {
   Map<String, String> _generatePathArgs(Object? data) {
     assert(
         data == null || data is D,
-        "Unexpoected state data. Expected type $D, "
-        "received type ${data!.runtimeType}");
+        "Unexpected state data. Expected type $D, "
+        "received type ${data.runtimeType}");
     return generatePathArgs?.call(data as D) ?? const {};
   }
 

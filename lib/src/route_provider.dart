@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:logging/logging.dart';
 
 enum SystemNavigatorHistoryMode {
   singleEntry,
@@ -34,6 +35,8 @@ class TreeStateRouteInformationProvider extends RouteInformationProvider
 
   final SystemNavigatorHistoryMode historyMode;
 
+  final Logger _log = Logger('TreeStateRouteInformationProvider');
+
   @override
   void routerReportsNewRouteInformation(
     RouteInformation routeInformation, {
@@ -50,6 +53,8 @@ class TreeStateRouteInformationProvider extends RouteInformationProvider
     //  - selectMultiEntryHistory() and
     //  - routeInformationUpdated(replace: true)
     // appears to give the desired effect (updated URL but no history entries)
+    _log.fine(
+        'Received new route information from router: ${routeInformation.uri.path}');
     SystemNavigator.selectMultiEntryHistory();
     SystemNavigator.routeInformationUpdated(
       uri: routeInformation.uri,
@@ -108,6 +113,8 @@ class TreeStateRouteInformationProvider extends RouteInformationProvider
   Future<bool> didPushRouteInformation(
       RouteInformation routeInformation) async {
     assert(hasListeners);
+    _log.fine(
+        'Received new route information from platform: ${routeInformation.uri.path}');
     _platformReportsNewRouteInformation(routeInformation);
     return true;
   }

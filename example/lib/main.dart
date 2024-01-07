@@ -30,8 +30,10 @@ StateTree simpleStateTree() {
     childStates: [
       b.State(
         States.state1,
-        onMessage: (ctx) =>
-            ctx.message == AMessage ? ctx.goTo(States.state2) : ctx.unhandled(),
+        onMessage: (ctx) => switch (ctx.message) {
+          AMessage() => ctx.goTo(States.state2),
+          _ => ctx.unhandled()
+        },
       ),
       b.State(States.state2),
     ],

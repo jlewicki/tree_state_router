@@ -9,7 +9,7 @@ transitions that take place in a [tree_state_machine](https://pub.dev/packages/t
 * Flutter router built for the Router API.
 * Supports declarative routing based on the active states of flat and hierarchical state machines.
 * Supports nested routers
-
+* Supports URL paths and deep linking
 
 ## Getting started
 
@@ -26,7 +26,7 @@ machine, which can be used to post messages to the state machine in response to 
 potentially triggering a transition to a new tree state. The `TreeStateRouter` detects the 
 transition, and navigates to the `TreeStateRoute` corresponding to the new state. 
 
-The following example ilustrates these steps.
+The following example illustrates these steps.
 ```dart
 
 import 'package:flutter/material.dart';
@@ -163,7 +163,7 @@ class States {
 var stateTree = StateTree(
     InitialChild(States.counting),
     childStates: [
-      DataState(
+      DataState<CounterData>(
         States.counting,
         InitialData(() => CounterData(1)),
       )
@@ -174,7 +174,7 @@ var stateTree = StateTree(
 var router = TreeStateRouter(
   stateMachine: TreeStateMachine(stateTree),
   routes: [
-    DataStateRoute(
+    DataStateRoute<CounterData>(
       States.counting,
       // The route builder for a DataStateRoute is provided the current state data 
       routeBuilder: (BuildContext ctx, StateRoutingContext stateCtx, CounterData data) {
@@ -231,7 +231,7 @@ If the `TreeStateRouter.platformRouting` factory is used, the router will integr
 Navigator 2.0 APIs.
 
 ### Route URIs
- URIs representing the current report path are reported to the platform. When targeting the web 
+URIs representing the current route path are reported to the platform. When targeting the web 
 platform, this means the browser URL will be updated as state transitions occur.
 
 Each active route contributes a segment to the URI, and the specific text of this segment can 
@@ -243,23 +243,23 @@ final router = TreeStateRouter.platformRouting(
   routes: [
     StateRoute.shell(
       States.root,
-      path: const RoutePathConfig('root'),
+      path: RoutePath('root'),
       routeBuilder: rootPage,
       routes: [
         StateRoute.shell(
           States.parent1,
-          path: const RoutePathConfig('parent-1'),
+          path: RoutePath('parent-1'),
           routeBuilder: parent1Page,
           routes: [
-            DataStateRoute(
+            DataStateRoute<ChildData>(
               States.child1,
               // The URI path will be '/root/parent-1/child/1' when this route is active 
-              path: const RoutePathConfig('child/1'),
+              path: DataRoutePath('child/1'),
               routeBuilder: child1Page,
             ),
             StateRoute(
               States.child2,
-              path: const RoutePathConfig('child/2'),
+              path: RoutePath('child/2'),
               routeBuilder: child2Page,
             )
           ],
@@ -269,10 +269,44 @@ final router = TreeStateRouter.platformRouting(
 );
 ```
 
-
 If `path` is left undefined, the `stateKey` will be used as a fallback to generate the URI segment.
 This is unlikely to be appropriate for end users, so it is recommended that `path` values be 
 provided for all routes. 
+
+Note that by default, even though URIs are displayed in the browser for the current route path, 
+these URIs do not support deep linking. If an attempt is made to directly enter the URL in the
+browser address bar, the route will be ignored, and instead the URI will be interpreted as the 
+base URL for the web app, and consequently the state machine will restart at its initial state.   
+
+### Path Parameters
+
+The `DataStateRoute.withParams` factory allows values obtained from the current data value of a
+data route to be included in the path. When the `pathTemplate` includes a unique name prefixed by a
+`:` character.
+
+For example
+```dart
+class AdddressState {
+   AddressState(this.userId, this.addressId);
+   final int userId;
+   final int addressId;
+}
+
+DataStateRoute<ChildData>(
+   States.addressState,
+   path: DataRoutePath.withParams(
+      'user/:userId/address/:addressId',
+      pathArgs: (data) => {
+         'userId': data.userId.toString(),
+         'addressId': data.addressId.toString(),
+      },
+   ),
+```
+
+When using `DataStateRoute.withParams`, a `pathArgs` function is required to generate a
+`Map<String, String>` containing the path value for each parameter to be included in the URI. The 
+function is provided the current data value of the data route as input.
+
 
 ## Deep Linking
 A route can be enabled for deep-linking by setting `enableDeepLink` to `true` when specifying the 

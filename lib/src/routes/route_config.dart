@@ -72,7 +72,7 @@ class StateRouteConfig {
     this.isPopup = false,
     RoutePathConfig? path,
     this.dependencies = const [],
-    this.childRoutes = const [],
+    required this.childRoutes,
   }) :
         // TODO: decide what to do about DataStateKey. It has an ugly toString()
         // output.

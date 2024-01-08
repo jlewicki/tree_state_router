@@ -1,4 +1,5 @@
 import 'package:logging/logging.dart';
+import 'package:tree_state_router/src/router_config.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
 /// A function that can build a map of parameter values that will be used when

@@ -50,6 +50,13 @@ StateTree hierarchicalDataStateTree() {
     States.parent,
     InitialData(() => ParentData('This is the parent value')),
     InitialChild(States.child1),
+    onMessage: (ctx) {
+      if (ctx.message case UpdateParentData(newValue: var v)) {
+        ctx.data(States.parent).update((_) => ParentData(v));
+        return ctx.stay();
+      }
+      return ctx.unhandled();
+    },
     childStates: [
       DataState<Child1Data>(
         States.child1,

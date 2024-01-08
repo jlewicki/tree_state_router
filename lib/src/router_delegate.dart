@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:tree_state_machine/build.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/route_table.dart';
+import 'package:tree_state_router/src/router_config.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'package:tree_state_router/src/pages.dart';
 import 'package:tree_state_router/src/widgets/state_machine_error.dart';

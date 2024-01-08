@@ -219,6 +219,8 @@ StateRouteConfig createDataStateRouteConfig2<D1, D2>(
   DataStateRoutePageBuilder2<D1, D2>? routePageBuilder,
   List<StateDataResolver> resolvers,
   bool isPopup,
+  RoutePathConfig? path,
+  List<StateRouteConfig> childRoutes,
 ) {
   DataStateBuilder createDataStateBuilder2(
     StateRoutingContext stateContext,
@@ -252,6 +254,8 @@ StateRouteConfig createDataStateRouteConfig2<D1, D2>(
         : null,
     isPopup: isPopup,
     dependencies: resolvers.map((e) => e.stateKey).toList(),
+    path: path,
+    childRoutes: childRoutes,
   );
 }
 
@@ -261,6 +265,8 @@ StateRouteConfig createDataStateRouteConfig3<D1, D2, D3>(
   DataStateRoutePageBuilder3<D1, D2, D3>? routePageBuilder,
   List<StateDataResolver> resolvers,
   bool isPopup,
+  RoutePathConfig? path,
+  List<StateRouteConfig> childRoutes,
 ) {
   DataStateBuilder createDataStateBuilder3(
     StateRoutingContext stateContext,
@@ -295,5 +301,7 @@ StateRouteConfig createDataStateRouteConfig3<D1, D2, D3>(
         : null,
     isPopup: isPopup,
     dependencies: resolvers.map((e) => e.stateKey).toList(),
+    path: path,
+    childRoutes: childRoutes,
   );
 }

@@ -244,12 +244,14 @@ class StateRoute implements StateRouteConfigProvider {
   final List<StateRouteConfigProvider> childRoutes;
 
   @override
-  late final StateRouteConfig config = StateRouteConfig(stateKey,
-      routeBuilder: routeBuilder,
-      routePageBuilder: routePageBuilder,
-      isPopup: isPopup,
-      path: path,
-      childRoutes: childRoutes.map((e) => e.config).toList());
+  late final config = StateRouteConfig(
+    stateKey,
+    routeBuilder: routeBuilder,
+    routePageBuilder: routePageBuilder,
+    isPopup: isPopup,
+    path: path,
+    childRoutes: childRoutes.map((e) => e.config).toList(),
+  );
 }
 
 /// {@template ShellTreeStateRouteBuilder}
@@ -286,6 +288,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
     this.routePageBuilder,
     this.isPopup = false,
     this.path,
+    this.childRoutes = const [],
   });
 
   /// Constructs a [StateRoute1].
@@ -295,7 +298,8 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.path,
-  }) : isPopup = false;
+  })  : isPopup = false,
+        childRoutes = const [];
 
   /// Constructs a [StateRoute1] that displays its visuals in a [PopupRoute].
   factory StateRoute1.popup(
@@ -336,6 +340,9 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
   /// {@macro StateRoute.path}
   final RoutePathConfig? path;
 
+  /// {@macro StateRoute.childRoutes}
+  final List<StateRouteConfigProvider> childRoutes;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc>(ancestorStateKey)
   ];
@@ -369,6 +376,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.routePageBuilder,
     this.isPopup = false,
     this.path,
+    this.childRoutes = const [],
   });
 
   /// Constructs a [StateRoute2].
@@ -379,7 +387,8 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.path,
-  }) : isPopup = false;
+  })  : isPopup = false,
+        childRoutes = const [];
 
   factory StateRoute2.popup(
     StateKey stateKey, {
@@ -426,6 +435,9 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
   /// {@macro StateRoute.path}
   final RoutePathConfig? path;
 
+  /// {@macro StateRoute.childRoutes}
+  final List<StateRouteConfigProvider> childRoutes;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<DAnc1>(ancestor1StateKey),
     StateDataResolver<DAnc2>(ancestor2StateKey)
@@ -438,6 +450,8 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
     routePageBuilder,
     _resolvers,
     isPopup,
+    path,
+    childRoutes.map((e) => e.config).toList(),
   );
 }
 
@@ -459,6 +473,7 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
     this.routePageBuilder,
     this.isPopup = false,
     this.path,
+    this.childRoutes = const [],
   });
 
   /// Constructs a [StateRoute3].
@@ -470,7 +485,8 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.path,
-  }) : isPopup = false;
+  })  : isPopup = false,
+        childRoutes = const [];
 
   factory StateRoute3.popup(
     StateKey stateKey, {
@@ -515,6 +531,9 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
   /// {@macro StateRoute.path}
   final RoutePathConfig? path;
 
+  /// {@macro StateRoute.childRoutes}
+  final List<StateRouteConfigProvider> childRoutes;
+
   /// {@macro StateRoute.isPopup}
   final bool isPopup;
   late final List<StateDataResolver> _resolvers = [
@@ -530,5 +549,7 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
     routePageBuilder,
     _resolvers,
     isPopup,
+    path,
+    childRoutes.map((e) => e.config).toList(),
   );
 }

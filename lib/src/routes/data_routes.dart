@@ -210,6 +210,7 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
     this.routePageBuilder,
     this.isPopup = false,
     this.path,
+    this.childRoutes = const [],
   });
 
   /// Constructs a [DataStateRoute2].
@@ -219,7 +220,8 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.path,
-  }) : isPopup = false;
+  })  : isPopup = false,
+        childRoutes = const [];
 
   factory DataStateRoute2.popup(
     DataStateKey<D> stateKey, {
@@ -257,6 +259,9 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
   /// {@macro StateRoute.path}
   final RoutePathConfig? path;
 
+  /// {@macro StateRoute.childRoutes}
+  final List<StateRouteConfigProvider> childRoutes;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey),
     StateDataResolver<DAnc>(ancestorStateKey)
@@ -269,6 +274,8 @@ class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
     routePageBuilder,
     _resolvers,
     isPopup,
+    path,
+    childRoutes.map((e) => e.config).toList(),
   );
 }
 
@@ -303,6 +310,7 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.routePageBuilder,
     this.isPopup = false,
     this.path,
+    this.childRoutes = const [],
   });
 
   /// Constructs a [DataStateRoute3].
@@ -313,7 +321,8 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.path,
-  }) : isPopup = false;
+  })  : isPopup = false,
+        childRoutes = const [];
 
   factory DataStateRoute3.popup(
     DataStateKey<D> stateKey, {
@@ -356,6 +365,9 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
   /// {@macro StateRoute.path}
   final RoutePathConfig? path;
 
+  /// {@macro StateRoute.childRoutes}
+  final List<StateRouteConfigProvider> childRoutes;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey),
     StateDataResolver<DAnc1>(ancestor1StateKey),
@@ -369,5 +381,7 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     routePageBuilder,
     _resolvers,
     isPopup,
+    path,
+    childRoutes.map((e) => e.config).toList(),
   );
 }

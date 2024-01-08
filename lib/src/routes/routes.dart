@@ -348,6 +348,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
     _resolvers,
     isPopup,
     path,
+    const [],
   );
 }
 

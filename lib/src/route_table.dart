@@ -9,9 +9,6 @@ class RouteTable {
   RouteTable._(
     this._stateMachine,
     this._routePaths,
-    // this._rootNode,
-    // this._routesByState,
-    // this._routePathsByStartState,
     this._routePathsByEndState,
   );
 
@@ -44,26 +41,18 @@ class RouteTable {
         )
         .toList();
 
-    // var routePathsByStartState =
-    //     routePaths.groupSetsBy((e) => e.start.stateKey);
     var routePathsByEndState =
         Map.fromEntries(routePaths.map((e) => MapEntry(e.end.stateKey, e)));
 
     return RouteTable._(
       stateMachine,
       routePaths,
-      // rootNode,
-      // routesByState,
-      // routePathsByStartState,
       routePathsByEndState,
     );
   }
 
   final TreeStateMachine _stateMachine;
   final List<TreeStateRoutePath> _routePaths;
-  // final RootNodeInfo _rootNode;
-  // final Map<StateKey, StateRouteConfig> _routesByState;
-  // final Map<StateKey, Set<TreeStateRoutePath>> _routePathsByStartState;
   final Map<StateKey, TreeStateRoutePath> _routePathsByEndState;
 
   RouteInformation? toRouteInformation(TreeStateRoutePath path) {
@@ -91,10 +80,6 @@ class RouteTable {
     if (path == '/') {
       return null;
     }
-    // path = path.startsWith('/') ? path.substring(1) : path;
-    // if (path.isEmpty) {
-    //   return null;
-    // }
 
     return _routePaths.map((routePath) {
       var matched = routePath.matchUriPath(path);

@@ -87,6 +87,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     this.routePageBuilder,
     this.isPopup = false,
     this.path,
+    this.childRoutes = const [],
   });
 
   /// Constructs a [DataStateRoute].
@@ -95,7 +96,8 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     this.routeBuilder,
     this.routePageBuilder,
     this.path,
-  }) : isPopup = false;
+  })  : isPopup = false,
+        childRoutes = const [];
 
   factory DataStateRoute.popup(
     DataStateKey<D> stateKey, {
@@ -110,6 +112,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     ShellDataStateRoutePageBuilder<D>? routePageBuilder,
     bool enableTransitions = false,
     DefaultScaffoldingBuilder? defaultScaffolding,
+    DataRoutePath<D>? path,
   }) {
     var nestedRouter = DescendantStatesRouter(
       key: ValueKey(stateKey),
@@ -140,6 +143,8 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
                       )))
           : null,
       isPopup: false,
+      path: path,
+      childRoutes: routes,
     );
   }
 
@@ -160,6 +165,9 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
   /// {@macro StateRoute.path}
   final DataRoutePath<D>? path;
 
+  /// {@macro StateRoute.childRoutes}
+  final List<StateRouteConfigProvider> childRoutes;
+
   late final List<StateDataResolver> _resolvers = [
     StateDataResolver<D>(stateKey)
   ];
@@ -172,6 +180,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     _resolvers,
     isPopup,
     path,
+    childRoutes.map((e) => e.config).toList(),
   );
 }
 

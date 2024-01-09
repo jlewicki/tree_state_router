@@ -4,19 +4,23 @@ import 'package:tree_state_router/src/widgets/nested_machine_router.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'builder.dart';
 
-/// A route that creates visuals for a state in a state tree.
+typedef CreateRouteConfig = StateRouteConfig Function(StateRouteConfig? parent);
+
+/// A route that provides visuals for a state in a state tree.
 ///
 /// {@template TreeStateRoute.propSummary}
-/// The route is provided with a [stateKey] identifying the tree state to be displayed. When a
-/// [TreeStateRouter] detects that the state is an active state in the routers state machine, it
-/// will place a page in the routers [Navigator] that displays the visuals created by this route.
+/// The route is provided with a [StateKey] identifying the tree state to be
+/// displayed. When a [TreeStateRouter] detects that the state is an active
+/// state in the routers state machine, it will place a page in the routers
+/// [Navigator] that displays the visuals created by this route.
 ///
-/// The visuals that are created are specified by providing either a [routeBuilder] or a
-/// [routePageBuilder]. In most cases, [routeBuilder] will be used, and the [TreeStateRouter] will
-/// wrap these visuals in a routing [Page] that is appropriate for the application (Material or
-/// Cupertino). If precise control of the [Page] type is needed, for example to control the specific
-/// navigation transition animations, [routePageBuilder] can be provided.
-/// instead.
+/// The visuals that are created are specified by providing either a
+/// [StateRouteBuilder] or a [StateRoutePageBuilder]. In most cases, a
+/// [StateRouteBuilder] will be used, and the [TreeStateRouter] will wrap these
+/// visuals in a routing [Page] that is appropriate for the application
+/// (Material or Cupertino). If precise control of the [Page] type is needed,
+/// for example to control the specific navigation transition animations,
+/// a [StateRoutePageBuilder] can be provided instead.
 /// {@endtemplate}
 ///
 /// ```dart
@@ -39,33 +43,46 @@ import 'builder.dart';
 ///   ]);
 /// ```
 class StateRoute implements StateRouteConfigProvider {
-  StateRoute._(this.stateKey,
-      {required this.routePageBuilder,
-      required this.routeBuilder,
-      required this.isPopup,
-      required this.path,
-      required this.childRoutes})
-      : assert(routePageBuilder != null || routeBuilder != null,
-            "One of routePageBuilder or routeBuilder must be provided"),
-        assert(!(routePageBuilder != null && routeBuilder != null),
-            "Only one of routePageBuilder or routeBuilder can be provided"),
-        assert((isPopup && routePageBuilder == null) || !isPopup,
-            "routePageBuilder is not compatible with popup routes.");
+  StateRoute._(this._createRouteConfig);
 
-  /// Constructs a [StateRoute].
+  /// Constructs a [StateRoute] that provides visuals for a state in a state
+  /// tree.
+  ///
+  /// {@template StateRoute.stateKey}
+  /// A [stateKey] must be provided that identifies the tree state for which
+  /// visuals will be provided.
+  /// {@endtemplate}
+  ///
+  /// {@template StateRoute.buildersSummary}
+  /// A [routeBuilder] or [routePageBuilder] function must be provided that
+  /// will create the visuals. In most cases, [routeBuilder] will likely be
+  /// used, and the [TreeStateRouter] will wrap these visuals in a routing
+  /// [Page] that is appropriate for the application (Material or Cupertino). If
+  /// precise control of the [Page] type is needed, for example to control the
+  /// specific navigation transition animations, [routePageBuilder] can be
+  /// provided instead.
+  /// {@endtemplate}
+  ///
+  /// {@template StateRoute.path}
+  /// A [path] can optionally be provided that provides additional path
+  /// information when the route integrates with platform routing (in
+  /// conjunction with [TreeStateRouter.platformRouting]).
+  /// {@endtemplate}
   factory StateRoute(
     StateKey stateKey, {
-    StateRoutePageBuilder? routePageBuilder,
     StateRouteBuilder? routeBuilder,
+    StateRoutePageBuilder? routePageBuilder,
     RoutePathConfig? path,
   }) =>
       StateRoute._(
-        stateKey,
-        routeBuilder: routeBuilder,
-        routePageBuilder: routePageBuilder,
-        isPopup: false,
-        path: path,
-        childRoutes: const [],
+        (parentRoute) => StateRouteConfig(
+          stateKey,
+          routeBuilder: routeBuilder,
+          routePageBuilder: routePageBuilder,
+          isPopup: false,
+          path: path,
+          childRoutes: const [],
+        ),
       );
 
   /// Constructs a [StateRoute] that displays its visuals in a [PopupRoute].
@@ -74,22 +91,34 @@ class StateRoute implements StateRouteConfigProvider {
     StateRouteBuilder? routeBuilder,
     RoutePathConfig? path,
   }) =>
-      StateRoute._(stateKey,
+      StateRoute._(
+        (parentRoute) => StateRouteConfig(
+          stateKey,
           routeBuilder: routeBuilder,
           routePageBuilder: null,
           isPopup: true,
           path: path,
-          childRoutes: const []);
+          childRoutes: const [],
+        ),
+      );
 
-  /// Constructs a [StateRoute] for a parent state that provides common layout (i.e. a 'shell')
-  /// wrapping a nested router that displays visuals for active descendant states.
+  /// Constructs a [StateRoute] for a parent state that provides common layout
+  /// (i.e. a 'shell') wrapping a nested router that displays visuals for active
+  /// descendant states.
   ///
-  /// A list of [routes] must be provided that determine the routing for descendant states of the
-  /// parent state identfied by [stateKey].
+  /// {@macro StateRoute.stateKey}
   ///
-  /// When the [routeBuilder] and [routePageBuilder] functions are called, they are provided a
-  /// `nestedRouter` widget that displays the visuals for the active descendant states. The builder
-  /// functions can place this widget as desired in their layout.
+  /// A list of [routes] must be provided that determine the routing for
+  /// descendant states of the parent state identfied by [stateKey].
+  ///
+  /// {@macro StateRoute.buildersSummary}
+  ///
+  /// When the [routeBuilder] and [routePageBuilder] functions are called, they
+  /// are provided a `nestedRouter` widget that displays the visuals for the
+  /// active descendant states. The builder functions can place this widget as
+  /// desired in their layout.
+  ///
+  /// {@macro StateRoute.path}
   ///
   /// ```dart
   /// var routerConfig = TreeStateRouter(
@@ -121,148 +150,127 @@ class StateRoute implements StateRouteConfigProvider {
     bool enableTransitions = false,
     DefaultScaffoldingBuilder? defaultScaffolding,
     RoutePathConfig? path,
-  }) {
-    var nestedRouter = DescendantStatesRouter(
-      key: ValueKey(stateKey),
-      anchorKey: stateKey,
-      routes: routes,
-      defaultScaffolding: defaultScaffolding,
-      enableTransitions: enableTransitions,
-    );
+  }) =>
+      StateRoute._(
+        (parentRoute) {
+          var childRoutes = <StateRouteConfig>[];
+          var nestedRouter = DescendantStatesRouter(
+            key: ValueKey(stateKey),
+            anchorKey: stateKey,
+            routes: childRoutes,
+            defaultScaffolding: defaultScaffolding,
+            enableTransitions: enableTransitions,
+          );
 
-    return StateRoute._(
-      stateKey,
-      routeBuilder: routeBuilder != null
-          ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter)
-          : null,
-      routePageBuilder: routePageBuilder != null
-          ? (buildContext, wrapPageContent) => routePageBuilder(
-              buildContext,
-              (buildPageContent) =>
-                  wrapPageContent((context, stateContext) => buildPageContent(
-                        context,
-                        stateContext,
-                        nestedRouter,
-                      )))
-          : null,
-      isPopup: false,
-      path: path,
-      childRoutes: routes,
-    );
-  }
+          var config = StateRouteConfig(
+            stateKey,
+            routeBuilder: routeBuilder != null
+                ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter)
+                : null,
+            routePageBuilder: routePageBuilder != null
+                ? (buildContext, wrapPageContent) => routePageBuilder(
+                    buildContext,
+                    (buildPageContent) => wrapPageContent(
+                        (context, stateContext) => buildPageContent(
+                              context,
+                              stateContext,
+                              nestedRouter,
+                            )))
+                : null,
+            isPopup: false,
+            path: path,
+            childRoutes: childRoutes,
+          );
 
-  /// Constructs a [StateRoute] for a machine state that serves as a host for a state machine nested
-  /// within a parent state machine.
+          childRoutes.addAll(config.childRoutes);
+
+          return config;
+        },
+      );
+
+  /// Constructs a [StateRoute] for a machine state that serves as a host for a
+  /// state machine nested within a parent state machine.
   ///
-  /// A list of [routes] must be provided that determine the routing for states within the nested
-  /// state machine, *not* the outer state machine.
+  /// {@macro StateRoute.stateKey}
   ///
-  /// In a similar manner to [StateRoute.shell], when the [routeBuilder] and [routePageBuilder]
-  /// functions are called, they are provided a `nestedRouter` widget that displays the visuals for
-  /// the active descendant states. The builder functions can place this widget as desired in their
+  /// A list of [routes] must be provided that determine the routing for states
+  /// within the nested state machine, *not* the outer state machine.
+  ///
+  /// {@macro StateRoute.buildersSummary}
+  ///
+  /// In a similar manner to [StateRoute.shell], when the [routeBuilder] and
+  /// [routePageBuilder] functions are called, they are provided a
+  /// `nestedRouter` widget that displays the visuals for the active descendant
+  /// states. The builder functions can place this widget as desired in their
   /// layout.
+  ///
+  /// [enableTransitions] and [defaultScaffolding] work in the same manner as
+  /// [TreeStateRouter.enableTransitions] and
+  /// [TreeStateRouter.defaultScaffolding], respectively.
+  ///
+  /// {@macro StateRoute.path}
   factory StateRoute.machine(
-    DataStateKey<MachineTreeStateData> machineStateKey, {
+    DataStateKey<MachineTreeStateData> stateKey, {
     required List<StateRouteConfigProvider> routes,
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
     DefaultScaffoldingBuilder? defaultScaffolding,
     RoutePathConfig? path,
-  }) {
-    var nestedRouter = NestedStateMachineRouter(
-      key: ValueKey(machineStateKey),
-      machineStateKey: machineStateKey,
-      routes: routes,
-      defaultScaffolding: defaultScaffolding,
-      enableTransitions: enableTransitions,
-    );
+  }) =>
+      StateRoute._((parent) {
+        var childRouteConfigs = <StateRouteConfig>[];
+        NestedStateMachineRouter nestedRouter() => NestedStateMachineRouter(
+              key: ValueKey(stateKey),
+              machineStateKey: stateKey,
+              routes: childRouteConfigs,
+              defaultScaffolding: defaultScaffolding,
+              enableTransitions: enableTransitions,
+            );
 
-    return StateRoute._(
-      machineStateKey,
-      routeBuilder: routeBuilder != null
-          ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter)
-          : null,
-      routePageBuilder: routePageBuilder != null
-          ? (buildContext, wrapPageContent) => routePageBuilder(
-              buildContext,
-              (buildPageContent) =>
-                  wrapPageContent((context, stateContext) => buildPageContent(
-                        context,
-                        stateContext,
-                        nestedRouter,
-                      )))
-          : null,
-      isPopup: false,
-      path: path,
-      childRoutes: routes,
-    );
-  }
+        var config = StateRouteConfig(
+          stateKey,
+          routeBuilder: routeBuilder != null
+              ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter())
+              : null,
+          routePageBuilder: routePageBuilder != null
+              ? (buildContext, wrapPageContent) => routePageBuilder(
+                  buildContext,
+                  (buildPageContent) => wrapPageContent(
+                      (context, stateContext) => buildPageContent(
+                            context,
+                            stateContext,
+                            nestedRouter(),
+                          )))
+              : null,
+          isPopup: false,
+          path: path,
+          childRoutes: childRouteConfigs,
+        );
 
-  /// {@template StateRoute.stateKey}
-  /// Identifies the tree state associated with this route.
-  /// {@endtemplate}
-  final StateKey stateKey;
+        childRouteConfigs.addAll(routes.map((e) => e.createConfig(config)));
 
-  /// {@template StateRoute.routeBuilder}
-  /// The builder function providing the visuals for this route.
-  ///
-  /// May be `null` if [routePageBuilder] is provided instead.
-  /// {@endtemplate}
-  final StateRouteBuilder? routeBuilder;
+        return config;
+      });
 
-  /// {@template StateRoute.routePageBuilder}
-  /// The builder function that constructs the routing [Page] for this route.
-  ///
-  /// If `null`, the [TreeStateRouter] will choose an appropriate [Page] type based on the application
-  /// typoe (Material, Cupertino, etc.).
-  /// {@endtemplate}
-  final StateRoutePageBuilder? routePageBuilder;
-
-  /// {@template StateRoute.isPopup}
-  /// Indicates if this route will display its visuals in a [PopupRoute].
-  /// {@endtemplate}
-  final bool isPopup;
-
-  /// {@template StateRoute.path}
-  /// Indicates how this route integrates with platform routing and deep linking.
-  ///
-  /// If a value is provided, the [RoutePathConfig.pathTemplate] value will be used when generating the URI
-  /// segment corresponding to this route. Otherwise, [stateKey] will be used for ths purpose.
-  ///
-  /// Note that [RoutePathConfig.enableDeepLink] is not yet supported.
-  /// {@endtemplate}
-  final RoutePathConfig? path;
-
-  /// {@template StateRoute.childRoutes}
-  /// The list of child routes that are are available for routing in the nested router of this shell
-  /// route.
-  ///
-  /// The tree states for these child routes must be descendant states of the states identifued by
-  /// [stateKey]
-  /// {@endtemplate}
-  final List<StateRouteConfigProvider> childRoutes;
+  final CreateRouteConfig _createRouteConfig;
 
   @override
-  late final config = StateRouteConfig(
-    stateKey,
-    routeBuilder: routeBuilder,
-    routePageBuilder: routePageBuilder,
-    isPopup: isPopup,
-    path: path,
-    childRoutes: childRoutes.map((e) => e.config).toList(),
-  );
+  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+      _createRouteConfig(parent);
 }
 
 /// {@template ShellTreeStateRouteBuilder}
-/// A function that can build a widget providing a visualization of an active parent state in a
-/// state tree, wrapping a nested router that displays active descendant states. This enables shell
-/// or layout pages associated with a parent state to provide a common framing around the visuals
-/// for descendant states.
+/// A function that can build a widget providing a visualization of an active
+/// parent state in a state tree, wrapping a nested router that displays active
+/// descendant states. This enables shell or layout pages associated with a
+/// parent state to provide a common framing around the visual for descendant
+/// states.
 ///
-/// The function is provided a build [context], a [stateContext] that describes the parent state to be
-/// visualized, and a [nestedRouter] representing the visuals for the active states. The widget
-/// produced by the function should incorporate [nestedRouter] somewhere in its widget tree.
+/// The function is provided a build [context], a [stateContext] that describes
+/// the parent state to be visualized, and a [nestedRouter] representing the
+/// visuals for the active states. The widget produced by the function should
+/// incorporate [nestedRouter] somewhere in its widget tree.
 /// {@endtemplate}
 typedef ShellStateRouteBuilder = Widget Function(
   BuildContext context,
@@ -275,31 +283,48 @@ typedef ShellStateRoutePageBuilder = Page<void> Function(
   Widget Function(ShellStateRouteBuilder buildPageContent) wrapPageContent,
 );
 
-/// A route that creates visuals for a state in a state tree, using state data of type [DAnc]
-/// obtained from an ancestor data state.
+/// A route that creates visuals for a state in a state tree, using state data
+/// of type [DAnc] obtained from an ancestor data state.
 ///
-/// This route is used in a very similar manner as [StateRoute], with the addition of providing
-/// the [DataStateKey] of the ancestor state whose data should be obtained.
+/// This route is used in a very similar manner as [StateRoute], with the
+/// addition of providing the [DataStateKey] of the ancestor state whose data
+/// should be obtained.
 class StateRoute1<DAnc> implements StateRouteConfigProvider {
-  StateRoute1._(
-    this.stateKey, {
-    required this.ancestorStateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.isPopup = false,
-    this.path,
-    this.childRoutes = const [],
-  });
+  StateRoute1._(this._createRouteConfig);
 
   /// Constructs a [StateRoute1].
-  StateRoute1(
-    this.stateKey, {
-    required this.ancestorStateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.path,
-  })  : isPopup = false,
-        childRoutes = const [];
+  ///
+  /// A [stateKey] must be provided that identifies the tree state for which
+  /// visuals will be provided, as well as an [ancestorStateKey] that identifies
+  /// the ancestor data state that provides its state data to the builder
+  /// functions.
+  ///
+  /// {@macro StateRoute.buildersSummary}
+  ///
+  /// When the [routeBuilder] and [routePageBuilder] functions are called, they
+  /// are provided a `data` argument containing the state data obtained from
+  /// [ancestorStateKey].
+  ///
+  /// {@macro StateRoute.path}
+  factory StateRoute1(
+    StateKey stateKey, {
+    required DataStateKey<DAnc> ancestorStateKey,
+    DataStateRouteBuilder<DAnc>? routeBuilder,
+    DataStateRoutePageBuilder<DAnc>? routePageBuilder,
+    RoutePathConfig? path,
+  }) =>
+      StateRoute1._((parent) {
+        return createDataStateRouteConfig1<DAnc>(
+          parent,
+          stateKey,
+          routeBuilder,
+          routePageBuilder,
+          [StateDataResolver<DAnc>(ancestorStateKey)],
+          false,
+          path,
+          const [],
+        );
+      });
 
   /// Constructs a [StateRoute1] that displays its visuals in a [PopupRoute].
   factory StateRoute1.popup(
@@ -307,56 +332,24 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
     required DataStateKey<DAnc> ancestorStateKey,
     required DataStateRouteBuilder<DAnc> routeBuilder,
   }) =>
-      StateRoute1<DAnc>._(
-        stateKey,
-        ancestorStateKey: ancestorStateKey,
-        routeBuilder: routeBuilder,
-        isPopup: true,
-      );
+      StateRoute1._((parent) {
+        return createDataStateRouteConfig1<DAnc>(
+          parent,
+          stateKey,
+          routeBuilder,
+          null,
+          [StateDataResolver<DAnc>(ancestorStateKey)],
+          true,
+          null,
+          const [],
+        );
+      });
 
-  /// {@macro StateRoute.stateKey}
-  final StateKey stateKey;
-
-  /// {@template StateRoute1.ancestorStateKey}
-  /// Identifies the ancestor data state whose data should be obtained.
-  /// {@endtemplate}
-  final DataStateKey<DAnc> ancestorStateKey;
-
-  /// {@macro StateRoute.routeBuilder}
-  ///
-  /// When called, this function is provided the current [DAnc] value obtained from the ancestor
-  /// data state.
-  final DataStateRouteBuilder<DAnc>? routeBuilder;
-
-  /// {@macro StateRoute.routePageBuilder}
-  ///
-  /// When called, this function is provided the current [DAnc] value obtained from the ancestor
-  /// data state.
-  final DataStateRoutePageBuilder<DAnc>? routePageBuilder;
-
-  /// {@macro StateRoute.isPopup}
-  final bool isPopup;
-
-  /// {@macro StateRoute.path}
-  final RoutePathConfig? path;
-
-  /// {@macro StateRoute.childRoutes}
-  final List<StateRouteConfigProvider> childRoutes;
-
-  late final List<StateDataResolver> _resolvers = [
-    StateDataResolver<DAnc>(ancestorStateKey)
-  ];
+  final CreateRouteConfig _createRouteConfig;
 
   @override
-  late final config = createDataStateRouteConfig1(
-    stateKey,
-    routeBuilder,
-    routePageBuilder,
-    _resolvers,
-    isPopup,
-    path,
-    const [],
-  );
+  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+      _createRouteConfig(parent);
 }
 
 /// A route that creates visuals for a state in a state tree, using state data of type [DAnc1] and
@@ -368,91 +361,61 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
 /// Note that there is no relationship implied between the ancestor states. Either state may be an
 /// ancestor of the other.
 class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
-  StateRoute2._(
-    this.stateKey, {
-    required this.ancestor1StateKey,
-    required this.ancestor2StateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.isPopup = false,
-    this.path,
-    this.childRoutes = const [],
-  });
+  StateRoute2._(this._createRouteConfig);
 
-  /// Constructs a [StateRoute2].
-  StateRoute2(
-    this.stateKey, {
-    required this.ancestor1StateKey,
-    required this.ancestor2StateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.path,
-  })  : isPopup = false,
-        childRoutes = const [];
+  /// Constructs a [StateRoute1].
+  factory StateRoute2(
+    StateKey stateKey, {
+    required DataStateKey<DAnc1> ancestor1StateKey,
+    required DataStateKey<DAnc2> ancestor2StateKey,
+    DataStateRouteBuilder2<DAnc1, DAnc2>? routeBuilder,
+    DataStateRoutePageBuilder2<DAnc1, DAnc2>? routePageBuilder,
+    RoutePathConfig? path,
+  }) =>
+      StateRoute2._((parent) {
+        return createDataStateRouteConfig2(
+          parent,
+          stateKey,
+          routeBuilder,
+          routePageBuilder,
+          [
+            StateDataResolver<DAnc1>(ancestor1StateKey),
+            StateDataResolver<DAnc2>(ancestor2StateKey),
+          ],
+          false,
+          path,
+          const [],
+        );
+      });
 
+  /// Constructs a [StateRoute1] that displays its visuals in a [PopupRoute].
   factory StateRoute2.popup(
     StateKey stateKey, {
     required DataStateKey<DAnc1> ancestor1StateKey,
     required DataStateKey<DAnc2> ancestor2StateKey,
-    required DataStateRouteBuilder2<DAnc1, DAnc2> routeBuilder,
+    required DataStateRouteBuilder2<DAnc1, DAnc2>? routeBuilder,
   }) =>
-      StateRoute2<DAnc1, DAnc2>._(
-        stateKey,
-        ancestor1StateKey: ancestor1StateKey,
-        ancestor2StateKey: ancestor2StateKey,
-        routeBuilder: routeBuilder,
-        isPopup: true,
-      );
+      StateRoute2._((parent) {
+        return createDataStateRouteConfig2(
+          parent,
+          stateKey,
+          routeBuilder,
+          null,
+          [
+            StateDataResolver<DAnc1>(ancestor1StateKey),
+            StateDataResolver<DAnc2>(ancestor2StateKey),
+          ],
+          true,
+          null,
+          const [],
+        );
+      });
 
-  /// {@macro StateRoute.stateKey}
-  final StateKey stateKey;
-
-  /// {@template StateRoute2.ancestor1StateKey}
-  /// Identifies the first ancestor data state whose data should be obtained.
-  /// {@endtemplate}
-  final DataStateKey<DAnc1> ancestor1StateKey;
-
-  /// {@template StateRoute2.ancestor2StateKey}
-  /// Identifies the second ancestor data state whose data should be obtained.
-  /// {@endtemplate}
-  final DataStateKey<DAnc2> ancestor2StateKey;
-
-  /// {@macro StateRoute.routeBuilder}
-  ///
-  /// When called, this function is provided the current [DAnc1] and [DAnc2] values obtained from
-  /// the ancestor data states.
-  final DataStateRouteBuilder2<DAnc1, DAnc2>? routeBuilder;
-
-  /// {@macro StateRoute.routePageBuilder}
-  ///
-  /// When called, this function is provided the current [DAnc1] and [DAnc2] values obtained from
-  /// the ancestor data states.
-  final DataStateRoutePageBuilder2<DAnc1, DAnc2>? routePageBuilder;
-
-  /// {@macro StateRoute.isPopup}
-  final bool isPopup;
-
-  /// {@macro StateRoute.path}
-  final RoutePathConfig? path;
-
-  /// {@macro StateRoute.childRoutes}
-  final List<StateRouteConfigProvider> childRoutes;
-
-  late final List<StateDataResolver> _resolvers = [
-    StateDataResolver<DAnc1>(ancestor1StateKey),
-    StateDataResolver<DAnc2>(ancestor2StateKey)
-  ];
+  final CreateRouteConfig _createRouteConfig;
 
   @override
-  late final config = createDataStateRouteConfig2(
-    stateKey,
-    routeBuilder,
-    routePageBuilder,
-    _resolvers,
-    isPopup,
-    path,
-    childRoutes.map((e) => e.config).toList(),
-  );
+  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+      _createRouteConfig(parent);
 }
 
 /// A route that creates visuals for a state in a state tree, using state data of type [DAnc1],
@@ -464,29 +427,34 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
 /// Note that there is no relationship implied between the ancestor states. Any state may be an
 /// ancestor of the others
 class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
-  StateRoute3._(
-    this.stateKey, {
-    required this.ancestor1StateKey,
-    required this.ancestor2StateKey,
-    required this.ancestor3StateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.isPopup = false,
-    this.path,
-    this.childRoutes = const [],
-  });
+  StateRoute3._(this._createRouteConfig);
 
   /// Constructs a [StateRoute3].
-  StateRoute3(
-    this.stateKey, {
-    required this.ancestor1StateKey,
-    required this.ancestor2StateKey,
-    required this.ancestor3StateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.path,
-  })  : isPopup = false,
-        childRoutes = const [];
+  factory StateRoute3(
+    StateKey stateKey, {
+    required DataStateKey<DAnc1> ancestor1StateKey,
+    required DataStateKey<DAnc2> ancestor2StateKey,
+    required DataStateKey<DAnc3> ancestor3StateKey,
+    DataStateRouteBuilder3<DAnc1, DAnc2, DAnc3>? routeBuilder,
+    DataStateRoutePageBuilder3<DAnc1, DAnc2, DAnc3>? routePageBuilder,
+    RoutePathConfig? path,
+  }) =>
+      StateRoute3._((parent) {
+        return createDataStateRouteConfig3(
+          parent,
+          stateKey,
+          routeBuilder,
+          routePageBuilder,
+          [
+            StateDataResolver<DAnc1>(ancestor1StateKey),
+            StateDataResolver<DAnc2>(ancestor2StateKey),
+            StateDataResolver<DAnc2>(ancestor2StateKey),
+          ],
+          false,
+          path,
+          const [],
+        );
+      });
 
   factory StateRoute3.popup(
     StateKey stateKey, {
@@ -495,61 +463,26 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
     required DataStateKey<DAnc3> ancestor3StateKey,
     required DataStateRouteBuilder3<DAnc1, DAnc2, DAnc3> routeBuilder,
   }) =>
-      StateRoute3<DAnc1, DAnc2, DAnc3>._(
-        stateKey,
-        ancestor1StateKey: ancestor1StateKey,
-        ancestor2StateKey: ancestor2StateKey,
-        ancestor3StateKey: ancestor3StateKey,
-        routeBuilder: routeBuilder,
-        isPopup: true,
-      );
+      StateRoute3._((parent) {
+        return createDataStateRouteConfig3(
+          parent,
+          stateKey,
+          routeBuilder,
+          null,
+          [
+            StateDataResolver<DAnc1>(ancestor1StateKey),
+            StateDataResolver<DAnc2>(ancestor2StateKey),
+            StateDataResolver<DAnc2>(ancestor2StateKey),
+          ],
+          true,
+          null,
+          const [],
+        );
+      });
 
-  /// {@macro StateRoute.stateKey}
-  final StateKey stateKey;
-
-  /// {@macro StateRoute2.ancestor1StateKey}
-  final DataStateKey<DAnc1> ancestor1StateKey;
-
-  /// {@macro StateRoute2.ancestor2StateKey}
-  final DataStateKey<DAnc2> ancestor2StateKey;
-
-  /// Identifies the third ancestor data state whose data should be obtained.
-  final DataStateKey<DAnc3> ancestor3StateKey;
-
-  /// {@macro StateRoute.routeBuilder}
-  ///
-  /// When called, this function is provided the current [DAnc1], [DAnc2], and [DAnc3] values
-  /// obtained from the ancestor data states.
-  final DataStateRouteBuilder3<DAnc1, DAnc2, DAnc3>? routeBuilder;
-
-  /// {@macro StateRoute.routePageBuilder}
-  ///
-  /// When called, this function is provided the current [DAnc1], [DAnc2], and [DAnc3] values
-  /// obtained from the ancestor data states.
-  final DataStateRoutePageBuilder3<DAnc1, DAnc2, DAnc3>? routePageBuilder;
-
-  /// {@macro StateRoute.path}
-  final RoutePathConfig? path;
-
-  /// {@macro StateRoute.childRoutes}
-  final List<StateRouteConfigProvider> childRoutes;
-
-  /// {@macro StateRoute.isPopup}
-  final bool isPopup;
-  late final List<StateDataResolver> _resolvers = [
-    StateDataResolver<DAnc1>(ancestor1StateKey),
-    StateDataResolver<DAnc2>(ancestor2StateKey),
-    StateDataResolver<DAnc3>(ancestor3StateKey)
-  ];
+  final CreateRouteConfig _createRouteConfig;
 
   @override
-  late final config = createDataStateRouteConfig3(
-    stateKey,
-    routeBuilder,
-    routePageBuilder,
-    _resolvers,
-    isPopup,
-    path,
-    childRoutes.map((e) => e.config).toList(),
-  );
+  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+      _createRouteConfig(parent);
 }

@@ -81,29 +81,44 @@ typedef ShellDataStateRoutePageBuilder<D> = Page<void> Function(
 ///   ]);
 /// ```
 class DataStateRoute<D> implements StateRouteConfigProvider {
-  DataStateRoute._(
-    this.stateKey, {
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.isPopup = false,
-    this.path,
-    this.childRoutes = const [],
-  });
+  DataStateRoute._(this._createRouteConfig);
 
   /// Constructs a [DataStateRoute].
-  DataStateRoute(
-    this.stateKey, {
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.path,
-  })  : isPopup = false,
-        childRoutes = const [];
+  factory DataStateRoute(
+    DataStateKey<D> stateKey, {
+    DataStateRouteBuilder<D>? routeBuilder,
+    DataStateRoutePageBuilder<D>? routePageBuilder,
+    DataRoutePath<D>? path,
+  }) =>
+      DataStateRoute<D>._((parent) {
+        return createDataStateRouteConfig1<D>(
+          parent,
+          stateKey,
+          routeBuilder,
+          routePageBuilder,
+          [StateDataResolver<D>(stateKey)],
+          false,
+          path,
+          const [],
+        );
+      });
 
   factory DataStateRoute.popup(
     DataStateKey<D> stateKey, {
     required DataStateRouteBuilder<D> routeBuilder,
   }) =>
-      DataStateRoute<D>._(stateKey, routeBuilder: routeBuilder, isPopup: true);
+      DataStateRoute<D>._((parent) {
+        return createDataStateRouteConfig1<D>(
+          parent,
+          stateKey,
+          routeBuilder,
+          null,
+          [StateDataResolver<D>(stateKey)],
+          false,
+          null,
+          const [],
+        );
+      });
 
   factory DataStateRoute.shell(
     DataStateKey<D> stateKey, {
@@ -113,75 +128,79 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     bool enableTransitions = false,
     DefaultScaffoldingBuilder? defaultScaffolding,
     DataRoutePath<D>? path,
-  }) {
-    var nestedRouter = DescendantStatesRouter(
-      key: ValueKey(stateKey),
-      anchorKey: stateKey,
-      routes: routes,
-      enableTransitions: enableTransitions,
-      defaultScaffolding: defaultScaffolding,
-    );
-    return DataStateRoute<D>._(
-      stateKey,
-      routeBuilder: routeBuilder != null
-          ? (ctx, stateCtx, data) => routeBuilder(
-                ctx,
-                stateCtx,
-                nestedRouter,
-                data,
-              )
-          : null,
-      routePageBuilder: routePageBuilder != null
-          ? (buildContext, wrapPageContent) => routePageBuilder(
-              buildContext,
-              (buildPageContent) => wrapPageContent(
-                  (context, stateContext, data) => buildPageContent(
-                        context,
-                        stateContext,
-                        nestedRouter,
-                        data,
-                      )))
-          : null,
-      isPopup: false,
-      path: path,
-      childRoutes: routes,
-    );
-  }
+  }) =>
+      DataStateRoute<D>._((parent) {
+        var childRouteConfigs = <StateRouteConfig>[];
+        DescendantStatesRouter nestedRouter() => DescendantStatesRouter(
+              key: ValueKey(stateKey),
+              anchorKey: stateKey,
+              routes: childRouteConfigs,
+              enableTransitions: enableTransitions,
+              defaultScaffolding: defaultScaffolding,
+            );
 
-  /// {@template DataStateRoute.stateKey}
-  /// Identifies the data tree state associated with this route.
-  /// {@endtemplate}
-  final DataStateKey<D> stateKey;
+        var config = createDataStateRouteConfig1<D>(
+          parent,
+          stateKey,
+          routeBuilder != null
+              ? (ctx, stateCtx, data) => routeBuilder(
+                    ctx,
+                    stateCtx,
+                    nestedRouter(),
+                    data,
+                  )
+              : null,
+          routePageBuilder != null
+              ? (buildContext, wrapPageContent) => routePageBuilder(
+                  buildContext,
+                  (buildPageContent) => wrapPageContent(
+                      (context, stateContext, data) => buildPageContent(
+                            context,
+                            stateContext,
+                            nestedRouter(),
+                            data,
+                          )))
+              : null,
+          [StateDataResolver<D>(stateKey)],
+          false,
+          path,
+          routes,
+        );
+        childRouteConfigs.addAll(config.childRoutes);
+        return config;
+      });
 
-  /// {@macro StateRoute.routeBuilder}
-  final DataStateRouteBuilder<D>? routeBuilder;
-
-  /// {@macro StateRoute.routePageBuilder}
-  final DataStateRoutePageBuilder<D>? routePageBuilder;
-
-  /// {@macro StateRoute.isPopup}
-  final bool isPopup;
-
-  /// {@macro StateRoute.path}
-  final DataRoutePath<D>? path;
-
-  /// {@macro StateRoute.childRoutes}
-  final List<StateRouteConfigProvider> childRoutes;
-
-  late final List<StateDataResolver> _resolvers = [
-    StateDataResolver<D>(stateKey)
-  ];
+  final CreateRouteConfig _createRouteConfig;
 
   @override
-  late final config = createDataStateRouteConfig1(
-    stateKey,
-    routeBuilder,
-    routePageBuilder,
-    _resolvers,
-    isPopup,
-    path,
-    childRoutes.map((e) => e.config).toList(),
-  );
+  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+      _createRouteConfig(parent);
+
+  // /// {@template DataStateRoute.stateKey}
+  // /// Identifies the data tree state associated with this route.
+  // /// {@endtemplate}
+  // final DataStateKey<D> stateKey;
+
+  // /// {@macro StateRoute.routeBuilder}
+  // final DataStateRouteBuilder<D>? routeBuilder;
+
+  // /// {@macro StateRoute.routePageBuilder}
+  // final DataStateRoutePageBuilder<D>? routePageBuilder;
+
+  // /// {@macro StateRoute.isPopup}
+  // final bool isPopup;
+
+  // /// {@macro StateRoute.path}
+  // final DataRoutePath<D>? path;
+
+  // /// {@macro StateRoute.childRoutes}
+  // final List<StateRouteConfigProvider> childRoutes;
+
+  // final List<StateRouteConfig> _childRouteConfigs;
+
+  // late final List<StateDataResolver> _resolvers = [
+  //   StateDataResolver<D>(stateKey)
+  // ];
 }
 
 typedef DataStateRouteBuilder2<D, DAnc> = Widget Function(
@@ -202,81 +221,59 @@ typedef DataStateRoutePageBuilder2<D, DAnc> = Page<void> Function(
 ///
 /// This route is used in a very similar manner as [DataStateRoute], with the addition of providing
 /// the [DataStateKey] of the ancestor state whose data should be obtained.
-class DataStateRoute2<D, DAnc> implements StateRouteConfigProvider {
-  DataStateRoute2._(
-    this.stateKey, {
-    required this.ancestorStateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.isPopup = false,
-    this.path,
-    this.childRoutes = const [],
-  });
+class DataStateRoute2<D, DAnc1> implements StateRouteConfigProvider {
+  DataStateRoute2._(this._createRouteConfig);
 
-  /// Constructs a [DataStateRoute2].
-  DataStateRoute2(
-    this.stateKey, {
-    required this.ancestorStateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.path,
-  })  : isPopup = false,
-        childRoutes = const [];
+  /// Constructs a [DataStateRoute3].
+  factory DataStateRoute2(
+    DataStateKey<D> stateKey, {
+    required DataStateKey<DAnc1> ancestorStateKey,
+    DataStateRouteBuilder2<D, DAnc1>? routeBuilder,
+    DataStateRoutePageBuilder2<D, DAnc1>? routePageBuilder,
+    RoutePathConfig? path,
+  }) =>
+      DataStateRoute2._((parent) {
+        return createDataStateRouteConfig2(
+          parent,
+          stateKey,
+          routeBuilder,
+          routePageBuilder,
+          [
+            StateDataResolver<D>(stateKey),
+            StateDataResolver<DAnc1>(ancestorStateKey),
+          ],
+          false,
+          path,
+          const [],
+        );
+      });
 
   factory DataStateRoute2.popup(
     DataStateKey<D> stateKey, {
-    required DataStateKey<DAnc> ancestorStateKey,
-    required DataStateRouteBuilder2<D, DAnc> routeBuilder,
+    required DataStateKey<DAnc1> ancestor1StateKey,
+    required DataStateRouteBuilder2<D, DAnc1> routeBuilder,
   }) =>
-      DataStateRoute2<D, DAnc>._(
-        stateKey,
-        ancestorStateKey: ancestorStateKey,
-        routeBuilder: routeBuilder,
-        isPopup: true,
-      );
+      DataStateRoute2._((parent) {
+        return createDataStateRouteConfig3(
+          parent,
+          stateKey,
+          null,
+          null,
+          [
+            StateDataResolver<D>(stateKey),
+            StateDataResolver<DAnc1>(ancestor1StateKey),
+          ],
+          true,
+          null,
+          const [],
+        );
+      });
 
-  /// {@macro DataStateRoute.stateKey}
-  final DataStateKey<D> stateKey;
-
-  /// {@macro StateRoute1.ancestorStateKey}
-  final DataStateKey<DAnc> ancestorStateKey;
-
-  /// {@macro StateRoute.routeBuilder}
-  ///
-  /// When called, this function is provided the current [D] and [DAnc] values obtained from the
-  /// data state and the ancestor state.
-  final DataStateRouteBuilder2<D, DAnc>? routeBuilder;
-
-  /// {@macro StateRoute.routePageBuilder}
-  ///
-  /// When called, this function is provided the current [D] and [DAnc] values obtained from the
-  /// data state and the ancestor state.
-  final DataStateRoutePageBuilder2<D, DAnc>? routePageBuilder;
-
-  /// {@macro StateRoute.isPopup}
-  final bool isPopup;
-
-  /// {@macro StateRoute.path}
-  final RoutePathConfig? path;
-
-  /// {@macro StateRoute.childRoutes}
-  final List<StateRouteConfigProvider> childRoutes;
-
-  late final List<StateDataResolver> _resolvers = [
-    StateDataResolver<D>(stateKey),
-    StateDataResolver<DAnc>(ancestorStateKey)
-  ];
+  final CreateRouteConfig _createRouteConfig;
 
   @override
-  late final config = createDataStateRouteConfig2(
-    stateKey,
-    routeBuilder,
-    routePageBuilder,
-    _resolvers,
-    isPopup,
-    path,
-    childRoutes.map((e) => e.config).toList(),
-  );
+  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+      _createRouteConfig(parent);
 }
 
 typedef DataStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
@@ -302,27 +299,33 @@ typedef DataStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
 /// Note that there is no relationship implied between the ancestor states. Either state may be an
 /// ancestor of the other.
 class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
-  DataStateRoute3._(
-    this.stateKey, {
-    required this.ancestor1StateKey,
-    required this.ancestor2StateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.isPopup = false,
-    this.path,
-    this.childRoutes = const [],
-  });
+  DataStateRoute3._(this._createRouteConfig);
 
   /// Constructs a [DataStateRoute3].
-  DataStateRoute3(
-    this.stateKey, {
-    required this.ancestor1StateKey,
-    required this.ancestor2StateKey,
-    this.routeBuilder,
-    this.routePageBuilder,
-    this.path,
-  })  : isPopup = false,
-        childRoutes = const [];
+  factory DataStateRoute3(
+    DataStateKey<D> stateKey, {
+    required DataStateKey<DAnc1> ancestor1StateKey,
+    required DataStateKey<DAnc2> ancestor2StateKey,
+    DataStateRouteBuilder3<D, DAnc1, DAnc2>? routeBuilder,
+    DataStateRoutePageBuilder3<D, DAnc1, DAnc2>? routePageBuilder,
+    RoutePathConfig? path,
+  }) =>
+      DataStateRoute3._((parent) {
+        return createDataStateRouteConfig3(
+          parent,
+          stateKey,
+          routeBuilder,
+          routePageBuilder,
+          [
+            StateDataResolver<D>(stateKey),
+            StateDataResolver<DAnc1>(ancestor1StateKey),
+            StateDataResolver<DAnc2>(ancestor2StateKey),
+          ],
+          false,
+          path,
+          const [],
+        );
+      });
 
   factory DataStateRoute3.popup(
     DataStateKey<D> stateKey, {
@@ -330,58 +333,64 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     required DataStateKey<DAnc2> ancestor2StateKey,
     required DataStateRouteBuilder3<D, DAnc1, DAnc2> routeBuilder,
   }) =>
-      DataStateRoute3<D, DAnc1, DAnc2>._(
-        stateKey,
-        ancestor1StateKey: ancestor1StateKey,
-        ancestor2StateKey: ancestor2StateKey,
-        routeBuilder: routeBuilder,
-        isPopup: true,
-      );
+      DataStateRoute3._((parent) {
+        return createDataStateRouteConfig3(
+          parent,
+          stateKey,
+          routeBuilder,
+          null,
+          [
+            StateDataResolver<D>(stateKey),
+            StateDataResolver<DAnc1>(ancestor1StateKey),
+            StateDataResolver<DAnc2>(ancestor2StateKey),
+          ],
+          true,
+          null,
+          const [],
+        );
+      });
 
-  /// {@macro DataStateRoute.stateKey}
-  final DataStateKey<D> stateKey;
-
-  /// {@macro StateRoute2.ancestor1StateKey}
-  final DataStateKey<DAnc1> ancestor1StateKey;
-
-  /// {@macro StateRoute2.ancestor1StateKey}
-  final DataStateKey<DAnc2> ancestor2StateKey;
-
-  /// {@macro StateRoute.routeBuilder}
-  ///
-  /// When called, this function is provided the current [D], [DAnc1] and [DAnc2] values obtained
-  /// from the data state, and the two ancestor states.
-  final DataStateRouteBuilder3<D, DAnc1, DAnc2>? routeBuilder;
-
-  /// {@macro StateRoute.routePageBuilder}
-  ///
-  /// When called, this function is provided the current [D], [DAnc1] and [DAnc2] values obtained
-  /// from the data state, and the two ancestor states.
-  final DataStateRoutePageBuilder3<D, DAnc1, DAnc2>? routePageBuilder;
-
-  /// {@macro StateRoute.isPopup}
-  final bool isPopup;
-
-  /// {@macro StateRoute.path}
-  final RoutePathConfig? path;
-
-  /// {@macro StateRoute.childRoutes}
-  final List<StateRouteConfigProvider> childRoutes;
-
-  late final List<StateDataResolver> _resolvers = [
-    StateDataResolver<D>(stateKey),
-    StateDataResolver<DAnc1>(ancestor1StateKey),
-    StateDataResolver<DAnc2>(ancestor2StateKey)
-  ];
+  final CreateRouteConfig _createRouteConfig;
 
   @override
-  late final config = createDataStateRouteConfig3(
-    stateKey,
-    routeBuilder,
-    routePageBuilder,
-    _resolvers,
-    isPopup,
-    path,
-    childRoutes.map((e) => e.config).toList(),
-  );
+  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+      _createRouteConfig(parent);
 }
+
+  // /// {@macro DataStateRoute.stateKey}
+  // final DataStateKey<D> stateKey;
+
+  // /// {@macro StateRoute2.ancestor1StateKey}
+  // final DataStateKey<DAnc1> ancestor1StateKey;
+
+  // /// {@macro StateRoute2.ancestor1StateKey}
+  // final DataStateKey<DAnc2> ancestor2StateKey;
+
+  // /// {@macro StateRoute.routeBuilder}
+  // ///
+  // /// When called, this function is provided the current [D], [DAnc1] and [DAnc2] values obtained
+  // /// from the data state, and the two ancestor states.
+  // final DataStateRouteBuilder3<D, DAnc1, DAnc2>? routeBuilder;
+
+  // /// {@macro StateRoute.routePageBuilder}
+  // ///
+  // /// When called, this function is provided the current [D], [DAnc1] and [DAnc2] values obtained
+  // /// from the data state, and the two ancestor states.
+  // final DataStateRoutePageBuilder3<D, DAnc1, DAnc2>? routePageBuilder;
+
+  // /// {@macro StateRoute.isPopup}
+  // final bool isPopup;
+
+  // /// {@macro StateRoute.path}
+  // final RoutePathConfig? path;
+
+  // /// {@macro StateRoute.childRoutes}
+  // final List<StateRouteConfigProvider> childRoutes;
+
+  // late final List<StateDataResolver> _resolvers = [
+  //   StateDataResolver<D>(stateKey),
+  //   StateDataResolver<DAnc1>(ancestor1StateKey),
+  //   StateDataResolver<DAnc2>(ancestor2StateKey)
+  // ];
+
+

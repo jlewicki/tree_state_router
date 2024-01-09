@@ -14,7 +14,7 @@ class RouteTable {
 
   factory RouteTable(
     TreeStateMachine stateMachine,
-    List<StateRouteConfigProvider> routes,
+    List<StateRouteConfig> routes,
   ) {
     // Map of all known routes
     var routesByState = Map.fromEntries(
@@ -93,10 +93,10 @@ class RouteTable {
 
   /// Iterates through the routes and all of their descendants.
   static Iterable<StateRouteConfig> _withDescendants(
-    List<StateRouteConfigProvider> routes,
+    List<StateRouteConfig> routes,
   ) sync* {
     for (var route in routes) {
-      yield* route.config.selfAndDescendants();
+      yield* route.selfAndDescendants();
     }
   }
 }

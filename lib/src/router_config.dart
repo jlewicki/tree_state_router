@@ -45,11 +45,11 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     this.enablePlatformRouting = false,
   }) : assert((() {
           routes.fold(<StateKey>{}, (keys, route) {
-            if (keys.contains(route.config.stateKey)) {
+            if (keys.contains(route.stateKey)) {
               throw AssertionError("There is more than one route for state "
-                  "'${route.config.stateKey}' defined");
+                  "'${route.stateKey}' defined");
             }
-            keys.add(route.config.stateKey);
+            keys.add(route.stateKey);
             return keys;
           });
           return true;
@@ -75,7 +75,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
         "Only one of stateMachine or stateTree can be provided ");
     return TreeStateRouter._(
       stateMachine: stateMachine ?? TreeStateMachine(stateTree!),
-      routes: routes,
+      routes: routes.map((e) => e.createConfig(null)).toList(),
       defaultScaffolding: defaultScaffolding,
       defaultPageBuilder: defaultPageBuilder,
       enableTransitions: enableTransitions,
@@ -95,10 +95,11 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,
   }) {
+    var routeConfigs = routes.map((e) => e.createConfig(null)).toList();
     // Find data routes that have route parameters. Theses routes will have
     // tree state filters installed that can initialize state data
-    var dataRoutesWithParams = Map.fromEntries(routes
-        .expand((r) => r.config.selfAndDescendants())
+    var dataRoutesWithParams = Map.fromEntries(routeConfigs
+        .expand((r) => r.selfAndDescendants())
         .where((r) =>
             r.path is DataRoutePath &&
             (r.path as DataRoutePath).initialData != null)
@@ -122,7 +123,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
 
     return TreeStateRouter._(
       stateMachine: TreeStateMachine.withBuilder(builder),
-      routes: routes,
+      routes: routeConfigs,
       defaultScaffolding: defaultScaffolding,
       defaultPageBuilder: defaultPageBuilder,
       enableTransitions: enableTransitions,
@@ -135,8 +136,8 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   final TreeStateMachine stateMachine;
 
   /// The list of routes that can be materialized by this router.  Each route
-  /// should correspond to a a state in the [stateMachine].
-  final List<StateRouteConfigProvider> routes;
+  /// should correspond to a state in the [stateMachine].
+  final List<StateRouteConfig> routes;
 
   /// Indictes if the router integrates with the platform routing engine, such
   /// that web browser URLs are updated in response to route changes.
@@ -183,7 +184,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   late final _routeTable = RouteTable(stateMachine, routes);
 
   late final _routerDelegateConfig = TreeStateRouterDelegateConfig(
-    routes.map((e) => e.config).toList(),
+    routes.toList(),
     defaultPageBuilder: defaultPageBuilder,
     defaultScaffolding: defaultScaffolding,
     enableTransitions: enableTransitions,

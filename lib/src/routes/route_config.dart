@@ -15,7 +15,8 @@ class TreeStateRoutingState {}
 abstract class StateRouteConfigProvider {
   /// A config object providing a generalized description of a route for a
   /// [TreeStateRouter].
-  StateRouteConfig get config;
+  //StateRouteConfig get config;
+  StateRouteConfig createConfig(StateRouteConfig? parent);
 }
 
 /// {@template StateRouteBuilder}

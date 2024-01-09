@@ -29,8 +29,6 @@ class NestedStateMachineRouter extends StatelessWidget {
   /// {@macro TreeStateRouter.enableTransitions}
   final bool enableTransitions;
 
-  //late final _routeConfigs = routes.map((r) => r.config).toList();
-
   @override
   Widget build(BuildContext context) {
     return Router(

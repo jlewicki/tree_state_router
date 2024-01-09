@@ -200,9 +200,8 @@ class StateRoute implements StateRouteConfigProvider {
   ///
   /// In a similar manner to [StateRoute.shell], when the [routeBuilder] and
   /// [routePageBuilder] functions are called, they are provided a
-  /// `nestedRouter` widget that displays the visuals for the active descendant
-  /// states. The builder functions can place this widget as desired in their
-  /// layout.
+  /// `nestedRouter` widget that displays the visuals for the active state(s).
+  ///  The builder functions can place this widget as desired in their layout.
   ///
   /// [enableTransitions] and [defaultScaffolding] work in the same manner as
   /// [TreeStateRouter.enableTransitions] and
@@ -288,7 +287,8 @@ typedef ShellStateRoutePageBuilder = Page<void> Function(
 ///
 /// This route is used in a very similar manner as [StateRoute], with the
 /// addition of providing the [DataStateKey] of the ancestor state whose data
-/// should be obtained.
+/// should be obtained. The data value is yen made available to the builder
+/// functions.
 class StateRoute1<DAnc> implements StateRouteConfigProvider {
   StateRoute1._(this._createRouteConfig);
 
@@ -296,7 +296,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
   ///
   /// A [stateKey] must be provided that identifies the tree state for which
   /// visuals will be provided, as well as an [ancestorStateKey] that identifies
-  /// the ancestor data state that provides its state data to the builder
+  /// the ancestor data state will provide its state data to the builder
   /// functions.
   ///
   /// {@macro StateRoute.buildersSummary}

@@ -85,13 +85,18 @@ class StateRouteConfig {
   /// {@macro StateRoute.path}
   final RoutePathConfig path;
 
-  /// {@macro StateRoute.routeBuilder}
+  /// The builder function providing the visuals for this route.
+  ///
+  /// May be `null` if [routePageBuilder] is provided instead.
   final StateRouteBuilder? routeBuilder;
 
-  /// {@macro StateRoute.routePageBuilder}
+  /// The builder function that constructs the routing [Page] for this route.
+  ///
+  /// If `null`, the [TreeStateRouter] will choose an appropriate [Page] type
+  /// based on the application type (Material, Cupertino, etc.).
   final StateRoutePageBuilder? routePageBuilder;
 
-  /// {@macro StateRoute.isPopup}
+  /// Indicates if this route will display its visuals in a modal [PopupRoute].
   final bool isPopup;
 
   /// A list (possibly empty) of keys indentifying the data states whose data
@@ -101,6 +106,10 @@ class StateRouteConfig {
   /// [stateKey] is a [DataStateKey] it will be present in the list as well.
   final List<DataStateKey> dependencies;
 
-  /// {@macro StateRoute.childRoutes}
+  /// The list of child routes that are are available for routing in the nested
+  /// router of a shell route.
+  ///
+  /// The tree states for these child routes must be descendant states of the
+  /// states identified by [stateKey]
   final List<StateRouteConfig> childRoutes;
 }

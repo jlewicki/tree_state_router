@@ -216,7 +216,7 @@ typedef DataStateRoutePageBuilder2<D, DAnc> = Page<void> Function(
       wrapPageContent,
 );
 
-/// A route that creates visuals for a data state, using state data of type [D] and [DAnc]
+/// A route that creates visuals for a data state, using state data of type [D] and [DAnc1]
 /// obtained from the data state, and an ancestor data state.
 ///
 /// This route is used in a very similar manner as [DataStateRoute], with the addition of providing

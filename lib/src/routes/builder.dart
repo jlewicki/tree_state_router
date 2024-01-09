@@ -212,6 +212,7 @@ StateRouteConfig createDataStateRouteConfig1<D1>(
     dependencies: resolvers.map((e) => e.stateKey).toList(),
     path: path,
     childRoutes: childConfigs,
+    parentRoute: parent,
   );
   childConfigs.addAll(childRoutes.map((e) => e.createConfig(config)));
   return config;
@@ -262,6 +263,7 @@ StateRouteConfig createDataStateRouteConfig2<D1, D2>(
     dependencies: resolvers.map((e) => e.stateKey).toList(),
     path: path,
     childRoutes: childConfigs,
+    parentRoute: parent,
   );
   childConfigs.addAll(childRoutes.map((e) => e.createConfig(config)));
   return config;
@@ -313,6 +315,7 @@ StateRouteConfig createDataStateRouteConfig3<D1, D2, D3>(
     dependencies: resolvers.map((e) => e.stateKey).toList(),
     path: path,
     childRoutes: childConfigs,
+    parentRoute: parent,
   );
   childConfigs.addAll(childRoutes.map((e) => e.createConfig(config)));
   return config;

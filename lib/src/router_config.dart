@@ -226,9 +226,20 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
       : null;
 }
 
+/// A message that is dispatched to the state machine by
+/// [TreeStateRouterDelegate] when a deep link is being followed.
+///
+/// This message is handled by a [TreeStateFilter] that is installed when the
+/// [TreeStateRouter.platformRouting] factory is used.
 class GoToDeepLink {
+  /// Constructs a [GoToDeepLink].
   GoToDeepLink(this.target, {this.initialStateData = const {}});
+
+  /// The target that represents the destination of the deep link.
   final StateKey target;
+
+  /// Map of potential initial data values for data states that are entered as
+  /// a result of following the deep link.
   final Map<DataStateKey<dynamic>, Object> initialStateData;
 }
 

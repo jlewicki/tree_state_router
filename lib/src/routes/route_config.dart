@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
@@ -72,9 +74,13 @@ class StateRouteConfig {
     this.routePageBuilder,
     this.isPopup = false,
     RoutePathConfig? path,
-    this.dependencies = const [],
-    required this.childRoutes,
-  }) :
+    List<DataStateKey> dependencies = const [],
+    required List<StateRouteConfig> childRoutes,
+    required this.parentRoute,
+  })  : dependencies = List.unmodifiable(dependencies),
+        // Child routes are populated in two stages, so use UnmodifiableListView
+        // here
+        childRoutes = UnmodifiableListView(childRoutes),
         // TODO: decide what to do about DataStateKey. It has an ugly toString()
         // output.
         path = path ?? RoutePath(stateKey.toString());
@@ -99,8 +105,8 @@ class StateRouteConfig {
   /// Indicates if this route will display its visuals in a modal [PopupRoute].
   final bool isPopup;
 
-  /// A list (possibly empty) of keys indentifying the data states whose data
-  /// are used when producing the visuals for the state.
+  /// Unmodifiable list (possibly empty) of keys indentifying the data states
+  /// whose data are used when producing the visuals for the state.
   ///
   /// In general these will be ancestor states of [stateKey], although if
   /// [stateKey] is a [DataStateKey] it will be present in the list as well.
@@ -112,4 +118,10 @@ class StateRouteConfig {
   /// The tree states for these child routes must be descendant states of the
   /// states identified by [stateKey]
   final List<StateRouteConfig> childRoutes;
+
+  /// The parent route of this route, if aany.
+  ///
+  /// If not `null`, then this routes is present in yje `childRoutes` list of
+  /// the parent.
+  final StateRouteConfig? parentRoute;
 }

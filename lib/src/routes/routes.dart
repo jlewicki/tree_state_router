@@ -82,6 +82,7 @@ class StateRoute implements StateRouteConfigProvider {
           isPopup: false,
           path: path,
           childRoutes: const [],
+          parentRoute: parentRoute,
         ),
       );
 
@@ -99,6 +100,7 @@ class StateRoute implements StateRouteConfigProvider {
           isPopup: true,
           path: path,
           childRoutes: const [],
+          parentRoute: parentRoute,
         ),
       );
 
@@ -180,9 +182,10 @@ class StateRoute implements StateRouteConfigProvider {
             isPopup: false,
             path: path,
             childRoutes: childRoutes,
+            parentRoute: parentRoute,
           );
 
-          childRoutes.addAll(config.childRoutes);
+          childRoutes.addAll(routes.map((e) => e.createConfig(config)));
 
           return config;
         },
@@ -245,6 +248,7 @@ class StateRoute implements StateRouteConfigProvider {
           isPopup: false,
           path: path,
           childRoutes: childRouteConfigs,
+          parentRoute: parent,
         );
 
         childRouteConfigs.addAll(routes.map((e) => e.createConfig(config)));

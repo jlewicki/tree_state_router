@@ -48,7 +48,7 @@ final _pathParamsRegEx = RegExp(r':(\w+)(\((?:\\.|[^\\()])+\))?');
 /// a path does not support for deep linking. That is, [generateUriPath] will be
 /// used when generate URIs as the active route changes, but will not support
 /// navigating directly to the route when following a deep link. If
-/// [enableDeepLink] is `true`, then additioanlly [matchUriPath] will used when
+/// [enableDeepLink] is `true`, then additionally [matchUriPath] will used when
 /// parsing a deep link URI.
 sealed class RoutePathInfo {
   /// Constructs a [RoutePathInfo].
@@ -87,11 +87,11 @@ sealed class RoutePathInfo {
 
   late final _uriPathRegEx = RegExp('^/$_uriPathPattern', caseSensitive: false);
 
-  /// Generates a path appropriate for a URI representing all the routes in
-  /// this route path.
+  /// Generates a path string representing this for use in a URI.
   ///
   /// The state [data] for the data state associated with this route path is
-  /// provided, or `null` if the state is not a data state.
+  /// provided, or `null` if the state is not a data state. This data can be
+  /// use when determining values for parameters in the path template.
   String generateUriPath(dynamic data) {
     var pathArgs = _generatePathArgs(data);
     // TODO: find a way to replace parms without repeatedly running regexp?
@@ -106,7 +106,7 @@ sealed class RoutePathInfo {
     });
   }
 
-  /// Attempts to match the [uriPath] against the routes in this route path.
+  /// Attempts to match the [uriPath] against this route path
   ///
   /// If the match succeeds, a [UriPathMatch] describing the match is returned.
   /// Otherwise, `null` is returned.
@@ -171,11 +171,13 @@ class RoutePath extends RoutePathInfo {
           'Invalid pathTemplate',
         );
 
-  /// Constructs a [RoutePath], with a literal [pathTemplate].
+  /// Constructs a [RoutePath] with a literal [pathTemplate].
   ///
+  /// {@template RoutePath.enableDeepLink}
   /// If [enableDeepLink] is true, the associated route can be navigated to
   /// directly when the application receives a deep link to the route from the
-  /// platform
+  /// platform.
+  /// {@endtemplate}
   factory RoutePath(String pathTemplate, {bool enableDeepLink = false}) {
     assert(
       !_pathParamsRegEx.hasMatch(pathTemplate),
@@ -203,6 +205,8 @@ class RoutePath extends RoutePathInfo {
       null;
 }
 
+/// Describes how a [DataStateRoute] integrates with platform (i.e. Navigator
+/// 2.0) routing.
 class DataRoutePath<D> extends RoutePathInfo {
   DataRoutePath._(
     super.pathTemplate,
@@ -215,6 +219,9 @@ class DataRoutePath<D> extends RoutePathInfo {
           "Invalid pathTemplate",
         );
 
+  /// Constructs a [DataRoutePath] with a literal [pathTemplate].
+  ///
+  /// {@macro RoutePath.enableDeepLink}
   factory DataRoutePath(String pathTemplate, {bool enableDeepLink = false}) {
     assert(
         !_pathParamsRegEx.hasMatch(pathTemplate),
@@ -228,7 +235,17 @@ class DataRoutePath<D> extends RoutePathInfo {
     );
   }
 
-  factory DataRoutePath.withParams(
+  /// Constructs a parameterized [DataRoutePath].
+  ///
+  /// A [pathArgs] function must be provided that can generate values for the
+  /// parameters in the path, based on the current data value of the data state.
+  ///
+  /// {@macro RoutePath.enableDeepLink}
+  ///
+  /// If deep linking is enabled, an [initialData] function must also be
+  /// provided that can generate the initial data value of the data state, based
+  /// on paremter values obtained from the URI.
+  factory DataRoutePath.parameterized(
     String pathTemplate, {
     required GenerateDataPathArgs<D> pathArgs,
     GenerateInitialData<D>? initialData,
@@ -252,8 +269,16 @@ class DataRoutePath<D> extends RoutePathInfo {
     );
   }
 
+  /// The function called to obtain values for parameters in [pathTemplate],
+  /// when [generateUriPath] is called.
   final GenerateDataPathArgs<D>? generatePathArgs;
+
+  /// The function called when generating the initial value for a data state,
+  /// when [matchUriPath] is called.
   final GenerateInitialData<D>? initialData;
+
+  /// Creates a tree state filter that can be used to initialize state data when
+  /// the entering the data state for this path, when following a deep link.
   InitializeStateDataFilter<D> createInitialDataFilter({Logger? log}) =>
       InitializeStateDataFilter<D>(log: log);
 
@@ -274,6 +299,7 @@ class DataRoutePath<D> extends RoutePathInfo {
   }
 }
 
+/// The error thrown when a [RoutePathInfo] is misconfigured.
 class RoutePathError extends Error {
   RoutePathError(this.message);
   final String message;

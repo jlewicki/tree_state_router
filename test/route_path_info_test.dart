@@ -86,7 +86,7 @@ void main() {
 
     group('DataRoutePath.withParams()', () {
       var template = 'user/:userId/address/:addressId';
-      var routePath = DataRoutePath<SomeData>.withParams(
+      var routePath = DataRoutePath<SomeData>.parameterized(
         template,
         pathArgs: (data) => {
           'userId': data.userId.toString(),
@@ -106,7 +106,7 @@ void main() {
 
         test('should throw if arguments are missing', () {
           var template = 'user/:userId/address/:addressId';
-          var routePath = DataRoutePath<SomeData>.withParams(
+          var routePath = DataRoutePath<SomeData>.parameterized(
             template,
             pathArgs: (data) => {
               'userId': data.userId.toString(),

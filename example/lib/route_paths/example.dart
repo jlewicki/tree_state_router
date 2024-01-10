@@ -32,7 +32,7 @@ final router = TreeStateRouter.platformRouting(
           routes: [
             DataStateRoute<ChildData>(
               States.child1,
-              path: DataRoutePath.withParams(
+              path: DataRoutePath.parameterized(
                 'child1/:id',
                 pathArgs: (data) => {"id": data.id.toString()},
                 initialData: (pathArgs) {

@@ -55,7 +55,7 @@ TreeStateRouter dataRouter(
         DataStates.state_r,
         routeBuilder: emptyShellDataRouteBuilder,
         path: parameterize
-            ? DataRoutePath.withParams(
+            ? DataRoutePath.parameterized(
                 'r/:val',
                 pathArgs: (data) => {'val': data},
               )
@@ -65,7 +65,7 @@ TreeStateRouter dataRouter(
             DataStates.state_r_2,
             routeBuilder: emptyShellDataRouteBuilder,
             path: parameterize
-                ? DataRoutePath.withParams(
+                ? DataRoutePath.parameterized(
                     '2/:val',
                     enableDeepLink: true,
                     pathArgs: (data) => {'val': data},
@@ -77,7 +77,7 @@ TreeStateRouter dataRouter(
                 DataStates.state_r_2_1,
                 routeBuilder: emptyDataRouteBuilder,
                 path: parameterize
-                    ? DataRoutePath.withParams(
+                    ? DataRoutePath.parameterized(
                         '1/:val',
                         pathArgs: (data) => {'val': data},
                       )
@@ -87,7 +87,7 @@ TreeStateRouter dataRouter(
                 DataStates.state_r_2_2,
                 routeBuilder: emptyDataRouteBuilder,
                 path: parameterize
-                    ? DataRoutePath.withParams(
+                    ? DataRoutePath.parameterized(
                         '2/:val',
                         enableDeepLink: true,
                         pathArgs: (data) => {'val': data},

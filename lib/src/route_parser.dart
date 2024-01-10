@@ -53,19 +53,10 @@ class TreeStateRoutePath {
   /// Generates a path appropriate for a URI representing all the routes in
   /// this route path.
   ///
-  /// The [currentState] of the state machine is provided. This can be used to
-  /// retrieve the current data value for data states in the path, if this data
-  /// is needed when generating the path.
-  String generateUriPath2(CurrentState currentState) {
-    return routes
-        .map((r) => r.path.generateUriPath(switch (r.stateKey) {
-              DataStateKey() when r.path.parameters.isNotEmpty =>
-                currentState.dataValue(r.stateKey as DataStateKey),
-              _ => null
-            }))
-        .join('/');
-  }
-
+  /// A [getDataValue] function must be provided, which is called when
+  /// generating URI path segments for parameterized [RoutePathInfo] in the
+  /// route path.  he function must return the current state data value for the
+  /// provided state key.
   String generateUriPath(
     dynamic Function(DataStateKey<dynamic>) getDataValue,
   ) {

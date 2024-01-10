@@ -68,7 +68,7 @@ final router = TreeStateRouter(
   routes: [
     StateRoute(
       States.state1,
-      routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
+      routeBuilder: (BuildContext ctx, StateRoutingContext stateCtx) {
         return Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -85,7 +85,7 @@ final router = TreeStateRouter(
     ),
     StateRoute(
       States.state2,
-      routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
+      routeBuilder: (BuildContext ctx, StateRoutingContext stateCtx) {
         return const Center(child: Text('This is state 2'));
       },
     ),
@@ -112,8 +112,8 @@ A `StateRoute` provides visuals for a plain state (that is, not a data state). W
 active in the state tree, `TreeStateRouter` will call the builder from the route to obtain the 
 `Widget` that displays the state, and place it on top of the navigation stack.  
 
-The builder function is provided a `TreeStateRoutingContext` that may be used to post messages to 
-the state machine in response to user input.
+The builder function is provided a `StateRoutingContext` that may be used to post messages to the 
+state machine in response to user input.
 
 For example:
 
@@ -122,7 +122,7 @@ StateRoute(
    // This route provides visuals for state1.
    States.state1,
    // This builder function creates a widget that displays state1.
-   routeBuilder: (BuildContext ctx, TreeStateRoutingContext stateCtx) {
+   routeBuilder: (BuildContext ctx, StateRoutingContext stateCtx) {
       return Center(
          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -146,9 +146,10 @@ route builder functions.
 
 ### DataStateRoute
 `DataStateRoute<D>` provides visuals for a data state, and works in a similar manner to 
-`StateRoute`. The main difference is that the `routeBuilder` for a `DataStateRoute` is provided the current value of the state data for the state, allowing it to be used when displaying the state. If
-the state data changes as a result of message processing by the state machine, the `routeBuilder`
-will be called again with the updated data.
+`StateRoute`. The main difference is that the `routeBuilder` and `routePageBuilder` functions for a
+`DataStateRoute` are provided the current value of the state data for the state, allowing it to be 
+used when displaying the state. If the state data changes as a result of message processing by the 
+state machine, the builder function will be called again with the updated data.
 
 ```dart
 class CounterData {
@@ -188,6 +189,11 @@ var router = TreeStateRouter(
 
 ```
 
+There are several related convenience classes (`DataStateRoute2<D, DAnc>`, 
+`DataStateRoute3<D, DAnc1, DAnc2>`, etc.) that work in a similar way to `DataStateRoute`, but 
+provide data from ancestor data states to the route builder functions. 
+
+
 ### Popup Routes
 TODO
 
@@ -225,6 +231,9 @@ StateRoute.shell(
    ],
 )
 ```
+
+### Machine Routes
+TODO
 
 ## Web
 If the `TreeStateRouter.platformRouting` factory is used, the router will integrate with the 

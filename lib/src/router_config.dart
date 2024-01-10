@@ -96,7 +96,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     bool enableTransitions = true,
   }) {
     var routeConfigs = routes.map((e) => e.createConfig(null)).toList();
-    // Find data routes that have route parameters. Theses routes will have
+    // Find data routes that have route parameters. These routes will have
     // tree state filters installed that can initialize state data
     var dataRoutesWithParams = Map.fromEntries(routeConfigs
         .expand((r) => r.selfAndDescendants())
@@ -115,7 +115,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
           }
           var dataRoute = dataRoutesWithParams[b.nodeBuildInfo.key];
           if (dataRoute != null) {
-            b.filter(dataRoute.createFilter());
+            b.filter(dataRoute.createInitialDataFilter());
           }
         },
       ),
@@ -180,6 +180,14 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   /// for details on choosing a [Page] type.
   /// {@endtemplate}
   final bool enableTransitions;
+
+  /// Unmodifiable map of the routes in [routes], and all of their descendant
+  /// routes, keyed by [StateRouteConfig.stateKey].
+  late final Map<StateKey, StateRouteConfig> routeMap = Map.unmodifiable(
+    Map.fromEntries(routes
+        .expand((e) => e.selfAndDescendants())
+        .map((e) => MapEntry(e.stateKey, e))),
+  );
 
   late final _routeTable = RouteTable(stateMachine, routes);
 

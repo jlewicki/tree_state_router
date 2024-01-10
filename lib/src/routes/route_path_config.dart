@@ -238,7 +238,7 @@ class DataRoutePath<D> extends RoutePathConfig {
 
   final GenerateDataPathArgs<D>? generatePathArgs;
   final GenerateInitialData<D>? initialData;
-  InitializeStateDataFilter<D> createFilter({Logger? log}) =>
+  InitializeStateDataFilter<D> createInitialDataFilter({Logger? log}) =>
       InitializeStateDataFilter<D>(log: log);
 
   @override

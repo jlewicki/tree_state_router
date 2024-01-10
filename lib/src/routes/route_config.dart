@@ -119,9 +119,10 @@ class StateRouteConfig {
   /// states identified by [stateKey]
   final List<StateRouteConfig> childRoutes;
 
-  /// The parent route of this route, if aany.
+  /// The parent shell route of this route, or `null` if the route has no
+  /// parent.
   ///
-  /// If not `null`, then this routes is present in yje `childRoutes` list of
+  /// If not `null`, then this routes is present in the `childRoutes` list of
   /// the parent.
   final StateRouteConfig? parentRoute;
 }

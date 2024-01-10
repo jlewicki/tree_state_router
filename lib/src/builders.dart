@@ -6,7 +6,8 @@ import 'package:tree_state_machine/async.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
-/// A function that constructs widget that visualizes an active tree state in a state machine.
+/// A function that constructs a widget that visualizes an active tree state in
+/// a state machine.
 ///
 /// The function is provided the [currentState] of the tree state machine.
 typedef TreeStateWidgetBuilder = Widget Function(
@@ -14,22 +15,22 @@ typedef TreeStateWidgetBuilder = Widget Function(
   CurrentState currentState,
 );
 
-/// A function that constructs widget that visualizes a tree state, using data type of [D] from
-/// an active data tree state.
+/// A function that constructs a widget that visualizes a tree state, using data
+/// type of [D] from an active data tree state.
 ///
-/// The function is provided the current [stateData] for the state, and the [currentState] of the
-/// tree state machine.
+/// The function is provided the current [stateData] for the state, and the
+/// [currentState] of the tree state machine.
 typedef DataTreeStateWidgetBuilder<D> = Widget Function(
   BuildContext context,
   CurrentState currentState,
   D stateData,
 );
 
-/// A function that constructs widget that visualizes a tree state, using data types of [D1] and
-/// [D2] from active data tree states.
+/// A function that constructs a widget that visualizes a tree state, using data
+/// types of [D1] and [D2] from active data tree states.
 ///
-/// The function is provided the current [stateData1] and [stateData2] for the data states, along
-/// with the [currentState] of the tree state machine.
+/// The function is provided the current [stateData1] and [stateData2] for the
+/// data states, along with the [currentState] of the tree state machine.
 typedef DataTreeStateWidgetBuilder2<D1, D2> = Widget Function(
   BuildContext context,
   CurrentState currentState,
@@ -37,11 +38,12 @@ typedef DataTreeStateWidgetBuilder2<D1, D2> = Widget Function(
   D2 stateData2,
 );
 
-/// A function that constructs widget that visualizes a tree state, using data types of [D1], [D2],
-/// and [D3] from active data tree states.
+/// A function that constructs a widget that visualizes a tree state, using data
+/// types of [D1], [D2], and [D3] from active data tree states.
 ///
-/// The function is provided the current [stateData1], [stateData2], and [stateData3] for the data
-/// states, along with the [currentState] of the tree state machine.
+/// The function is provided the current [stateData1], [stateData2], and
+/// [stateData3] for the data states, along with the [currentState] of the tree
+/// state machine.
 typedef DataTreeStateWidgetBuilder3<D1, D2, D3> = Widget Function(
   BuildContext context,
   CurrentState currentState,
@@ -69,16 +71,18 @@ abstract class BaseDataTreeStateBuilder extends StatefulWidget {
   DataTreeStateBuilderState createState() => DataTreeStateBuilderState();
 }
 
-/// A widget that builds itself, using tree state data, when a specific tree state is an
-/// active state in a [TreeStateMachine].
+/// {@template DataTreeStateBuilder.summary}
+/// A widget that builds itself, using tree state data, when a specific tree
+/// state is an active state in a [TreeStateMachine].
 ///
-/// The tree state for which this widget builds itself is identified by [stateKey]. If this state
-/// is an active state in the state machine, the [builder] function is called to obtain the widget
-/// to display.
+/// The tree state for which this widget builds itself is identified by
+/// [stateKey]. If this state is an active state in the state machine, the
+/// `builder` function is called to obtain the widget to display.
+/// {@endtemplate}
 ///
-/// The type parameter [D] indicates the type of state data that is provided to the [builder]
-/// function. This data is obtained from an active data state, which may be the state identified by
-/// [stateKey], or one of its ancestor data states.
+/// The type parameter [D] indicates the type of state data that is provided to
+/// the `builder` function. This values are obtained from an active
+/// data state, as identified when calling [DataTreeStateBuilder.new].
 class DataTreeStateBuilder<D> extends BaseDataTreeStateBuilder {
   DataTreeStateBuilder({
     Key? key,
@@ -96,16 +100,11 @@ class DataTreeStateBuilder<D> extends BaseDataTreeStateBuilder {
                 ));
 }
 
-/// A widget that builds itself, using tree state data, itself when a specific tree state is an
-/// active state in a [TreeStateMachine].
+/// {@macro DataTreeStateBuilder.summary}
 ///
-/// The tree state for which this widget builds itself is identified by [stateKey]. If this state
-/// is an active state in the state machine, the [builder] function is called to obtain the widget
-/// to display.
-///
-/// The type parameters [D1] and [D2] indicate the types of state data that is provided to the [builder]
-/// function. These values are obtained from active data states, one which may be the state
-/// identified by [stateKey], or one of its ancestor data states.
+/// The type parameters [D1] and [D2]indicate the types of state data that is
+/// provided to the `builder` function. These values are obtained from active
+/// data states, as identified when calling [DataTreeStateBuilder2.new].
 class DataTreeStateBuilder2<D1, D2> extends BaseDataTreeStateBuilder {
   DataTreeStateBuilder2({
     Key? key,
@@ -128,16 +127,11 @@ class DataTreeStateBuilder2<D1, D2> extends BaseDataTreeStateBuilder {
                 ));
 }
 
-/// A widget that builds itself, using tree state data, itself when a specific tree state is an
-/// active state in a [TreeStateMachine].
+/// {@macro DataTreeStateBuilder.summary}
 ///
-/// The tree state for which this widget builds itself is identified by [stateKey]. If this state
-/// is an active state in the state machine, the [builder] function is called to obtain the widget
-/// to display.
-///
-/// The type parameters [D1], [D2] and [D3] indicate the types of state data that is provided to the
-/// [builder] function. These values are obtained from active data states, one which may be the state
-/// identified by [stateKey], or one of its ancestor data states.
+/// The type parameters [D1], [D2] and [D3] indicate the types of state data
+/// that is provided to the `builder` function. These values are obtained from
+/// active data states, as identified when calling [DataTreeStateBuilder3.new].
 class DataTreeStateBuilder3<D1, D2, D3> extends BaseDataTreeStateBuilder {
   DataTreeStateBuilder3({
     Key? key,
@@ -163,6 +157,7 @@ class DataTreeStateBuilder3<D1, D2, D3> extends BaseDataTreeStateBuilder {
                 ));
 }
 
+/// The stateful data associated with a [BaseDataTreeStateBuilder] widget.
 class DataTreeStateBuilderState extends State<BaseDataTreeStateBuilder> {
   StreamSubscription? _combinedDataSubscription;
   StreamSubscription? _activeDescendantSubscription;

@@ -13,11 +13,13 @@ class StateRoutingContext {
 /// TBD: This will contain routing information parsed from the current URI.
 class TreeStateRoutingState {}
 
-/// Provides an accessor for a [StateRouteInfo] describing a route.
+/// Provides support for creating [StateRouteInfo] describing a route.
 abstract class StateRouteInfoProvider {
-  /// A config object providing a generalized description of a route for a
-  /// [TreeStateRouter].
-  //StateRouteConfig get config;
+  /// Creates a [StateRouteInfo] providing a generalized description of a route
+  /// for use by [TreeStateRouter].
+  ///
+  /// A [parent] is provided, indicating the parent route of the route to be
+  /// created, or `null` if the route should have no parent.
   StateRouteInfo createInfo(StateRouteInfo? parent);
 }
 

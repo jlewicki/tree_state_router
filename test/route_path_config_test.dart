@@ -4,7 +4,7 @@ import 'package:tree_state_router/tree_state_router.dart';
 
 void main() {
   group('RoutePath', () {
-    group('RoutePath()', () {
+    group('RoutePath.new', () {
       test('shoud assert not empty', () {
         expect(() => RoutePath(''), throwsA(isA<AssertionError>()));
       });

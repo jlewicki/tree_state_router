@@ -28,7 +28,8 @@ class UriPathMatch {
 //   user/:userId/address/:addressId
 // They cant start or end with /, \
 // They cant contain \
-final _pathTemplateRegEx = RegExp(r'^[^\\\/]+[^\\]*[^\\\/]+$');
+final _pathTemplateRegEx =
+    RegExp(r'^([^\\\/\s]{1}|[^\\\/\s]+[^\\]*[^\\\/\s]+)$');
 
 // Identifies the parameters in a path like user/:userId/address/:addressId
 final _pathParamsRegEx = RegExp(r':(\w+)');
@@ -237,7 +238,7 @@ class DataRoutePath<D> extends RoutePathConfig {
 
   final GenerateDataPathArgs<D>? generatePathArgs;
   final GenerateInitialData<D>? initialData;
-  InitializeStateDataFilter<D> createFilter({Logger? log}) =>
+  InitializeStateDataFilter<D> createInitialDataFilter({Logger? log}) =>
       InitializeStateDataFilter<D>(log: log);
 
   @override

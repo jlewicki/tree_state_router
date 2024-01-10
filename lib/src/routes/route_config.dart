@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
@@ -15,7 +17,8 @@ class TreeStateRoutingState {}
 abstract class StateRouteConfigProvider {
   /// A config object providing a generalized description of a route for a
   /// [TreeStateRouter].
-  StateRouteConfig get config;
+  //StateRouteConfig get config;
+  StateRouteConfig createConfig(StateRouteConfig? parent);
 }
 
 /// {@template StateRouteBuilder}
@@ -71,9 +74,13 @@ class StateRouteConfig {
     this.routePageBuilder,
     this.isPopup = false,
     RoutePathConfig? path,
-    this.dependencies = const [],
-    required this.childRoutes,
-  }) :
+    List<DataStateKey> dependencies = const [],
+    required List<StateRouteConfig> childRoutes,
+    required this.parentRoute,
+  })  : dependencies = List.unmodifiable(dependencies),
+        // Child routes are populated in two stages, so use UnmodifiableListView
+        // here
+        childRoutes = UnmodifiableListView(childRoutes),
         // TODO: decide what to do about DataStateKey. It has an ugly toString()
         // output.
         path = path ?? RoutePath(stateKey.toString());
@@ -84,22 +91,38 @@ class StateRouteConfig {
   /// {@macro StateRoute.path}
   final RoutePathConfig path;
 
-  /// {@macro StateRoute.routeBuilder}
+  /// The builder function providing the visuals for this route.
+  ///
+  /// May be `null` if [routePageBuilder] is provided instead.
   final StateRouteBuilder? routeBuilder;
 
-  /// {@macro StateRoute.routePageBuilder}
+  /// The builder function that constructs the routing [Page] for this route.
+  ///
+  /// If `null`, the [TreeStateRouter] will choose an appropriate [Page] type
+  /// based on the application type (Material, Cupertino, etc.).
   final StateRoutePageBuilder? routePageBuilder;
 
-  /// {@macro StateRoute.isPopup}
+  /// Indicates if this route will display its visuals in a modal [PopupRoute].
   final bool isPopup;
 
-  /// A list (possibly empty) of keys indentifying the data states whose data
-  /// are used when producing the visuals for the state.
+  /// Unmodifiable list (possibly empty) of keys indentifying the data states
+  /// whose data are used when producing the visuals for the state.
   ///
   /// In general these will be ancestor states of [stateKey], although if
   /// [stateKey] is a [DataStateKey] it will be present in the list as well.
   final List<DataStateKey> dependencies;
 
-  /// {@macro StateRoute.childRoutes}
+  /// The list of child routes that are are available for routing in the nested
+  /// router of a shell route.
+  ///
+  /// The tree states for these child routes must be descendant states of the
+  /// states identified by [stateKey]
   final List<StateRouteConfig> childRoutes;
+
+  /// The parent shell route of this route, or `null` if the route has no
+  /// parent.
+  ///
+  /// If not `null`, then this routes is present in the `childRoutes` list of
+  /// the parent.
+  final StateRouteConfig? parentRoute;
 }

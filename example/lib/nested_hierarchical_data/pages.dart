@@ -6,6 +6,7 @@ import '../../helpers/state_trees/hierarchical_data.dart';
 Widget parentPage(
   BuildContext ctx,
   StateRoutingContext stateCtx,
+  Widget nestedRouter,
   ParentData parentData,
 ) {
   var textForParent = "";
@@ -34,16 +35,17 @@ Widget parentPage(
           ],
         ),
       ),
-      IntrinsicHeight(
-        child: DescendantStatesRouter(
-          anchorKey: States.parent,
-          enableTransitions: false,
-          routes: [
-            DataStateRoute(States.child1, routeBuilder: child1Page),
-            DataStateRoute(States.child2, routeBuilder: child2Page),
-          ],
-        ),
-      )
+      IntrinsicHeight(child: nestedRouter),
+      // IntrinsicHeight(
+      //   child: DescendantStatesRouter(
+      //     anchorKey: States.parent,
+      //     enableTransitions: false,
+      //     routes: [
+      //       DataStateRoute(States.child1, routeBuilder: child1Page),
+      //       DataStateRoute(States.child2, routeBuilder: child2Page),
+      //     ],
+      //   ),
+      // )
     ],
   );
 }

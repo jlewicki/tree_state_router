@@ -5,7 +5,7 @@ import 'package:tree_state_router/tree_state_router.dart';
 
 class NestedStateMachineRouter extends StatelessWidget {
   /// Constructs a [NestedStateMachineRouter].
-  NestedStateMachineRouter({
+  const NestedStateMachineRouter({
     super.key,
     required this.machineStateKey,
     required this.routes,
@@ -18,7 +18,7 @@ class NestedStateMachineRouter extends StatelessWidget {
   final DataStateKey<MachineTreeStateData> machineStateKey;
 
   /// The list of routes that can be materialized by this router.
-  final List<StateRouteConfigProvider> routes;
+  final List<StateRouteConfig> routes;
 
   /// {@macro TreeStateRouter.defaultScaffolding}
   final DefaultScaffoldingBuilder? defaultScaffolding;
@@ -29,15 +29,13 @@ class NestedStateMachineRouter extends StatelessWidget {
   /// {@macro TreeStateRouter.enableTransitions}
   final bool enableTransitions;
 
-  late final _routeConfigs = routes.map((r) => r.config).toList();
-
   @override
   Widget build(BuildContext context) {
     return Router(
       routerDelegate: NestedMachineRouterDelegate(
         machineStateKey: machineStateKey,
         config: TreeStateRouterDelegateConfig(
-          _routeConfigs,
+          routes,
           defaultPageBuilder: defaultPageBuilder,
           defaultScaffolding: defaultScaffolding,
           enableTransitions: enableTransitions,

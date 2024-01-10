@@ -11,7 +11,7 @@ import 'package:tree_state_router/tree_state_router.dart';
 /// construct [DescendantStatesRouter].
 class DescendantStatesRouter extends StatelessWidget {
   /// Constructs a [DescendantStatesRouter].
-  DescendantStatesRouter({
+  const DescendantStatesRouter({
     super.key,
     required this.anchorKey,
     required this.routes,
@@ -24,7 +24,7 @@ class DescendantStatesRouter extends StatelessWidget {
   final StateKey anchorKey;
 
   /// The list of routes that can be materialized by this router.
-  final List<StateRouteConfigProvider> routes;
+  final List<StateRouteConfig> routes;
 
   /// {@macro TreeStateRouter.defaultScaffolding}
   final DefaultScaffoldingBuilder? defaultScaffolding;
@@ -35,15 +35,13 @@ class DescendantStatesRouter extends StatelessWidget {
   /// {@macro TreeStateRouter.enableTransitions}
   final bool enableTransitions;
 
-  late final _routeConfigs = routes.map((r) => r.config).toList();
-
   @override
   Widget build(BuildContext context) {
     return Router(
       routerDelegate: DescendantStatesRouterDelegate(
         anchorKey: anchorKey,
         config: TreeStateRouterDelegateConfig(
-          _routeConfigs,
+          routes,
           defaultPageBuilder: defaultPageBuilder,
           defaultScaffolding: defaultScaffolding,
           enableTransitions: enableTransitions,

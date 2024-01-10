@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
-import 'package:tree_state_machine/build.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/routes/route_utility.dart';
 import 'package:tree_state_router/tree_state_router.dart';
@@ -9,57 +8,48 @@ class RouteTable {
   RouteTable._(
     this._stateMachine,
     this._routePaths,
+    this._linkableRoutePaths,
     this._routePathsByEndState,
   );
 
   factory RouteTable(
     TreeStateMachine stateMachine,
-    List<StateRouteConfigProvider> routes,
+    List<StateRouteConfig> routes,
   ) {
-    // Map of all known routes
-    var routesByState = Map.fromEntries(
-      _withDescendants(routes).toList().map((r) => MapEntry(r.stateKey, r)),
-    );
+    var linkableRoutePaths = routes
+        .expand((e) => e.selfAndDescendants())
+        .where((e) => e.path.enableDeepLink)
+        .map((e) =>
+            TreeStateRoutePath(e.selfAndAncestors().toList().reversed.toList()))
+        .sorted(sortByParameterCountDescending)
+        .toList();
 
-    // Complete set of full routeable paths. This is a naive data structure, but
-    // it is good enough for now
-    var rootNode = stateMachine.rootNode;
-    var routePaths = rootNode
-        .leaves()
-        .map((leaf) => leaf
-            .selfAndAncestors()
-            .toList()
-            .reversed
-            .map((node) => routesByState[node.key])
-            .where((r) => r != null)
-            .cast<StateRouteConfig>())
-        .where((routes) => routes.isNotEmpty)
-        .map((routes) => TreeStateRoutePath(routes.toList()))
-        .sorted(
-          // Sort by number of route parameters, descending
-          (r1, r2) => r2.parameters.length.compareTo(r1.parameters.length),
-        )
+    var allRoutePaths = routes
+        .expand((e) => e.leaves())
+        .map((e) =>
+            TreeStateRoutePath(e.selfAndAncestors().toList().reversed.toList()))
+        .sorted(sortByParameterCountDescending)
         .toList();
 
     var routePathsByEndState =
-        Map.fromEntries(routePaths.map((e) => MapEntry(e.end.stateKey, e)));
+        Map.fromEntries(allRoutePaths.map((e) => MapEntry(e.end.stateKey, e)));
 
     return RouteTable._(
       stateMachine,
-      routePaths,
+      allRoutePaths,
+      linkableRoutePaths,
       routePathsByEndState,
     );
   }
 
   final TreeStateMachine _stateMachine;
   final List<TreeStateRoutePath> _routePaths;
+  final List<TreeStateRoutePath> _linkableRoutePaths;
   final Map<StateKey, TreeStateRoutePath> _routePathsByEndState;
 
   RouteInformation? toRouteInformation(TreeStateRoutePath path) {
-    assert(_stateMachine.currentState != null);
-    var uriPath = path.isEmpty
-        ? '/'
-        : '/${path.generateUriPath(_stateMachine.currentState!)}';
+    var uriPath =
+        path.isEmpty ? '/' : '/${path.generateUriPath(_getDataValue)}';
     var uri = Uri.parse(uriPath);
     return RouteInformation(uri: uri);
   }
@@ -68,35 +58,38 @@ class RouteTable {
     Transition transition,
   ) {
     var routeForTarget = _routePathsByEndState[transition.to];
-    return routeForTarget != null
-        ? TreeStateRoutePath(routeForTarget.routes)
-        : TreeStateRoutePath.empty;
+    return routeForTarget ?? TreeStateRoutePath.empty;
   }
 
   TreeStateRoutePath? parseRouteInformation(
-    RouteInformation routeInformation,
-  ) {
+    RouteInformation routeInformation, {
+    required bool linkableRoutes,
+  }) {
     var path = Uri.decodeFull(routeInformation.uri.path);
     if (path == '/') {
       return null;
     }
 
-    return _routePaths.map((routePath) {
+    var routePaths = linkableRoutes ? _linkableRoutePaths : _routePaths;
+    return routePaths.map((routePath) {
       var matched = routePath.matchUriPath(path);
       return matched != null
           ? TreeStateRoutePath(routePath.routes, matched)
           : null;
-    }).firstWhere(
+    }).firstWhereOrNull(
       (routePath) => routePath != null,
     );
   }
 
-  /// Iterates through the routes and all of their descendants.
-  static Iterable<StateRouteConfig> _withDescendants(
-    List<StateRouteConfigProvider> routes,
-  ) sync* {
-    for (var route in routes) {
-      yield* route.config.selfAndDescendants();
-    }
+  dynamic _getDataValue(DataStateKey stateKey) {
+    assert(_stateMachine.currentState != null);
+    return _stateMachine.currentState!.dataValue(stateKey);
   }
+}
+
+int sortByParameterCountDescending(
+  TreeStateRoutePath p1,
+  TreeStateRoutePath p2,
+) {
+  return p2.parameters.length.compareTo(p1.parameters.length);
 }

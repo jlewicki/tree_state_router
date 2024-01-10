@@ -56,11 +56,23 @@ class TreeStateRoutePath {
   /// The [currentState] of the state machine is provided. This can be used to
   /// retrieve the current data value for data states in the path, if this data
   /// is needed when generating the path.
-  String generateUriPath(CurrentState currentState) {
+  String generateUriPath2(CurrentState currentState) {
     return routes
         .map((r) => r.path.generateUriPath(switch (r.stateKey) {
-              DataStateKey() =>
+              DataStateKey() when r.path.parameters.isNotEmpty =>
                 currentState.dataValue(r.stateKey as DataStateKey),
+              _ => null
+            }))
+        .join('/');
+  }
+
+  String generateUriPath(
+    dynamic Function(DataStateKey<dynamic>) getDataValue,
+  ) {
+    return routes
+        .map((r) => r.path.generateUriPath(switch (r.stateKey) {
+              DataStateKey() when r.path.parameters.isNotEmpty =>
+                getDataValue(r.stateKey as DataStateKey),
               _ => null
             }))
         .join('/');
@@ -74,18 +86,23 @@ class TreeStateRoutePath {
   Map<DataStateKey<dynamic>, Object>? matchUriPath(String uriPath) {
     var initialDataMap = <DataStateKey<dynamic>, Object>{};
     var restOfPath = uriPath;
+    var numMatches = 0;
     for (var r in routes) {
       var match = r.path.matchUriPath(restOfPath);
       if (match != null) {
+        numMatches++;
         if (match.initialData != null) {
           assert(r.stateKey is DataStateKey);
           initialDataMap[r.stateKey as DataStateKey] = match.initialData!;
         }
         restOfPath = restOfPath.substring(match.pathMatch.length);
+        if (restOfPath.isEmpty) break;
       }
     }
 
-    return restOfPath.isEmpty ? initialDataMap : null;
+    return restOfPath.isEmpty && numMatches == routes.length
+        ? initialDataMap
+        : null;
   }
 }
 
@@ -105,10 +122,13 @@ class TreeStateRouteInformationParser
   ) {
     _log.fine('Parsing route information: ${routeInformation.uri.path}');
 
-    var parsed = _routeTable.parseRouteInformation(routeInformation);
+    var parsed = _routeTable.parseRouteInformation(
+      routeInformation,
+      linkableRoutes: true,
+    );
     if (parsed != null) {
       _log.fine(() =>
-          'Parsed route information to ${parsed.routes.map((e) => e.stateKey).join(', ')}');
+          'Parsed route information to deep linkable route path  ${parsed.routes.map((e) => e.stateKey).join(', ')}');
       return SynchronousFuture(parsed);
     }
 

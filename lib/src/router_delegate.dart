@@ -209,8 +209,7 @@ abstract class TreeStateRouterDelegateBase
 
   @protected
   bool _onPopPage(Route<dynamic> route, dynamic result) {
-    _log.finer(() =>
-        'Popping page for state ${(route.settings as StateRoute).stateKey}');
+    _log.finer(() => 'Popping page ');
     if (!route.didPop(result)) return false;
     notifyListeners();
     return true;

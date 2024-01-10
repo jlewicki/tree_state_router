@@ -14,7 +14,7 @@ class StateRoutingContext {
 class TreeStateRoutingState {}
 
 /// Provides an accessor for a [StateRouteInfo] describing a route.
-abstract class StateRouteConfigProvider {
+abstract class StateRouteInfoProvider {
   /// A config object providing a generalized description of a route for a
   /// [TreeStateRouter].
   //StateRouteConfig get config;

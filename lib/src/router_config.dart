@@ -64,7 +64,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   factory TreeStateRouter({
     TreeStateMachine? stateMachine,
     StateTreeBuildProvider? stateTree,
-    required List<StateRouteConfigProvider> routes,
+    required List<StateRouteInfoProvider> routes,
     DefaultScaffoldingBuilder? defaultScaffolding,
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,
@@ -90,7 +90,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   /// the browser URL will update, but no history entries updated.
   factory TreeStateRouter.platformRouting({
     required StateTreeBuildProvider stateTree,
-    required List<StateRouteConfigProvider> routes,
+    required List<StateRouteInfoProvider> routes,
     DefaultScaffoldingBuilder? defaultScaffolding,
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,

@@ -80,7 +80,7 @@ typedef ShellDataStateRoutePageBuilder<D> = Page<void> Function(
 ///     ),
 ///   ]);
 /// ```
-class DataStateRoute<D> implements StateRouteConfigProvider {
+class DataStateRoute<D> implements StateRouteInfoProvider {
   DataStateRoute._(this._createRouteConfig);
 
   /// Constructs a [DataStateRoute].
@@ -122,7 +122,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
 
   factory DataStateRoute.shell(
     DataStateKey<D> stateKey, {
-    required List<StateRouteConfigProvider> routes,
+    required List<StateRouteInfoProvider> routes,
     ShellDataStateRouteBuilder<D>? routeBuilder,
     ShellDataStateRoutePageBuilder<D>? routePageBuilder,
     bool enableTransitions = false,
@@ -221,7 +221,7 @@ typedef DataStateRoutePageBuilder2<D, DAnc> = Page<void> Function(
 ///
 /// This route is used in a very similar manner as [DataStateRoute], with the addition of providing
 /// the [DataStateKey] of the ancestor state whose data should be obtained.
-class DataStateRoute2<D, DAnc1> implements StateRouteConfigProvider {
+class DataStateRoute2<D, DAnc1> implements StateRouteInfoProvider {
   DataStateRoute2._(this._createRouteConfig);
 
   /// Constructs a [DataStateRoute3].
@@ -298,7 +298,7 @@ typedef DataStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
 ///
 /// Note that there is no relationship implied between the ancestor states. Either state may be an
 /// ancestor of the other.
-class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
+class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteInfoProvider {
   DataStateRoute3._(this._createRouteConfig);
 
   /// Constructs a [DataStateRoute3].

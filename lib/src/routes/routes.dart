@@ -42,7 +42,7 @@ typedef CreateRouteConfig = StateRouteInfo Function(StateRouteInfo? parent);
 ///       }),
 ///   ]);
 /// ```
-class StateRoute implements StateRouteConfigProvider {
+class StateRoute implements StateRouteInfoProvider {
   StateRoute._(this._createRouteConfig);
 
   /// Constructs a [StateRoute] that provides visuals for a state in a state
@@ -146,7 +146,7 @@ class StateRoute implements StateRouteConfigProvider {
   /// ```
   factory StateRoute.shell(
     StateKey stateKey, {
-    required List<StateRouteConfigProvider> routes,
+    required List<StateRouteInfoProvider> routes,
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
@@ -213,7 +213,7 @@ class StateRoute implements StateRouteConfigProvider {
   /// {@macro StateRoute.path}
   factory StateRoute.machine(
     DataStateKey<MachineTreeStateData> stateKey, {
-    required List<StateRouteConfigProvider> routes,
+    required List<StateRouteInfoProvider> routes,
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
@@ -293,7 +293,7 @@ typedef ShellStateRoutePageBuilder = Page<void> Function(
 /// addition of providing the [DataStateKey] of the ancestor state whose data
 /// should be obtained. The data value is yen made available to the builder
 /// functions.
-class StateRoute1<DAnc> implements StateRouteConfigProvider {
+class StateRoute1<DAnc> implements StateRouteInfoProvider {
   StateRoute1._(this._createRouteConfig);
 
   /// Constructs a [StateRoute1].
@@ -364,7 +364,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
 ///
 /// Note that there is no relationship implied between the ancestor states. Either state may be an
 /// ancestor of the other.
-class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
+class StateRoute2<DAnc1, DAnc2> implements StateRouteInfoProvider {
   StateRoute2._(this._createRouteConfig);
 
   /// Constructs a [StateRoute1].
@@ -430,7 +430,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
 ///
 /// Note that there is no relationship implied between the ancestor states. Any state may be an
 /// ancestor of the others
-class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
+class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteInfoProvider {
   StateRoute3._(this._createRouteConfig);
 
   /// Constructs a [StateRoute3].

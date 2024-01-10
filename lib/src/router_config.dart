@@ -75,7 +75,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
         "Only one of stateMachine or stateTree can be provided ");
     return TreeStateRouter._(
       stateMachine: stateMachine ?? TreeStateMachine(stateTree!),
-      routes: routes.map((e) => e.createConfig(null)).toList(),
+      routes: routes.map((e) => e.createInfo(null)).toList(),
       defaultScaffolding: defaultScaffolding,
       defaultPageBuilder: defaultPageBuilder,
       enableTransitions: enableTransitions,
@@ -95,7 +95,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,
   }) {
-    var routeConfigs = routes.map((e) => e.createConfig(null)).toList();
+    var routeConfigs = routes.map((e) => e.createInfo(null)).toList();
     // Find data routes that have route parameters. These routes will have
     // tree state filters installed that can initialize state data
     var dataRoutesWithParams = Map.fromEntries(routeConfigs

@@ -18,7 +18,7 @@ abstract class StateRouteInfoProvider {
   /// A config object providing a generalized description of a route for a
   /// [TreeStateRouter].
   //StateRouteConfig get config;
-  StateRouteInfo createConfig(StateRouteInfo? parent);
+  StateRouteInfo createInfo(StateRouteInfo? parent);
 }
 
 /// {@template StateRouteBuilder}

@@ -185,7 +185,7 @@ class StateRoute implements StateRouteInfoProvider {
             parentRoute: parentRoute,
           );
 
-          childRoutes.addAll(routes.map((e) => e.createConfig(config)));
+          childRoutes.addAll(routes.map((e) => e.createInfo(config)));
 
           return config;
         },
@@ -251,7 +251,7 @@ class StateRoute implements StateRouteInfoProvider {
           parentRoute: parent,
         );
 
-        childRouteConfigs.addAll(routes.map((e) => e.createConfig(config)));
+        childRouteConfigs.addAll(routes.map((e) => e.createInfo(config)));
 
         return config;
       });
@@ -259,7 +259,7 @@ class StateRoute implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createConfig(StateRouteInfo? parent) =>
+  StateRouteInfo createInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -352,7 +352,7 @@ class StateRoute1<DAnc> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createConfig(StateRouteInfo? parent) =>
+  StateRouteInfo createInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -418,7 +418,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createConfig(StateRouteInfo? parent) =>
+  StateRouteInfo createInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -487,6 +487,6 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createConfig(StateRouteInfo? parent) =>
+  StateRouteInfo createInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }

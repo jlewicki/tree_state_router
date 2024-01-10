@@ -173,7 +173,7 @@ class DataStateRoute<D> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createConfig(StateRouteInfo? parent) =>
+  StateRouteInfo createInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 
   // /// {@template DataStateRoute.stateKey}
@@ -272,7 +272,7 @@ class DataStateRoute2<D, DAnc1> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createConfig(StateRouteInfo? parent) =>
+  StateRouteInfo createInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -353,7 +353,7 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createConfig(StateRouteInfo? parent) =>
+  StateRouteInfo createInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 

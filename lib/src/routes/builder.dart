@@ -214,7 +214,7 @@ StateRouteInfo createDataStateRouteConfig1<D1>(
     childRoutes: childConfigs,
     parentRoute: parent,
   );
-  childConfigs.addAll(childRoutes.map((e) => e.createConfig(config)));
+  childConfigs.addAll(childRoutes.map((e) => e.createInfo(config)));
   return config;
 }
 
@@ -265,7 +265,7 @@ StateRouteInfo createDataStateRouteConfig2<D1, D2>(
     childRoutes: childConfigs,
     parentRoute: parent,
   );
-  childConfigs.addAll(childRoutes.map((e) => e.createConfig(config)));
+  childConfigs.addAll(childRoutes.map((e) => e.createInfo(config)));
   return config;
 }
 
@@ -317,6 +317,6 @@ StateRouteInfo createDataStateRouteConfig3<D1, D2, D3>(
     childRoutes: childConfigs,
     parentRoute: parent,
   );
-  childConfigs.addAll(childRoutes.map((e) => e.createConfig(config)));
+  childConfigs.addAll(childRoutes.map((e) => e.createInfo(config)));
   return config;
 }

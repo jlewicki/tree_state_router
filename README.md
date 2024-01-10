@@ -289,7 +289,7 @@ base URL for the web app, and consequently the state machine will restart at its
 
 ### Path Parameters
 
-The `DataStateRoute.withParams` factory allows values obtained from the current data value of a
+The `DataStateRoute.parameterized` factory allows values obtained from the current data value of a
 data route to be included in the path. When the `pathTemplate` includes a unique name prefixed by a
 `:` character.
 
@@ -303,7 +303,7 @@ class AdddressState {
 
 DataStateRoute<ChildData>(
    States.addressState,
-   path: DataRoutePath.withParams(
+   path: DataRoutePath.parameterized(
       'user/:userId/address/:addressId',
       pathArgs: (data) => {
          'userId': data.userId.toString(),

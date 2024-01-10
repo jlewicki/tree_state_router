@@ -24,7 +24,7 @@ class DescendantStatesRouter extends StatelessWidget {
   final StateKey anchorKey;
 
   /// The list of routes that can be materialized by this router.
-  final List<StateRouteConfig> routes;
+  final List<StateRouteInfo> routes;
 
   /// {@macro TreeStateRouter.defaultScaffolding}
   final DefaultScaffoldingBuilder? defaultScaffolding;

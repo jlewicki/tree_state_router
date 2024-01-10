@@ -13,12 +13,12 @@ class StateRoutingContext {
 /// TBD: This will contain routing information parsed from the current URI.
 class TreeStateRoutingState {}
 
-/// Provides an accessor for a [StateRouteConfig] describing a route.
+/// Provides an accessor for a [StateRouteInfo] describing a route.
 abstract class StateRouteConfigProvider {
   /// A config object providing a generalized description of a route for a
   /// [TreeStateRouter].
   //StateRouteConfig get config;
-  StateRouteConfig createConfig(StateRouteConfig? parent);
+  StateRouteInfo createConfig(StateRouteInfo? parent);
 }
 
 /// {@template StateRouteBuilder}
@@ -67,15 +67,15 @@ typedef StateRoutePageBuilder = Page<void> Function(
 ///
 /// This is intended for use by [TreeStateRouter], and typically not used by an
 /// application directly.
-class StateRouteConfig {
-  StateRouteConfig(
+class StateRouteInfo {
+  StateRouteInfo(
     this.stateKey, {
     this.routeBuilder,
     this.routePageBuilder,
     this.isPopup = false,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
     List<DataStateKey> dependencies = const [],
-    required List<StateRouteConfig> childRoutes,
+    required List<StateRouteInfo> childRoutes,
     required this.parentRoute,
   })  : dependencies = List.unmodifiable(dependencies),
         // Child routes are populated in two stages, so use UnmodifiableListView
@@ -89,7 +89,7 @@ class StateRouteConfig {
   final StateKey stateKey;
 
   /// {@macro StateRoute.path}
-  final RoutePathConfig path;
+  final RoutePathInfo path;
 
   /// The builder function providing the visuals for this route.
   ///
@@ -117,12 +117,12 @@ class StateRouteConfig {
   ///
   /// The tree states for these child routes must be descendant states of the
   /// states identified by [stateKey]
-  final List<StateRouteConfig> childRoutes;
+  final List<StateRouteInfo> childRoutes;
 
   /// The parent shell route of this route, or `null` if the route has no
   /// parent.
   ///
   /// If not `null`, then this routes is present in the `childRoutes` list of
   /// the parent.
-  final StateRouteConfig? parentRoute;
+  final StateRouteInfo? parentRoute;
 }

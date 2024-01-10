@@ -4,7 +4,7 @@ import 'package:tree_state_router/src/widgets/nested_machine_router.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'builder.dart';
 
-typedef CreateRouteConfig = StateRouteConfig Function(StateRouteConfig? parent);
+typedef CreateRouteConfig = StateRouteInfo Function(StateRouteInfo? parent);
 
 /// A route that provides visuals for a state in a state tree.
 ///
@@ -72,10 +72,10 @@ class StateRoute implements StateRouteConfigProvider {
     StateKey stateKey, {
     StateRouteBuilder? routeBuilder,
     StateRoutePageBuilder? routePageBuilder,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
   }) =>
       StateRoute._(
-        (parentRoute) => StateRouteConfig(
+        (parentRoute) => StateRouteInfo(
           stateKey,
           routeBuilder: routeBuilder,
           routePageBuilder: routePageBuilder,
@@ -90,10 +90,10 @@ class StateRoute implements StateRouteConfigProvider {
   factory StateRoute.popup(
     StateKey stateKey, {
     StateRouteBuilder? routeBuilder,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
   }) =>
       StateRoute._(
-        (parentRoute) => StateRouteConfig(
+        (parentRoute) => StateRouteInfo(
           stateKey,
           routeBuilder: routeBuilder,
           routePageBuilder: null,
@@ -151,11 +151,11 @@ class StateRoute implements StateRouteConfigProvider {
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
     DefaultScaffoldingBuilder? defaultScaffolding,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
   }) =>
       StateRoute._(
         (parentRoute) {
-          var childRoutes = <StateRouteConfig>[];
+          var childRoutes = <StateRouteInfo>[];
           var nestedRouter = DescendantStatesRouter(
             key: ValueKey(stateKey),
             anchorKey: stateKey,
@@ -164,7 +164,7 @@ class StateRoute implements StateRouteConfigProvider {
             enableTransitions: enableTransitions,
           );
 
-          var config = StateRouteConfig(
+          var config = StateRouteInfo(
             stateKey,
             routeBuilder: routeBuilder != null
                 ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter)
@@ -218,10 +218,10 @@ class StateRoute implements StateRouteConfigProvider {
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
     DefaultScaffoldingBuilder? defaultScaffolding,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
   }) =>
       StateRoute._((parent) {
-        var childRouteConfigs = <StateRouteConfig>[];
+        var childRouteConfigs = <StateRouteInfo>[];
         NestedStateMachineRouter nestedRouter() => NestedStateMachineRouter(
               key: ValueKey(stateKey),
               machineStateKey: stateKey,
@@ -230,7 +230,7 @@ class StateRoute implements StateRouteConfigProvider {
               enableTransitions: enableTransitions,
             );
 
-        var config = StateRouteConfig(
+        var config = StateRouteInfo(
           stateKey,
           routeBuilder: routeBuilder != null
               ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter())
@@ -259,7 +259,7 @@ class StateRoute implements StateRouteConfigProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+  StateRouteInfo createConfig(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -315,7 +315,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
     required DataStateKey<DAnc> ancestorStateKey,
     DataStateRouteBuilder<DAnc>? routeBuilder,
     DataStateRoutePageBuilder<DAnc>? routePageBuilder,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
   }) =>
       StateRoute1._((parent) {
         return createDataStateRouteConfig1<DAnc>(
@@ -352,7 +352,7 @@ class StateRoute1<DAnc> implements StateRouteConfigProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+  StateRouteInfo createConfig(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -374,7 +374,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
     required DataStateKey<DAnc2> ancestor2StateKey,
     DataStateRouteBuilder2<DAnc1, DAnc2>? routeBuilder,
     DataStateRoutePageBuilder2<DAnc1, DAnc2>? routePageBuilder,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
   }) =>
       StateRoute2._((parent) {
         return createDataStateRouteConfig2(
@@ -418,7 +418,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteConfigProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+  StateRouteInfo createConfig(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -441,7 +441,7 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
     required DataStateKey<DAnc3> ancestor3StateKey,
     DataStateRouteBuilder3<DAnc1, DAnc2, DAnc3>? routeBuilder,
     DataStateRoutePageBuilder3<DAnc1, DAnc2, DAnc3>? routePageBuilder,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
   }) =>
       StateRoute3._((parent) {
         return createDataStateRouteConfig3(
@@ -487,6 +487,6 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteConfigProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+  StateRouteInfo createConfig(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }

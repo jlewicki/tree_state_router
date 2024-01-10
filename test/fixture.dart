@@ -3,7 +3,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:test/test.dart';
-import 'package:tree_state_machine/build.dart';
 import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/routes/route_utility.dart';
@@ -133,7 +132,7 @@ Widget emptyShellDataRouteBuilder<D>(
     const Placeholder();
 
 void expectConfig(
-  List<StateRouteConfig> configs,
+  List<StateRouteInfo> configs,
   StateKey key,
   StateKey? parent,
   List<StateKey> children,
@@ -150,7 +149,7 @@ void expectConfig(
   );
 }
 
-TreeStateRoutePath toRoutePath(StateRouteConfig route) {
+TreeStateRoutePath toRoutePath(StateRouteInfo route) {
   return TreeStateRoutePath(
     route.selfAndAncestors().toList().reversed.toList(),
   );

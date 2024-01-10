@@ -5,11 +5,11 @@ import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/route_table.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
-/// Provides information about a path of [StateRouteConfig]s that is parsed
+/// Provides information about a path of [StateRouteInfo]s that is parsed
 /// from [RouteInformation] provided by the system.
 class TreeStateRoutePath {
   TreeStateRoutePath(
-    List<StateRouteConfig> routes, [
+    List<StateRouteInfo> routes, [
     Map<DataStateKey, Object> initialStateData = const {},
   ])  : routes = List.unmodifiable(routes),
         initialStateData = Map.unmodifiable(initialStateData);
@@ -20,7 +20,7 @@ class TreeStateRoutePath {
   /// The routes to displayed, based on route information provided by the
   /// platform. Routes are ordered in a descending fashion, such that the leaf
   /// route is at the end of the list
-  final List<StateRouteConfig> routes;
+  final List<StateRouteInfo> routes;
 
   /// Unmodifiable map of initial data values for data state in the path, for
   /// use when initializing a state machine from a URI.
@@ -30,7 +30,7 @@ class TreeStateRoutePath {
   late bool isEmpty = routes.isEmpty;
 
   /// The complete path template for this route path, combining the
-  /// [RoutePathConfig.pathTemplate] for all the routes in the path.
+  /// [RoutePathInfo.pathTemplate] for all the routes in the path.
   late final pathTemplate = routes.map((r) => r.path.pathTemplate).join('/');
 
   /// The first route in the path.
@@ -44,7 +44,7 @@ class TreeStateRoutePath {
   late final end = routes.last;
 
   /// The complete set of parameters in this route path, combining the
-  /// [RoutePathConfig.parameters] for all the routes in the path.
+  /// [RoutePathInfo.parameters] for all the routes in the path.
   late final List<String> parameters =
       routes.expand((e) => e.path.parameters).toList();
 

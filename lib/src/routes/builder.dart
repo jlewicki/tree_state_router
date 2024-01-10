@@ -168,14 +168,14 @@ class _TypeLiteral<T> {
   Type get type => T;
 }
 
-StateRouteConfig createDataStateRouteConfig1<D1>(
-  StateRouteConfig? parent,
+StateRouteInfo createDataStateRouteConfig1<D1>(
+  StateRouteInfo? parent,
   StateKey stateKey,
   DataStateRouteBuilder<D1>? routeBuilder,
   DataStateRoutePageBuilder<D1>? routePageBuilder,
   List<StateDataResolver> resolvers,
   bool isPopup,
-  RoutePathConfig? path,
+  RoutePathInfo? path,
   List<StateRouteConfigProvider> childRoutes,
 ) {
   DataStateBuilder createDataStateBuilder1(
@@ -194,8 +194,8 @@ StateRouteConfig createDataStateRouteConfig1<D1>(
     );
   }
 
-  var childConfigs = <StateRouteConfig>[];
-  var config = StateRouteConfig(
+  var childConfigs = <StateRouteInfo>[];
+  var config = StateRouteInfo(
     stateKey,
     routeBuilder: routeBuilder != null
         ? (context, stateContext) =>
@@ -218,14 +218,14 @@ StateRouteConfig createDataStateRouteConfig1<D1>(
   return config;
 }
 
-StateRouteConfig createDataStateRouteConfig2<D1, D2>(
-  StateRouteConfig? parent,
+StateRouteInfo createDataStateRouteConfig2<D1, D2>(
+  StateRouteInfo? parent,
   StateKey stateKey,
   DataStateRouteBuilder2<D1, D2>? routeBuilder,
   DataStateRoutePageBuilder2<D1, D2>? routePageBuilder,
   List<StateDataResolver> resolvers,
   bool isPopup,
-  RoutePathConfig? path,
+  RoutePathInfo? path,
   List<StateRouteConfigProvider> childRoutes,
 ) {
   DataStateBuilder createDataStateBuilder2(
@@ -245,8 +245,8 @@ StateRouteConfig createDataStateRouteConfig2<D1, D2>(
     );
   }
 
-  var childConfigs = <StateRouteConfig>[];
-  var config = StateRouteConfig(
+  var childConfigs = <StateRouteInfo>[];
+  var config = StateRouteInfo(
     stateKey,
     routeBuilder: routeBuilder != null
         ? (context, stateContext) =>
@@ -269,14 +269,14 @@ StateRouteConfig createDataStateRouteConfig2<D1, D2>(
   return config;
 }
 
-StateRouteConfig createDataStateRouteConfig3<D1, D2, D3>(
-  StateRouteConfig? parent,
+StateRouteInfo createDataStateRouteConfig3<D1, D2, D3>(
+  StateRouteInfo? parent,
   StateKey stateKey,
   DataStateRouteBuilder3<D1, D2, D3>? routeBuilder,
   DataStateRoutePageBuilder3<D1, D2, D3>? routePageBuilder,
   List<StateDataResolver> resolvers,
   bool isPopup,
-  RoutePathConfig? path,
+  RoutePathInfo? path,
   List<StateRouteConfigProvider> childRoutes,
 ) {
   DataStateBuilder createDataStateBuilder3(
@@ -297,8 +297,8 @@ StateRouteConfig createDataStateRouteConfig3<D1, D2, D3>(
     );
   }
 
-  var childConfigs = <StateRouteConfig>[];
-  var config = StateRouteConfig(
+  var childConfigs = <StateRouteInfo>[];
+  var config = StateRouteInfo(
     stateKey,
     routeBuilder: routeBuilder != null
         ? (context, stateContext) =>

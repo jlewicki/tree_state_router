@@ -11,8 +11,8 @@ export 'src/pages.dart'
         cupertinoPopupPageBuilder;
 export 'src/route_parser.dart';
 export 'src/router_config.dart' hide GoToDeepLink, InitializeStateDataFilter;
-export 'src/routes/route_path_config.dart';
-export 'src/routes/route_config.dart';
+export 'src/routes/route_path_info.dart';
+export 'src/routes/route_info.dart';
 export 'src/routes/routes.dart';
 export 'src/routes/data_routes.dart';
 export 'src/widgets/inspector.dart';

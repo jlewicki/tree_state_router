@@ -130,7 +130,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
     DataRoutePath<D>? path,
   }) =>
       DataStateRoute<D>._((parent) {
-        var childRouteConfigs = <StateRouteConfig>[];
+        var childRouteConfigs = <StateRouteInfo>[];
         DescendantStatesRouter nestedRouter() => DescendantStatesRouter(
               key: ValueKey(stateKey),
               anchorKey: stateKey,
@@ -173,7 +173,7 @@ class DataStateRoute<D> implements StateRouteConfigProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+  StateRouteInfo createConfig(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 
   // /// {@template DataStateRoute.stateKey}
@@ -230,7 +230,7 @@ class DataStateRoute2<D, DAnc1> implements StateRouteConfigProvider {
     required DataStateKey<DAnc1> ancestorStateKey,
     DataStateRouteBuilder2<D, DAnc1>? routeBuilder,
     DataStateRoutePageBuilder2<D, DAnc1>? routePageBuilder,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
   }) =>
       DataStateRoute2._((parent) {
         return createDataStateRouteConfig2(
@@ -272,7 +272,7 @@ class DataStateRoute2<D, DAnc1> implements StateRouteConfigProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+  StateRouteInfo createConfig(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -308,7 +308,7 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
     required DataStateKey<DAnc2> ancestor2StateKey,
     DataStateRouteBuilder3<D, DAnc1, DAnc2>? routeBuilder,
     DataStateRoutePageBuilder3<D, DAnc1, DAnc2>? routePageBuilder,
-    RoutePathConfig? path,
+    RoutePathInfo? path,
   }) =>
       DataStateRoute3._((parent) {
         return createDataStateRouteConfig3(
@@ -353,7 +353,7 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteConfigProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteConfig createConfig(StateRouteConfig? parent) =>
+  StateRouteInfo createConfig(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 

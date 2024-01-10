@@ -14,7 +14,7 @@ class RouteTable {
 
   factory RouteTable(
     TreeStateMachine stateMachine,
-    List<StateRouteConfig> routes,
+    List<StateRouteInfo> routes,
   ) {
     var linkableRoutePaths = routes
         .expand((e) => e.selfAndDescendants())

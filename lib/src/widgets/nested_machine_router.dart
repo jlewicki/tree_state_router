@@ -18,7 +18,7 @@ class NestedStateMachineRouter extends StatelessWidget {
   final DataStateKey<MachineTreeStateData> machineStateKey;
 
   /// The list of routes that can be materialized by this router.
-  final List<StateRouteConfig> routes;
+  final List<StateRouteInfo> routes;
 
   /// {@macro TreeStateRouter.defaultScaffolding}
   final DefaultScaffoldingBuilder? defaultScaffolding;

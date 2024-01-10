@@ -137,7 +137,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
 
   /// The list of routes that can be materialized by this router.  Each route
   /// should correspond to a state in the [stateMachine].
-  final List<StateRouteConfig> routes;
+  final List<StateRouteInfo> routes;
 
   /// Indictes if the router integrates with the platform routing engine, such
   /// that web browser URLs are updated in response to route changes.
@@ -182,8 +182,8 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   final bool enableTransitions;
 
   /// Unmodifiable map of the routes in [routes], and all of their descendant
-  /// routes, keyed by [StateRouteConfig.stateKey].
-  late final Map<StateKey, StateRouteConfig> routeMap = Map.unmodifiable(
+  /// routes, keyed by [StateRouteInfo.stateKey].
+  late final Map<StateKey, StateRouteInfo> routeMap = Map.unmodifiable(
     Map.fromEntries(routes
         .expand((e) => e.selfAndDescendants())
         .map((e) => MapEntry(e.stateKey, e))),

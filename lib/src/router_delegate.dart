@@ -30,7 +30,7 @@ class TreeStateRouterDelegateConfig {
     this.enableTransitions = true,
     this.enablePlatformRouting = false,
   });
-  final List<StateRouteConfig> routes;
+  final List<StateRouteInfo> routes;
   final DefaultScaffoldingBuilder? defaultScaffolding;
   final DefaultPageBuilder? defaultPageBuilder;
   final bool enableTransitions;
@@ -131,7 +131,7 @@ abstract class TreeStateRouterDelegateBase
     _log.fine(() => 'Creating pages for active states: '
         '${currentState.activeStates.join(', ')}');
 
-    Iterable<StateRouteConfig> navigatorRoutes = _activeRoutes(currentState);
+    Iterable<StateRouteInfo> navigatorRoutes = _activeRoutes(currentState);
 
     // If we have a popup route, attempt to find a route for one of the exiting
     // states. This route will be pushed on to the navigator below the popup
@@ -169,7 +169,7 @@ abstract class TreeStateRouterDelegateBase
   /// the route that maps to a state as far as possible from the root state.
   /// This gives the current leaf state priority in determining the route to
   /// display, followed by its parent state, etc.
-  List<StateRouteConfig> _activeRoutes(CurrentState currentState) {
+  List<StateRouteInfo> _activeRoutes(CurrentState currentState) {
     // Is the order right here?
     var activeRoutes = _findRoutesFor(currentState.activeStates.reversed);
     return activeRoutes.take(1).toList();
@@ -216,7 +216,7 @@ abstract class TreeStateRouterDelegateBase
   }
 
   Page<void> _buildRoutePage(
-    StateRouteConfig route,
+    StateRouteInfo route,
     BuildContext context,
     CurrentState currentState,
   ) {
@@ -261,16 +261,16 @@ abstract class TreeStateRouterDelegateBase
         appPageBuilder(buildFor, pageContent);
   }
 
-  Iterable<StateRouteConfig> _findRoutesFor(Iterable<StateKey> keys) {
+  Iterable<StateRouteInfo> _findRoutesFor(Iterable<StateKey> keys) {
     return keys
-        .map((stateKey) => MapEntry<StateKey, StateRouteConfig?>(
-            stateKey, _routeMap[stateKey]))
+        .map((stateKey) =>
+            MapEntry<StateKey, StateRouteInfo?>(stateKey, _routeMap[stateKey]))
         .where((entry) => entry.value != null)
         .map((entry) => entry.value!);
   }
 
-  Map<StateKey, StateRouteConfig> _mapRoutes(List<StateRouteConfig> routes) {
-    var map = <StateKey, StateRouteConfig>{};
+  Map<StateKey, StateRouteInfo> _mapRoutes(List<StateRouteInfo> routes) {
+    var map = <StateKey, StateRouteInfo>{};
     for (var route in routes) {
       if (map.containsKey(route.stateKey)) {
         throw _errors.duplicateRoutes(route.stateKey);

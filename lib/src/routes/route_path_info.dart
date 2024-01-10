@@ -32,11 +32,27 @@ final _pathTemplateRegEx =
     RegExp(r'^([^\\\/\s]{1}|[^\\\/\s]+[^\\]*[^\\\/\s]+)$');
 
 // Identifies the parameters in a path like user/:userId/address/:addressId
-final _pathParamsRegEx = RegExp(r':(\w+)');
-//final _pathArgsRegEx = RegExp(r':(\w+)(\((?:\\.|[^\\()])+\))?');
+// The parameter pattern has to be followed by a / (or be at end of the text)
+final _pathParamsRegEx = RegExp(r':(\w+)(\((?:\\.|[^\\()])+\))?');
 
-sealed class RoutePathConfig {
-  RoutePathConfig(
+/// A description of the URI path segment for a state route, when a route tree
+/// is enabled for platform routing with [TreeStateRouter.platformRouting].
+///
+/// The path can be a literal path like `user`, or contain parameters that
+/// are prefixed by `:`, like `user/:userId`. When the router needs to generate
+/// a URI representing a route path, it will call [generateUriPath] for each
+/// active route path, passing the active data value (if any) for the route.
+/// This data value can be used to generate values for the path parameters.
+///
+/// A path can be enabled for deep linking with [enableDeepLink]. By default,
+/// a path does not support for deep linking. That is, [generateUriPath] will be
+/// used when generate URIs as the active route changes, but will not support
+/// navigating directly to the route when following a deep link. If
+/// [enableDeepLink] is `true`, then additioanlly [matchUriPath] will used when
+/// parsing a deep link URI.
+sealed class RoutePathInfo {
+  /// Constructs a [RoutePathInfo].
+  RoutePathInfo(
     this.pathTemplate,
     this.parameters, {
     this.enableDeepLink = false,
@@ -78,7 +94,7 @@ sealed class RoutePathConfig {
   /// provided, or `null` if the state is not a data state.
   String generateUriPath(dynamic data) {
     var pathArgs = _generatePathArgs(data);
-    // TODO: find a way to replace parms without repeatedly running regexp
+    // TODO: find a way to replace parms without repeatedly running regexp?
     return _replaceTemplateParameters((paramName) {
       var pathArg = pathArgs[paramName];
       if (pathArg == null) {
@@ -144,7 +160,7 @@ sealed class RoutePathConfig {
 
 /// Describes how a [StateRoute] integrates with platform (i.e. Navigator 2.0)
 /// routing.
-class RoutePath extends RoutePathConfig {
+class RoutePath extends RoutePathInfo {
   RoutePath._(
     super.pathTemplate,
     super.parameters,
@@ -187,7 +203,7 @@ class RoutePath extends RoutePathConfig {
       null;
 }
 
-class DataRoutePath<D> extends RoutePathConfig {
+class DataRoutePath<D> extends RoutePathInfo {
   DataRoutePath._(
     super.pathTemplate,
     super.parameters,

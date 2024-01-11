@@ -27,7 +27,7 @@ final router = TreeStateRouter(
     ),
     StateRoute.machine(
       States.nestedMachineRunning,
-      routeBuilder: (_, __, content) => content,
+      routeBuilder: (_, __, content, ___) => content,
       routes: [
         StateRoute(
           nested.States.step1,

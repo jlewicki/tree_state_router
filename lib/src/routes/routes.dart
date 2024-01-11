@@ -222,8 +222,9 @@ class StateRoute implements StateRouteInfoBuilder {
   ///
   /// In a similar manner to [StateRoute.shell], when the [routeBuilder] and
   /// [routePageBuilder] functions are called, they are provided a
-  /// `nestedRouter` widget that displays the visuals for the active state(s).
-  ///  The builder functions can place this widget as desired in their layout.
+  /// `nestedRouter` widget that displays the visuals for the active state(s) in
+  /// the nested state machine. The builder functions can place this widget as
+  /// desired in their layout.
   ///
   /// [enableTransitions] and [defaultScaffolding] work in the same manner as
   /// [TreeStateRouter.enableTransitions] and
@@ -231,47 +232,52 @@ class StateRoute implements StateRouteInfoBuilder {
   ///
   /// {@macro StateRoute.path}
   factory StateRoute.machine(
-    DataStateKey<MachineTreeStateData> stateKey, {
+    MachineStateKey stateKey, {
     required List<StateRouteInfoBuilder> routes,
-    ShellStateRouteBuilder? routeBuilder,
-    ShellStateRoutePageBuilder? routePageBuilder,
+    ShellDataStateRouteBuilder<MachineTreeStateData>? routeBuilder,
+    ShellDataStateRoutePageBuilder<MachineTreeStateData>? routePageBuilder,
     bool enableTransitions = false,
     DefaultScaffoldingBuilder? defaultScaffolding,
     RoutePathInfo? path,
   }) =>
       StateRoute._((parent) {
         var childRouteConfigs = <StateRouteInfo>[];
-        NestedStateMachineRouter nestedRouter() => NestedStateMachineRouter(
-              key: ValueKey(stateKey),
-              machineStateKey: stateKey,
-              routes: childRouteConfigs,
-              defaultScaffolding: defaultScaffolding,
-              enableTransitions: enableTransitions,
-            );
+        var nestedRouter = NestedStateMachineRouter(
+          key: ValueKey(stateKey),
+          machineStateKey: stateKey,
+          routes: childRouteConfigs,
+          defaultScaffolding: defaultScaffolding,
+          enableTransitions: enableTransitions,
+        );
 
-        var config = StateRouteInfo(
+        var config = createDataStateRouteConfig1<MachineTreeStateData>(
+          parent,
           stateKey,
-          routeBuilder: routeBuilder != null
-              ? (ctx, stateCtx) => routeBuilder(ctx, stateCtx, nestedRouter())
+          routeBuilder != null
+              ? (ctx, stateCtx, data) => routeBuilder(
+                    ctx,
+                    stateCtx,
+                    nestedRouter,
+                    data,
+                  )
               : null,
-          routePageBuilder: routePageBuilder != null
+          routePageBuilder != null
               ? (buildContext, wrapPageContent) => routePageBuilder(
                   buildContext,
                   (buildPageContent) => wrapPageContent(
-                      (context, stateContext) => buildPageContent(
+                      (context, stateContext, data) => buildPageContent(
                             context,
                             stateContext,
-                            nestedRouter(),
+                            nestedRouter,
+                            data,
                           )))
               : null,
-          isPopup: false,
-          path: path,
-          childRoutes: childRouteConfigs,
-          parentRoute: parent,
+          [StateDataResolver<MachineTreeStateData>(stateKey)],
+          false,
+          path,
+          routes,
         );
-
-        childRouteConfigs.addAll(routes.map((e) => e.buildRouteInfo(config)));
-
+        childRouteConfigs.addAll(config.childRoutes);
         return config;
       });
 

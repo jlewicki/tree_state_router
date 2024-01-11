@@ -255,7 +255,15 @@ StateRoute.shell(
 ```
 
 ### Machine Routes
-TODO
+The `StateRoute.machine` factory constructs a route the can display visuals for the active states
+in a nested state machine. The factory is similar to the `StateMachine.shell` factory, in that 
+requires a list of routes corresponding to states in the nested state machine. Also, the 
+`routeBuilder` function is provided a `nestedRouter` that represents the visuals for the active 
+states in the nested state machine, as well as a `MachineTreeStateData` that provides access to 
+nested machine.
+
+Refer to the [MachineState](https://pub.dev/documentation/tree_state_machine/latest/delegate_builders/MachineState-class.html) 
+documentation for more details on machine states,
 
 ## Web
 If the `TreeStateRouter.platformRouting` factory is used, the router will integrate with the 

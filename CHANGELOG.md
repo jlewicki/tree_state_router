@@ -6,7 +6,6 @@
    - Deep linking is supported
 - Add support for routing nested state machines.
 
-
 ## 0.0.1-dev.2
 - Add shell routes
 

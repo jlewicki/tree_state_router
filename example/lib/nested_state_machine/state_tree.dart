@@ -6,8 +6,7 @@ import 'nested_state_tree.dart' as nested;
 class States {
   static const root = StateKey('root');
   static const nestedMachineReady = StateKey('nestedMachineReady');
-  static const nestedMachineRunning =
-      DataStateKey<MachineTreeStateData>('nestedMachineRunning');
+  static const nestedMachineRunning = MachineStateKey('nestedMachineRunning');
   static const nestedMachineDone = StateKey('nestedMachineRunning');
 }
 

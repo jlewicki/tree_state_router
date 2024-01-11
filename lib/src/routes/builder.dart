@@ -176,7 +176,7 @@ StateRouteInfo createDataStateRouteConfig1<D1>(
   List<StateDataResolver> resolvers,
   bool isPopup,
   RoutePathInfo? path,
-  List<StateRouteInfoProvider> childRoutes,
+  List<StateRouteInfoBuilder> childRoutes,
 ) {
   DataStateBuilder createDataStateBuilder1(
     StateRoutingContext stateContext,
@@ -214,7 +214,7 @@ StateRouteInfo createDataStateRouteConfig1<D1>(
     childRoutes: childConfigs,
     parentRoute: parent,
   );
-  childConfigs.addAll(childRoutes.map((e) => e.createInfo(config)));
+  childConfigs.addAll(childRoutes.map((e) => e.buildRouteInfo(config)));
   return config;
 }
 
@@ -226,7 +226,7 @@ StateRouteInfo createDataStateRouteConfig2<D1, D2>(
   List<StateDataResolver> resolvers,
   bool isPopup,
   RoutePathInfo? path,
-  List<StateRouteInfoProvider> childRoutes,
+  List<StateRouteInfoBuilder> childRoutes,
 ) {
   DataStateBuilder createDataStateBuilder2(
     StateRoutingContext stateContext,
@@ -265,7 +265,7 @@ StateRouteInfo createDataStateRouteConfig2<D1, D2>(
     childRoutes: childConfigs,
     parentRoute: parent,
   );
-  childConfigs.addAll(childRoutes.map((e) => e.createInfo(config)));
+  childConfigs.addAll(childRoutes.map((e) => e.buildRouteInfo(config)));
   return config;
 }
 
@@ -277,7 +277,7 @@ StateRouteInfo createDataStateRouteConfig3<D1, D2, D3>(
   List<StateDataResolver> resolvers,
   bool isPopup,
   RoutePathInfo? path,
-  List<StateRouteInfoProvider> childRoutes,
+  List<StateRouteInfoBuilder> childRoutes,
 ) {
   DataStateBuilder createDataStateBuilder3(
     StateRoutingContext stateContext,
@@ -317,6 +317,6 @@ StateRouteInfo createDataStateRouteConfig3<D1, D2, D3>(
     childRoutes: childConfigs,
     parentRoute: parent,
   );
-  childConfigs.addAll(childRoutes.map((e) => e.createInfo(config)));
+  childConfigs.addAll(childRoutes.map((e) => e.buildRouteInfo(config)));
   return config;
 }

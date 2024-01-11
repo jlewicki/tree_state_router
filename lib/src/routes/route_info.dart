@@ -4,23 +4,30 @@ import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
+/// Provides information to route builder functions about the current state
+/// machine state, and additional routing information parsed from a URI.
 class StateRoutingContext {
-  StateRoutingContext(this.currentState);
+  StateRoutingContext(this.currentState, this.routingState);
+
+  /// The [CurrentState] of the [TreeStateMachine] backing the router.
   final CurrentState currentState;
-  final TreeStateRoutingState routingState = TreeStateRoutingState();
+
+  /// Additional routing information parsed from a deep link URI.
+  final TreeStateRoutingState routingState;
 }
 
-/// TBD: This will contain routing information parsed from the current URI.
+/// TBD: This will contain routing information parsed from a deep link URI.
 class TreeStateRoutingState {}
 
-/// Provides support for creating [StateRouteInfo] describing a route.
-abstract class StateRouteInfoProvider {
+/// Provides support for building a [StateRouteInfo] that describes a route in
+/// a [TreeStateRouter].
+abstract class StateRouteInfoBuilder {
   /// Creates a [StateRouteInfo] providing a generalized description of a route
   /// for use by [TreeStateRouter].
   ///
   /// A [parent] is provided, indicating the parent route of the route to be
   /// created, or `null` if the route should have no parent.
-  StateRouteInfo createInfo(StateRouteInfo? parent);
+  StateRouteInfo buildRouteInfo(StateRouteInfo? parent);
 }
 
 /// {@template StateRouteBuilder}

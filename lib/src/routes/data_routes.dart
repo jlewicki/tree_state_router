@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
+import 'package:tree_state_router/src/routes/routes.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'builder.dart';
 
 /// {@template DataStateRouteBuilder}
-/// A function that can build a widget providing a visualization of an active data state in a state
-/// tree.
+/// A function that can build a widget providing a visualization of an active
+/// data state in a state tree.
 ///
-/// The function is provided a build [context], and a [stateContext] that describes the state to be
-/// visualized, and the current [data] value for the data state.
+/// The function is provided a build [context], and a [stateContext] that
+/// describes the state to be visualized, and the current [data] value for the
+/// data state.
 /// {@endtemplate}
 typedef DataStateRouteBuilder<D> = Widget Function(
   BuildContext context,
@@ -17,18 +19,19 @@ typedef DataStateRouteBuilder<D> = Widget Function(
 );
 
 /// {@template DataStateRoutePageBuilder}
-/// A function that can build a routing [Page] that provides a visualization of an active state in
-/// a state tree.
+/// A function that can build a routing [Page] that provides a visualization of
+/// an active data state in a state tree.
 ///
-/// The function is provided a build [context], and a [wrapPageContent] function that must be called
-/// in order to wrap the contents of the route in a specialized widget that detects state
-/// transitions and re-renders this route as necessary. The return value of the
-/// [wrapPageContent] function should be used as the contents of the page.
+/// The function is provided a build [context], and a [wrapPageContent] function
+/// that must be called in order to wrap the contents of the route in a
+/// specialized widget that detects statw transitions and re-renders this route
+/// as necessary. The return value of the [wrapPageContent] function should be
+/// used as the contents of the page.
 ///
 /// ```dart
 /// var routerConfig = TreeStateRouter(
 ///   routes: [
-///     DataTreeStateRoute(
+///     DataStateRoute(
 ///       States.dataState1,
 ///       pageRouteBuilder: (buildContext, wrapPageContent) {
 ///         return MaterialPage(child: wrapPageContent((ctx, stateCtx, data) {
@@ -64,10 +67,11 @@ typedef ShellDataStateRoutePageBuilder<D> = Page<void> Function(
 ///
 /// {@macro TreeStateRoute.propSummary}
 ///
-/// The builder functions are provided with a `data` argument that is the current data value of the
-/// data state at the time the visuals are created. If the state data value is updated while a
-/// message is processed by the state machine, the builder function will be called again by the router
-/// with the updated data value.
+/// The builder functions are provided with a `data` argument that is the
+/// current data value of the data state at the time the visuals are created. If
+/// the state data value is updated while a message is processed by the state
+/// machine, the builder function will be called again by the router with the
+/// updated data value.
 ///
 /// ```dart
 /// var routerConfig = TreeStateRouter(
@@ -80,7 +84,7 @@ typedef ShellDataStateRoutePageBuilder<D> = Page<void> Function(
 ///     ),
 ///   ]);
 /// ```
-class DataStateRoute<D> implements StateRouteInfoProvider {
+class DataStateRoute<D> implements StateRouteInfoBuilder {
   DataStateRoute._(this._createRouteConfig);
 
   /// Constructs a [DataStateRoute].
@@ -103,9 +107,17 @@ class DataStateRoute<D> implements StateRouteInfoProvider {
         );
       });
 
+  /// Constructs a [DataStateRoute] that displays its visuals in a [PopupRoute].
+  ///
+  /// {@macro StateRoute.stateKey}
+  ///
+  /// {@macro StateRoute.shell.routeBuilder}
+  ///
+  /// {@macro StateRoute.path}
   factory DataStateRoute.popup(
     DataStateKey<D> stateKey, {
     required DataStateRouteBuilder<D> routeBuilder,
+    DataRoutePath<D>? path,
   }) =>
       DataStateRoute<D>._((parent) {
         return createDataStateRouteConfig1<D>(
@@ -115,14 +127,30 @@ class DataStateRoute<D> implements StateRouteInfoProvider {
           null,
           [StateDataResolver<D>(stateKey)],
           false,
-          null,
+          path,
           const [],
         );
       });
 
+  /// Constructs a [DataStateRoute] for a parent state that provides common
+  /// layout (i.e. a 'shell') wrapping a nested router that displays visuals for
+  /// active descendant states.
+  ///
+  /// {@macro StateRoute.stateKey}
+  ///
+  /// A list of [routes] must be provided that determine the routing for
+  /// descendant states of the parent state identfied by [stateKey].
+  ///
+  /// {@macro StateRoute.buildersSummary}
+  ///
+  /// {@macro StateRoute.shell.builderFunctions}
+  ///
+  /// {@macro StateRoute.path}
+  ///
+  /// {@macro StateRoute.shell.routerArgs}
   factory DataStateRoute.shell(
     DataStateKey<D> stateKey, {
-    required List<StateRouteInfoProvider> routes,
+    required List<StateRouteInfoBuilder> routes,
     ShellDataStateRouteBuilder<D>? routeBuilder,
     ShellDataStateRoutePageBuilder<D>? routePageBuilder,
     bool enableTransitions = false,
@@ -173,36 +201,14 @@ class DataStateRoute<D> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createInfo(StateRouteInfo? parent) =>
+  StateRouteInfo buildRouteInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
-
-  // /// {@template DataStateRoute.stateKey}
-  // /// Identifies the data tree state associated with this route.
-  // /// {@endtemplate}
-  // final DataStateKey<D> stateKey;
-
-  // /// {@macro StateRoute.routeBuilder}
-  // final DataStateRouteBuilder<D>? routeBuilder;
-
-  // /// {@macro StateRoute.routePageBuilder}
-  // final DataStateRoutePageBuilder<D>? routePageBuilder;
-
-  // /// {@macro StateRoute.isPopup}
-  // final bool isPopup;
-
-  // /// {@macro StateRoute.path}
-  // final DataRoutePath<D>? path;
-
-  // /// {@macro StateRoute.childRoutes}
-  // final List<StateRouteConfigProvider> childRoutes;
-
-  // final List<StateRouteConfig> _childRouteConfigs;
-
-  // late final List<StateDataResolver> _resolvers = [
-  //   StateDataResolver<D>(stateKey)
-  // ];
 }
 
+/// {@macro DataStateRouteBuilder}
+///
+/// Additionally, the function is provided [ancestorData] that contains  a
+/// data value obtained from an ancestor data state.
 typedef DataStateRouteBuilder2<D, DAnc> = Widget Function(
   BuildContext context,
   StateRoutingContext stateContext,
@@ -210,18 +216,20 @@ typedef DataStateRouteBuilder2<D, DAnc> = Widget Function(
   DAnc ancestorData,
 );
 
+/// {@macro DataStateRoutePageBuilder}
 typedef DataStateRoutePageBuilder2<D, DAnc> = Page<void> Function(
   BuildContext context,
   Widget Function(DataStateRouteBuilder2<D, DAnc> buildPageContent)
       wrapPageContent,
 );
 
-/// A route that creates visuals for a data state, using state data of type [D] and [DAnc1]
-/// obtained from the data state, and an ancestor data state.
+/// A route that creates visuals for a data state, using state data of type [D]
+/// and [DAnc1] obtained from the data state, and an ancestor data state.
 ///
-/// This route is used in a very similar manner as [DataStateRoute], with the addition of providing
-/// the [DataStateKey] of the ancestor state whose data should be obtained.
-class DataStateRoute2<D, DAnc1> implements StateRouteInfoProvider {
+/// This route is used in a very similar manner as [DataStateRoute], with the
+/// addition of providing the [DataStateKey] of the ancestor state whose data
+/// should be obtained.
+class DataStateRoute2<D, DAnc1> implements StateRouteInfoBuilder {
   DataStateRoute2._(this._createRouteConfig);
 
   /// Constructs a [DataStateRoute3].
@@ -272,10 +280,14 @@ class DataStateRoute2<D, DAnc1> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createInfo(StateRouteInfo? parent) =>
+  StateRouteInfo buildRouteInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
+/// {@macro DataStateRouteBuilder}
+///
+/// Additionally, the function is provided [ancestor1Data] and [ancestor2Data]
+/// that contain data values obtained from ancestor data states.
 typedef DataStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
   BuildContext context,
   StateRoutingContext stateContext,
@@ -284,21 +296,24 @@ typedef DataStateRouteBuilder3<D, DAnc1, DAnc2> = Widget Function(
   DAnc2 ancestor2Data,
 );
 
+/// {@macro DataStateRoutePageBuilder}
 typedef DataStateRoutePageBuilder3<D, DAnc1, DAnc2> = Page<void> Function(
   BuildContext context,
   Widget Function(DataStateRouteBuilder3<D, DAnc1, DAnc2> buildPageContent)
       wrapPageContent,
 );
 
-/// A route that creates visuals for a data state, using state data of type [D], [DAnc1] and [DAnc2]
-/// obtained from the data state, and two ancestor data states.
+/// A route that creates visuals for a data state, using state data of type [D],
+/// [DAnc1] and [DAnc2] obtained from the data state, and two ancestor data
+/// states.
 ///
-/// This route is used in a very similar manner as [DataStateRoute], with the addition of providing
-/// the [DataStateKey]s of the ancestor states whose data should be obtained.
+/// This route is used in a very similar manner as [DataStateRoute], with the
+/// addition of providing the [DataStateKey]s of the ancestor states whose data
+/// should be obtained.
 ///
-/// Note that there is no relationship implied between the ancestor states. Either state may be an
-/// ancestor of the other.
-class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteInfoProvider {
+/// Note that there is no relationship implied between the ancestor states.
+/// Either state may be an ancestor of the other.
+class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteInfoBuilder {
   DataStateRoute3._(this._createRouteConfig);
 
   /// Constructs a [DataStateRoute3].
@@ -353,44 +368,6 @@ class DataStateRoute3<D, DAnc1, DAnc2> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createInfo(StateRouteInfo? parent) =>
+  StateRouteInfo buildRouteInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
-
-  // /// {@macro DataStateRoute.stateKey}
-  // final DataStateKey<D> stateKey;
-
-  // /// {@macro StateRoute2.ancestor1StateKey}
-  // final DataStateKey<DAnc1> ancestor1StateKey;
-
-  // /// {@macro StateRoute2.ancestor1StateKey}
-  // final DataStateKey<DAnc2> ancestor2StateKey;
-
-  // /// {@macro StateRoute.routeBuilder}
-  // ///
-  // /// When called, this function is provided the current [D], [DAnc1] and [DAnc2] values obtained
-  // /// from the data state, and the two ancestor states.
-  // final DataStateRouteBuilder3<D, DAnc1, DAnc2>? routeBuilder;
-
-  // /// {@macro StateRoute.routePageBuilder}
-  // ///
-  // /// When called, this function is provided the current [D], [DAnc1] and [DAnc2] values obtained
-  // /// from the data state, and the two ancestor states.
-  // final DataStateRoutePageBuilder3<D, DAnc1, DAnc2>? routePageBuilder;
-
-  // /// {@macro StateRoute.isPopup}
-  // final bool isPopup;
-
-  // /// {@macro StateRoute.path}
-  // final RoutePathConfig? path;
-
-  // /// {@macro StateRoute.childRoutes}
-  // final List<StateRouteConfigProvider> childRoutes;
-
-  // late final List<StateDataResolver> _resolvers = [
-  //   StateDataResolver<D>(stateKey),
-  //   StateDataResolver<DAnc1>(ancestor1StateKey),
-  //   StateDataResolver<DAnc2>(ancestor2StateKey)
-  // ];
-
-

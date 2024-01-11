@@ -237,6 +237,9 @@ class DataRoutePath<D> extends RoutePathInfo {
 
   /// Constructs a parameterized [DataRoutePath].
   ///
+  /// The [pathTemplate] should contain one or more segments prefixed with a `:`
+  /// character, for example `user/:userId`.
+  ///
   /// A [pathArgs] function must be provided that can generate values for the
   /// parameters in the path, based on the current data value of the data state.
   ///
@@ -245,6 +248,24 @@ class DataRoutePath<D> extends RoutePathInfo {
   /// If deep linking is enabled, an [initialData] function must also be
   /// provided that can generate the initial data value of the data state, based
   /// on paremter values obtained from the URI.
+  ///
+  /// ```dart
+  /// class UserData {
+  ///   UserData(this.userId);
+  ///   final int userId;
+  /// }
+  ///
+  /// DataRoutePath<UserData>.parameterized(
+  ///   'user/:userId',
+  ///   pathArgs: (userData) =>
+  ///     // Return a map containing a value for ech parameter in the template
+  ///     { 'userId': '${userData.userId}'},
+  ///   enableDeepLink: true,
+  ///   initialData: (pathArgs) =>
+  ///     // Return a UserData based in pathArgs that were parsed from a URI
+  ///     UserData(int.parse(pathArgs['userId']!)),
+  /// );
+  /// ```
   factory DataRoutePath.parameterized(
     String pathTemplate, {
     required GenerateDataPathArgs<D> pathArgs,

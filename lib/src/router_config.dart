@@ -64,7 +64,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   factory TreeStateRouter({
     TreeStateMachine? stateMachine,
     StateTreeBuildProvider? stateTree,
-    required List<StateRouteInfoProvider> routes,
+    required List<StateRouteInfoBuilder> routes,
     DefaultScaffoldingBuilder? defaultScaffolding,
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,
@@ -75,7 +75,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
         "Only one of stateMachine or stateTree can be provided ");
     return TreeStateRouter._(
       stateMachine: stateMachine ?? TreeStateMachine(stateTree!),
-      routes: routes.map((e) => e.createInfo(null)).toList(),
+      routes: routes.map((e) => e.buildRouteInfo(null)).toList(),
       defaultScaffolding: defaultScaffolding,
       defaultPageBuilder: defaultPageBuilder,
       enableTransitions: enableTransitions,
@@ -90,12 +90,12 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   /// the browser URL will update, but no history entries updated.
   factory TreeStateRouter.platformRouting({
     required StateTreeBuildProvider stateTree,
-    required List<StateRouteInfoProvider> routes,
+    required List<StateRouteInfoBuilder> routes,
     DefaultScaffoldingBuilder? defaultScaffolding,
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,
   }) {
-    var routeConfigs = routes.map((e) => e.createInfo(null)).toList();
+    var routeConfigs = routes.map((e) => e.buildRouteInfo(null)).toList();
     // Find data routes that have route parameters. These routes will have
     // tree state filters installed that can initialize state data
     var dataRoutesWithParams = Map.fromEntries(routeConfigs

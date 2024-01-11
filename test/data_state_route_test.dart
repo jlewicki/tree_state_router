@@ -11,7 +11,7 @@ void main() {
           DataStates.state_r,
           routeBuilder: emptyDataRouteBuilder,
         );
-        var rootConfig = rootRoute.createInfo(null);
+        var rootConfig = rootRoute.buildRouteInfo(null);
         expect(rootConfig.stateKey, DataStates.state_r);
         expect(rootConfig.parentRoute, isNull);
         expect(rootConfig.childRoutes, isEmpty);
@@ -42,7 +42,7 @@ void main() {
             )
           ],
         );
-        var rootConfig = rootRoute.createInfo(null);
+        var rootConfig = rootRoute.buildRouteInfo(null);
 
         var allConfigs = rootConfig.selfAndDescendants().toList();
         expect(allConfigs.length, 5);

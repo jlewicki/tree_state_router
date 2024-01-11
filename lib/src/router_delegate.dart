@@ -221,7 +221,8 @@ abstract class TreeStateRouterDelegateBase
     CurrentState currentState,
   ) {
     var buildFor = BuildForRoute(route.stateKey, route.isPopup);
-    var routingContext = StateRoutingContext(currentState);
+    var routingContext =
+        StateRoutingContext(currentState, TreeStateRoutingState());
     if (route.routePageBuilder != null) {
       return route.routePageBuilder!.call(
           context,

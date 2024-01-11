@@ -84,7 +84,7 @@ void main() {
       });
     });
 
-    group('DataRoutePath.withParams()', () {
+    group('DataRoutePath.parameterized()', () {
       var template = 'user/:userId/address/:addressId';
       var routePath = DataRoutePath<SomeData>.parameterized(
         template,
@@ -97,6 +97,15 @@ void main() {
           int.parse(pathArgs['addressId']!.substring('address-'.length)),
         ),
       );
+
+      test('should assert if pathTemplate has no parameters', () {
+        expect(
+            () => DataRoutePath<SomeData>.parameterized(
+                  'user/userId/address/addressId',
+                  pathArgs: (data) => {},
+                ),
+            throwsA(isA<AssertionError>()));
+      });
 
       group('generatePath', () {
         test('should generate path with path args', () {

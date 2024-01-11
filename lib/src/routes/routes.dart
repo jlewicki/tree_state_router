@@ -42,7 +42,7 @@ typedef CreateRouteConfig = StateRouteInfo Function(StateRouteInfo? parent);
 ///       }),
 ///   ]);
 /// ```
-class StateRoute implements StateRouteInfoProvider {
+class StateRoute implements StateRouteInfoBuilder {
   StateRoute._(this._createRouteConfig);
 
   /// Constructs a [StateRoute] that provides visuals for a state in a state
@@ -72,7 +72,7 @@ class StateRoute implements StateRouteInfoProvider {
     StateKey stateKey, {
     StateRouteBuilder? routeBuilder,
     StateRoutePageBuilder? routePageBuilder,
-    RoutePathInfo? path,
+    RoutePath? path,
   }) =>
       StateRoute._(
         (parentRoute) => StateRouteInfo(
@@ -87,10 +87,20 @@ class StateRoute implements StateRouteInfoProvider {
       );
 
   /// Constructs a [StateRoute] that displays its visuals in a [PopupRoute].
+  ///
+  /// {@macro StateRoute.stateKey}
+  ///
+  /// {@template StateRoute.shell.routeBuilder}
+  /// A [routeBuilder] must be provided that will provide the visuals for the
+  /// route. Because the visuals are placed in a popup, they should be sized
+  /// such that they do not occupy the entire screen.
+  /// {@endtemplate}
+  ///
+  /// {@macro StateRoute.path}
   factory StateRoute.popup(
     StateKey stateKey, {
     StateRouteBuilder? routeBuilder,
-    RoutePathInfo? path,
+    RoutePath? path,
   }) =>
       StateRoute._(
         (parentRoute) => StateRouteInfo(
@@ -115,12 +125,21 @@ class StateRoute implements StateRouteInfoProvider {
   ///
   /// {@macro StateRoute.buildersSummary}
   ///
+  /// {@template StateRoute.shell.builderFunctions}
   /// When the [routeBuilder] and [routePageBuilder] functions are called, they
   /// are provided a `nestedRouter` widget that displays the visuals for the
   /// active descendant states. The builder functions can place this widget as
   /// desired in their layout.
+  /// {@endtemplate}
   ///
   /// {@macro StateRoute.path}
+  ///
+  /// {@template StateRoute.shell.routerArgs}
+  /// [defaultScaffolding] and [enableTransitions] can be provided and will be
+  /// passed through to the underlying router. See
+  /// [TreeStateRouter.defaultScaffolding] and
+  /// [TreeStateRouter.enableTransitions] for further details.
+  /// {@endtemplate}
   ///
   /// ```dart
   /// var routerConfig = TreeStateRouter(
@@ -146,12 +165,12 @@ class StateRoute implements StateRouteInfoProvider {
   /// ```
   factory StateRoute.shell(
     StateKey stateKey, {
-    required List<StateRouteInfoProvider> routes,
+    required List<StateRouteInfoBuilder> routes,
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
     DefaultScaffoldingBuilder? defaultScaffolding,
-    RoutePathInfo? path,
+    RoutePath? path,
   }) =>
       StateRoute._(
         (parentRoute) {
@@ -185,7 +204,7 @@ class StateRoute implements StateRouteInfoProvider {
             parentRoute: parentRoute,
           );
 
-          childRoutes.addAll(routes.map((e) => e.createInfo(config)));
+          childRoutes.addAll(routes.map((e) => e.buildRouteInfo(config)));
 
           return config;
         },
@@ -213,7 +232,7 @@ class StateRoute implements StateRouteInfoProvider {
   /// {@macro StateRoute.path}
   factory StateRoute.machine(
     DataStateKey<MachineTreeStateData> stateKey, {
-    required List<StateRouteInfoProvider> routes,
+    required List<StateRouteInfoBuilder> routes,
     ShellStateRouteBuilder? routeBuilder,
     ShellStateRoutePageBuilder? routePageBuilder,
     bool enableTransitions = false,
@@ -251,7 +270,7 @@ class StateRoute implements StateRouteInfoProvider {
           parentRoute: parent,
         );
 
-        childRouteConfigs.addAll(routes.map((e) => e.createInfo(config)));
+        childRouteConfigs.addAll(routes.map((e) => e.buildRouteInfo(config)));
 
         return config;
       });
@@ -259,7 +278,7 @@ class StateRoute implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createInfo(StateRouteInfo? parent) =>
+  StateRouteInfo buildRouteInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -293,7 +312,7 @@ typedef ShellStateRoutePageBuilder = Page<void> Function(
 /// addition of providing the [DataStateKey] of the ancestor state whose data
 /// should be obtained. The data value is yen made available to the builder
 /// functions.
-class StateRoute1<DAnc> implements StateRouteInfoProvider {
+class StateRoute1<DAnc> implements StateRouteInfoBuilder {
   StateRoute1._(this._createRouteConfig);
 
   /// Constructs a [StateRoute1].
@@ -352,7 +371,7 @@ class StateRoute1<DAnc> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createInfo(StateRouteInfo? parent) =>
+  StateRouteInfo buildRouteInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -364,7 +383,7 @@ class StateRoute1<DAnc> implements StateRouteInfoProvider {
 ///
 /// Note that there is no relationship implied between the ancestor states. Either state may be an
 /// ancestor of the other.
-class StateRoute2<DAnc1, DAnc2> implements StateRouteInfoProvider {
+class StateRoute2<DAnc1, DAnc2> implements StateRouteInfoBuilder {
   StateRoute2._(this._createRouteConfig);
 
   /// Constructs a [StateRoute1].
@@ -418,7 +437,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createInfo(StateRouteInfo? parent) =>
+  StateRouteInfo buildRouteInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }
 
@@ -430,7 +449,7 @@ class StateRoute2<DAnc1, DAnc2> implements StateRouteInfoProvider {
 ///
 /// Note that there is no relationship implied between the ancestor states. Any state may be an
 /// ancestor of the others
-class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteInfoProvider {
+class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteInfoBuilder {
   StateRoute3._(this._createRouteConfig);
 
   /// Constructs a [StateRoute3].
@@ -487,6 +506,6 @@ class StateRoute3<DAnc1, DAnc2, DAnc3> implements StateRouteInfoProvider {
   final CreateRouteConfig _createRouteConfig;
 
   @override
-  StateRouteInfo createInfo(StateRouteInfo? parent) =>
+  StateRouteInfo buildRouteInfo(StateRouteInfo? parent) =>
       _createRouteConfig(parent);
 }

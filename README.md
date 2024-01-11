@@ -195,7 +195,29 @@ provide data from ancestor data states to the route builder functions.
 
 
 ### Popup Routes
-TODO
+Both `StateRoute` and `DataStateRoute` provide `popup` factory methods. When using these factories,
+the visuals produced by the `routeBuilder` are displayed in a modal popup. As a result, the visuals
+should be sized such that they do not occupy the entire available screen space, otherwise the popup
+effect will not be obvious.
+
+```dart
+StateRoute.popup(
+   States.edit,
+   routeBuilder: (context, stateCtx) => Container(
+      padding: const EdgeInsets.all(10),
+      child: Column(
+         mainAxisAlignment: MainAxisAlignment.center,
+         mainAxisSize: MainAxisSize.min,
+         children: <Widget>[
+         const Text('This is a popup'),
+         // In order to dismiss the popup, post a message to the state machine to cause a 
+         // state transition.
+         button('Done', () => stateCtx.currentState.post(Messages.endEdit)),
+         ],
+      ),
+   ),
+);
+```
 
 ### Shell Routes
 Both `StateRoute` and `DataStateRoute` provide `shell` factory methods. These factories permit a 

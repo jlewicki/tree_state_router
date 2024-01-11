@@ -34,6 +34,8 @@ Widget editCounterPage(
       ),
       button('Increment', () => stateCtx.currentState.post(Messages.increment)),
       button('Decrement', () => stateCtx.currentState.post(Messages.decrement)),
+      // In order to dismiss the popup, post a message to the state machine to cause a
+      // state transition.
       button('Done', () => stateCtx.currentState.post(Messages.endEdit)),
     ],
   );

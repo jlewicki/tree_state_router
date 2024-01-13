@@ -11,11 +11,12 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
+  async: ^2.11.0
   cupertino_icons: ^1.0.2
   logging: ^1.2.0
-  tree_state_machine: ^3.0.0-dev.12
-  # tree_state_machine:
-  #   path: ../../tree_state_machine
+  # tree_state_machine: ^3.0.0-dev.12
+  tree_state_machine:
+    path: ../../tree_state_machine
   tree_state_router:
     path: ..
 

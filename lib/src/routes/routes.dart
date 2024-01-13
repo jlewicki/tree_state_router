@@ -97,6 +97,8 @@ class StateRoute implements StateRouteInfoBuilder {
   /// {@endtemplate}
   ///
   /// {@macro StateRoute.path}
+  // TODO: Add support for popups as child routes of the route the would pop up
+  // over
   factory StateRoute.popup(
     StateKey stateKey, {
     StateRouteBuilder? routeBuilder,

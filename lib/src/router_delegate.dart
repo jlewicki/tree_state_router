@@ -426,8 +426,8 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         ));
         return goToFuture.then((value) {
           if (value case HandledMessage(transition: var t) when t != null) {
-            _log.fine(
-                'Transitioned state machine to deep link: ${configuration.pathTemplate}');
+            _log.fine('Transitioned state machine to ${t.to} for deep link: '
+                '${configuration.pathTemplate}');
             return _routeTable.routePathForTransition(t);
           }
           throw _errors.deepLinkFailure(currentState.key, deepLinkTarget);

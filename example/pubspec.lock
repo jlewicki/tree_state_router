@@ -2,7 +2,7 @@
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
   async:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: async
       sha256: "947bfcf187f74dbc5e146c9eb9c0f10c9f8b30743e341481c1e2ed3ecc18c20c"
@@ -184,11 +184,10 @@ packages:
   tree_state_machine:
     dependency: "direct main"
     description:
-      name: tree_state_machine
-      sha256: "8b5c731217c1ec7e2bd43f995eb43ac082aa902c7d2646d40e1d1af7569578fa"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0-dev.12"
+      path: "../../tree_state_machine"
+      relative: true
+    source: path
+    version: "3.0.0-dev.13"
   tree_state_router:
     dependency: "direct main"
     description:

@@ -36,16 +36,6 @@ Widget parentPage(
         ),
       ),
       IntrinsicHeight(child: nestedRouter),
-      // IntrinsicHeight(
-      //   child: DescendantStatesRouter(
-      //     anchorKey: States.parent,
-      //     enableTransitions: false,
-      //     routes: [
-      //       DataStateRoute(States.child1, routeBuilder: child1Page),
-      //       DataStateRoute(States.child2, routeBuilder: child2Page),
-      //     ],
-      //   ),
-      // )
     ],
   );
 }

@@ -357,3 +357,12 @@ It should be noted that enabling deep linking for a route effectively introduces
 that are not defined by the underlying state tree in use by the router. While in many cases this is
 desirable, care should be taken ensure that invariants established and expected by the state tree 
 are not violated when enabling a route for linking.
+
+
+## Imperative Routing 
+In general, using imperative routing with `tree_state_router` will be infrequently used. After all,
+the point of `tree_state_router` is declarative routing! However, pushing and popping routes with
+`Navigator` is possible and supported. Note though that any state machine transitions that cause a 
+new `StateRoute` to be activated will remove any imperative routes from the navigation stack. 
+Moreover, named routes are not supported, and an error will be thrown if any `Navigator` methods 
+related to named routes are called.

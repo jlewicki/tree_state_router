@@ -39,7 +39,7 @@ Widget editText(
 Widget button(String text, void Function() onPressed) {
   return Padding(
     padding: const EdgeInsets.all(8.0),
-    child: ElevatedButton(
+    child: FilledButton(
       onPressed: onPressed,
       child: Text(text),
     ),

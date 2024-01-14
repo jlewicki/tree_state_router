@@ -223,15 +223,28 @@ abstract class TreeStateRouterDelegateBase
     var buildFor = BuildForRoute(route.stateKey, route.isPopup);
     var routingContext =
         StateRoutingContext(currentState, TreeStateRoutingState());
+
+    // Note that whether page content is generated with routePageBuilder or
+    // routeBuilder, the page content is wrapped in a Builder widged. This
+    // ensures that the build context avaiable when building the page content
+    // represents a position in the element tree beneath the Navigator, and
+    // therefore any calls to Navigator.of(buildCtx) made by the builder
+    // functions will be able to locate the navigator. For the most part, this
+    // is only important if imperative routing is employed.
     if (route.routePageBuilder != null) {
       return route.routePageBuilder!.call(
-          context,
-          (buildPageContent) => _withDefaultScaffolding(
-                buildFor,
-                buildPageContent(context, routingContext),
-              ));
+        context,
+        (buildPageContent) => _withDefaultScaffolding(
+          buildFor,
+          Builder(
+            builder: (ctx) => buildPageContent(ctx, routingContext),
+          ),
+        ),
+      );
     } else if (route.routeBuilder != null) {
-      var content = route.routeBuilder!.call(context, routingContext);
+      var content = Builder(
+        builder: (ctx) => route.routeBuilder!.call(ctx, routingContext),
+      );
       var appPageBuilder = route.isPopup
           ? _popupBuilderForAppType(context)
           : _pageBuilderForAppType(context);

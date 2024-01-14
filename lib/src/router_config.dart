@@ -1,13 +1,20 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/build.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
+import 'package:tree_state_router/src/logging.dart';
 import 'package:tree_state_router/src/route_provider.dart';
 import 'package:tree_state_router/src/route_table.dart';
 import 'package:tree_state_router/src/routes/route_utility.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 import 'package:tree_state_router/src/router_delegate.dart';
+
+/// The name of the root logger used by the `tree_state_router` package.
+const rootLoggerName = 'TreeStateRouter';
 
 /// A function that can adorn the content of a route page, adding common layout
 /// or scaffolding.
@@ -43,6 +50,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     this.defaultPageBuilder,
     this.enableTransitions = true,
     this.enablePlatformRouting = false,
+    this.enableDeveloperLogging = false,
   }) : assert((() {
           routes.fold(<StateKey>{}, (keys, route) {
             if (keys.contains(route.stateKey)) {
@@ -53,7 +61,9 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
             return keys;
           });
           return true;
-        }()));
+        }())) {
+    setEnableDeveloperLogging(enableDeveloperLogging);
+  }
 
   /// Constructs a [TreeStateRouter].
   ///
@@ -68,6 +78,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     DefaultScaffoldingBuilder? defaultScaffolding,
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,
+    bool enableDeveloperLogging = false,
   }) {
     assert(stateMachine != null || stateTree != null,
         "Either stateMachine or stateTree must be provided ");
@@ -80,6 +91,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
       defaultPageBuilder: defaultPageBuilder,
       enableTransitions: enableTransitions,
       enablePlatformRouting: false,
+      enableDeveloperLogging: enableDeveloperLogging,
     );
   }
 
@@ -94,6 +106,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     DefaultScaffoldingBuilder? defaultScaffolding,
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,
+    bool enableDeveloperLogging = false,
   }) {
     var routeConfigs = routes.map((e) => e.buildRouteInfo(null)).toList();
     // Find data routes that have route parameters. These routes will have
@@ -122,12 +135,16 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     );
 
     return TreeStateRouter._(
-      stateMachine: TreeStateMachine.withBuilder(builder),
+      stateMachine: TreeStateMachine.withBuilder(
+        builder,
+        developerLoggingEnabled: enableDeveloperLogging,
+      ),
       routes: routeConfigs,
       defaultScaffolding: defaultScaffolding,
       defaultPageBuilder: defaultPageBuilder,
       enableTransitions: enableTransitions,
       enablePlatformRouting: true,
+      enableDeveloperLogging: enableDeveloperLogging,
     );
   }
 
@@ -142,6 +159,13 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   /// Indictes if the router integrates with the platform routing engine, such
   /// that web browser URLs are updated in response to route changes.
   final bool enablePlatformRouting;
+
+  /// Indicates if this router will write all log output to the Developer [log].
+  /// Note that an application must first set [hierarchicalLoggingEnabled] to
+  /// `true` for this to take effect.
+  ///
+  /// The parent logger for developer output is named `TreeStateRouter`.
+  final bool enableDeveloperLogging;
 
   /// {@template TreeStateRouter.defaultScaffolding}
   /// A function that can adorn the content of a route page, adding common
@@ -176,8 +200,9 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   /// If enabled, the particular animations that occur are determined by the
   /// [Page]s associated with the routes that are undergoing a transition.
   ///
-  /// See [StateRoute.routePageBuilder] and [TreeStateRouter.defaultPageBuilder]
-  /// for details on choosing a [Page] type.
+  /// See `routePageBuilder` in [StateRoute.new] and
+  /// [TreeStateRouter.defaultPageBuilder] for details on choosing a [Page]
+  /// type.
   /// {@endtemplate}
   final bool enableTransitions;
 
@@ -256,15 +281,15 @@ class _InitialDataPayload {
   final Map<DataStateKey<dynamic>, dynamic> initialStateData;
 }
 
-TreeStateFilter _createRoutingFilter([Logger? log]) {
-  var filterName = 'tree_state_router.DeepLinkFilter';
-  var log_ = log ?? Logger(filterName);
+TreeStateFilter _createRoutingFilter() {
+  var filterName = '$rootLoggerName.DeepLinkFilter';
+  var log = Logger(filterName);
   return TreeStateFilter(
     name: filterName,
     onMessage: (msgCtx, next) {
       if (msgCtx.message
           case GoToDeepLink(target: var t, initialStateData: var d)) {
-        log_.fine("Deep link routing to state '$t'");
+        log.fine("Deep link routing to state '$t'");
         return SynchronousFuture(msgCtx.goTo(
           t,
           payload: _InitialDataPayload(d),
@@ -282,7 +307,7 @@ class InitializeStateDataFilter<D> extends TreeStateFilter {
         super(name: _filterName);
 
   final Logger _log;
-  static const _filterName = 'tree_state_router.InitialDataFilter';
+  static const _filterName = '$rootLoggerName.InitialDataFilter';
 
   @override
   Future<void> onEnter(TransitionContext ctx, Future<void> Function() next) {

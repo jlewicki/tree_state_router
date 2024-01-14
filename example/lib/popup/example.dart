@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
@@ -19,6 +17,7 @@ void main() {
 final router = TreeStateRouter(
   stateMachine: TreeStateMachine(countingStateTree()),
   defaultScaffolding: defaultScaffolding,
+  enableDeveloperLogging: true,
   routes: [
     StateRoute1(
       States.view,
@@ -45,8 +44,5 @@ class MainApp extends StatelessWidget {
 }
 
 void _initLogging() {
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) {
-    log('${record.level.name}: ${record.loggerName}: ${record.time}: ${record.message} ${record.error?.toString() ?? ''}');
-  });
+  hierarchicalLoggingEnabled = true;
 }

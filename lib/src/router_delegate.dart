@@ -330,9 +330,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     required RouteTable routeTable,
     super.displayStateMachineErrors,
   })  : _routeTable = routeTable,
-        super(
-          log: Logger('TreeStateRouterDelegate'),
-        ) {
+        super(log: Logger('$rootLoggerName.RouterDelegate')) {
     if (!config.enablePlatformRouting) {
       // If platform routing is disabled, there will be no call to
       // setNewRoutePath on app start, so we need to set the current
@@ -505,7 +503,7 @@ class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
     super.displayStateMachineErrors,
     this.supportsFinalRoute = true,
   }) : super(
-          log: Logger('ChildTreeStateRouterDelegate'),
+          log: Logger('$rootLoggerName.DescendantStatesRouterDelegate'),
         );
 
   /// {@template NestedTreeStateRouterDelegate.anchorKey}
@@ -529,7 +527,7 @@ class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
   /// The key used for retrieving the current navigator.
   @override
   final navigatorKey =
-      GlobalKey<NavigatorState>(debugLabel: 'ChildTreeStateRouterDelegate');
+      GlobalKey<NavigatorState>(debugLabel: 'DescendantStatesRouterDelegate');
 
   @override
   Future<void> setNewRoutePath(TreeStateRoutePath configuration) {
@@ -621,7 +619,7 @@ class NestedMachineRouterDelegate extends TreeStateRouterDelegateBase {
     required this.machineStateKey,
     super.displayStateMachineErrors,
   }) : super(
-          log: Logger('NestedMachineRouterDelegate'),
+          log: Logger('$rootLoggerName.NestedMachineRouterDelegate'),
         );
 
   /// {@template NestedMachineRouterDelegate.machineStateKey}

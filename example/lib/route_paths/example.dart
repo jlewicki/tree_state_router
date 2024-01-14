@@ -1,4 +1,3 @@
-import 'dart:developer';
 //import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -19,6 +18,7 @@ void main() {
 
 final router = TreeStateRouter.platformRouting(
   stateTree: routePathsStateTree(),
+  enableDeveloperLogging: true,
   routes: [
     StateRoute.shell(
       States.root,
@@ -78,8 +78,5 @@ class MainApp extends StatelessWidget {
 }
 
 void _initLogging() {
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) {
-    log('${record.level.name}: ${record.loggerName}: ${record.message} ${record.error?.toString() ?? ''}');
-  });
+  hierarchicalLoggingEnabled = true;
 }

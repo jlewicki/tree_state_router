@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:tree_state_machine/delegate_builders.dart';
@@ -41,6 +39,7 @@ StateTree simpleStateTree() {
 var router = TreeStateRouter(
   stateMachine: TreeStateMachine(simpleStateTree()),
   defaultScaffolding: (_, pageContent) => Scaffold(body: pageContent),
+  enableDeveloperLogging: true,
   routes: [
     StateRoute(
       States.state1,
@@ -106,8 +105,5 @@ class MainApp extends StatelessWidget {
 }
 
 void _initLogging() {
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) {
-    log('${record.level.name}: ${record.loggerName}: ${record.time}: ${record.message} ${record.error?.toString() ?? ''}');
-  });
+  hierarchicalLoggingEnabled = true;
 }

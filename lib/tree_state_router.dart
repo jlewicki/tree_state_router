@@ -8,16 +8,18 @@ export 'src/pages.dart'
         materialPageBuilder,
         cupertinoPageBuilder,
         materialPopupPageBuilder,
-        cupertinoPopupPageBuilder;
-export 'src/route_parser.dart';
-export 'src/router_config.dart' hide GoToDeepLink, InitializeStateDataFilter;
-export 'src/routes/route_path_info.dart' hide UriPathMatch;
-export 'src/routes/route_info.dart';
-export 'src/routes/routes.dart' hide CreateRouteConfig;
+        cupertinoPopupPageBuilder,
+        TransitionsBuilderPageRoute;
 export 'src/routes/data_routes.dart';
+export 'src/routes/route_info.dart';
+export 'src/routes/route_path_info.dart' hide UriPathMatch;
+export 'src/routes/routes.dart' hide CreateRouteConfig;
+export 'src/widgets/descendant_states_router.dart';
 export 'src/widgets/inspector.dart';
 export 'src/widgets/state_machine_provider.dart';
-export 'src/widgets/descendant_states_router.dart';
+export 'src/route_parser.dart';
+export 'src/router_config.dart' hide GoToDeepLink, InitializeStateDataFilter;
+
 
 // To publish:
 // dart pub publish --dry-run

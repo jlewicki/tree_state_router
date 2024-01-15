@@ -89,3 +89,108 @@ class _PopupPage extends Page<void> {
     return buildPopupRoute(context, this);
   }
 }
+
+/// {@template TransitionsBuilder}
+/// A function that can wraps the [child] with one or more transition widgets
+/// which define how a [Route] arrives on and leaves the screen.
+///
+/// See [ModalRoute.buildTransitions] for further details on this function is
+/// used.
+/// {@endtemplate
+typedef TransitionsBuilder = Widget Function(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+);
+
+/// A [Page] that allows for customization of route transition animations.
+///
+/// In order to customize the transitions, this class can be subclassed and
+/// the [buildTransitions] method overridden, or alternatively a
+/// [transitionsBuilder] can be provided when calling
+/// [TransitionsBuilderPage.new]
+
+class TransitionsBuilderPage<T> extends Page<T> {
+  const TransitionsBuilderPage({
+    required this.child,
+    required super.key,
+    this.transitionsBuilder,
+    this.maintainState = true,
+    this.transitionDuration = const Duration(milliseconds: 300),
+  });
+
+  /// The content to be shown in the [Route] created by this page.
+  final Widget child;
+
+  /// {@macro TransitionsBuilder}
+  final TransitionsBuilder? transitionsBuilder;
+
+  final bool maintainState;
+
+  final Duration transitionDuration;
+
+  @override
+  Route<T> createRoute(BuildContext context) {
+    return TransitionsBuilderPageRoute<T>(this);
+  }
+
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return transitionsBuilder != null
+        ? transitionsBuilder!(context, animation, secondaryAnimation, child)
+        : child;
+  }
+}
+
+class TransitionsBuilderPageRoute<T> extends PageRoute<T> {
+  TransitionsBuilderPageRoute(this._page) : super(settings: _page);
+
+  final TransitionsBuilderPage<T> _page;
+
+  @override
+  // not sure about this?
+  Color? get barrierColor => null;
+
+  @override
+  // not sure about this?
+  String? get barrierLabel => null;
+
+  @override
+  bool get maintainState => _page.maintainState;
+
+  @override
+  Duration get transitionDuration => _page.transitionDuration;
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return Semantics(
+      scopesRoute: true,
+      explicitChildNodes: true,
+      child: _page.child,
+    );
+  }
+
+  @override
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return _page.buildTransitions(
+      context,
+      animation,
+      secondaryAnimation,
+      child,
+    );
+  }
+}

@@ -42,6 +42,19 @@ typedef StateRouteBuilder = Widget Function(
   StateRoutingContext stateContext,
 );
 
+/// {@template StateRoutePageWrapper}
+/// A function that can wrap content to be displayed in a routing [Page] with
+/// a specialized widget that detects state machine transitions and re-renders
+/// the route as necessary.
+///
+/// The function should be passed a [buildPageContent] function that creates the
+/// widget representing the main page content.
+///
+/// {@endtemplate}
+typedef StateRoutePageWrapper = Widget Function(
+  StateRouteBuilder buildPageContent,
+);
+
 /// {@template StateRoutePageBuilder}
 /// A function that can build a routing [Page] that provides a visualization of
 /// an active state in a state tree.
@@ -68,7 +81,7 @@ typedef StateRouteBuilder = Widget Function(
 /// {@endtemplate}
 typedef StateRoutePageBuilder = Page<void> Function(
   BuildContext context,
-  Widget Function(StateRouteBuilder buildPageContent) wrapPageContent,
+  StateRoutePageWrapper wrapPageContent,
 );
 
 /// A generalized description of a route that can be placed in a

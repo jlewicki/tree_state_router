@@ -11,7 +11,9 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
+  adaptive_navigation: ^0.0.10
   async: ^2.11.0
+  collection: ^1.18.0
   cupertino_icons: ^1.0.2
   logging: ^1.2.0
   # tree_state_machine: ^3.0.0-dev.12

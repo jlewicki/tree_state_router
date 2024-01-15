@@ -5,6 +5,7 @@ import 'package:tree_state_machine/delegate_builders.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router_examples/auth_app/models/models.dart';
 import 'package:tree_state_router_examples/auth_app/services/auth_service.dart';
+import 'package:tree_state_router_examples/helpers/utility.dart';
 
 class AuthStates {
   static const authenticationRoot = StateKey('authenticationRoot');
@@ -138,18 +139,4 @@ StateTree authStateTree(AuthService authService) {
       ),
     ],
   );
-}
-
-GetInitialData<D?> fromPayload<D, P>(
-  D? Function(P payload) initialData, {
-  required StateKey orRedirectTo,
-  Object? redirectPayload,
-}) {
-  return (transCtx) {
-    if (transCtx.payload is P) {
-      return initialData(transCtx.payload as P);
-    }
-    transCtx.redirectTo(AuthStates.login);
-    return null;
-  };
 }

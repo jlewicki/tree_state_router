@@ -200,9 +200,10 @@ packages:
   tree_state_machine:
     dependency: "direct main"
     description:
-      path: "../../tree_state_machine"
-      relative: true
-    source: path
+      name: tree_state_machine
+      sha256: d0726be13280d93fa63f0683ae1d75190d3b5a030590842917a6e03a265b73ef
+      url: "https://pub.dev"
+    source: hosted
     version: "3.0.0-dev.13"
   tree_state_router:
     dependency: "direct main"

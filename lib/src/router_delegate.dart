@@ -331,7 +331,18 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     super.displayStateMachineErrors,
   })  : _routeTable = routeTable,
         super(log: Logger('$rootLoggerName.RouterDelegate')) {
-    if (!config.enablePlatformRouting) {
+    if (config.enablePlatformRouting) {
+      // If platform routing is enabled, then the RouteInformation that this
+      // router delegate reports to the platform may potentially have a
+      // dependency on state data values. We need to detect when state data
+      // changes (perhaps without an accompanying state transition), so that
+      // accurate route information can be reported.
+      // I don't *think* we need to unsubscribe here, since RouteTable and this
+      // delegate should share the same lifetime.
+      _routeTable.routeArgsUpdated.listen((_) {
+        notifyListeners();
+      });
+    } else {
       // If platform routing is disabled, there will be no call to
       // setNewRoutePath on app start, so we need to set the current
       // configuration (and consequently start the state machine) here.

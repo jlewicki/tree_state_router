@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
+import 'package:tree_state_machine/async.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/src/routes/route_utility.dart';
 import 'package:tree_state_router/tree_state_router.dart';
@@ -10,12 +11,23 @@ class RouteTable {
     this._routePaths,
     this._linkableRoutePaths,
     this._routePathsByEndState,
+    this.routeArgsUpdated,
   );
 
   factory RouteTable(
     TreeStateMachine stateMachine,
     List<StateRouteInfo> routes,
   ) {
+    // Find data routes with parameterized paths, and create a combined stream
+    // that emits when any of the state data values for those routes change.
+    var routeArgsStreams = routes
+        .where((e) => e.path is DataRoutePath && e.path.parameters.isNotEmpty)
+        .map((e) {
+      var key = e.stateKey as DataStateKey;
+      return stateMachine.dataStream(key).map((_) => key);
+    }).toList();
+    var routeArgsUpdated = StreamMerge(routeArgsStreams);
+
     var linkableRoutePaths = routes
         .expand((e) => e.selfAndDescendants())
         .where((e) => e.path.enableDeepLink)
@@ -39,8 +51,14 @@ class RouteTable {
       allRoutePaths,
       linkableRoutePaths,
       routePathsByEndState,
+      routeArgsUpdated,
     );
   }
+
+  /// A stream of data state keys, corresponding to parameterized
+  /// [DataStateRoute], that emits a value when the corresponding state data is
+  /// updated.
+  final Stream<DataStateKey> routeArgsUpdated;
 
   final TreeStateMachine _stateMachine;
   final List<TreeStateRoutePath> _routePaths;

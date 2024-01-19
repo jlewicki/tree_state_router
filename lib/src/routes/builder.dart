@@ -57,7 +57,7 @@ class DataStateBuilderState extends State<DataStateBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    var stateMachineContext = TreeStateMachineProvider.of(context);
+    var stateMachineContext = StateRoutingContextProvider.of(context);
     assert(stateMachineContext != null);
     assert(_stateDataList != null);
     return _error != null
@@ -67,10 +67,10 @@ class DataStateBuilderState extends State<DataStateBuilder> {
   }
 
   void _subscribe() {
-    var stateMachineContext = TreeStateMachineProvider.of(context);
-    assert(stateMachineContext != null);
+    var routingContext = StateRoutingContextProvider.of(context);
+    assert(routingContext != null);
 
-    var currentState = stateMachineContext!.currentState;
+    var currentState = routingContext!.currentState;
     if (!currentState.isInState(widget.stateKey)) return;
 
     var initialValues = <dynamic>[];

@@ -4,20 +4,46 @@ import 'package:flutter/widgets.dart';
 import 'package:tree_state_machine/tree_state_machine.dart';
 import 'package:tree_state_router/tree_state_router.dart';
 
-/// Provides information to route builder functions about the current state
-/// machine state, and additional routing information parsed from a URI.
+/// Provides information about the current route, including the current state
+/// of a [TreeStateMachine].
+///
+/// This is typically automatically provided as an argument to
+/// [StateRouteBuilder] and [StateRoutePageBuilder] functions, but may also
+/// be accessed as an inherited widget dependency tree using
+/// [StateRoutingContextProvider.of].
 class StateRoutingContext {
-  StateRoutingContext(this.currentState, this.routingState);
+  /// Constructs a [StateRoutingContext].
+  StateRoutingContext(this.currentState, {this.platformUri});
 
-  /// The [CurrentState] of the [TreeStateMachine] backing the router.
+  /// The current state of a [TreeStateMachine].
   final CurrentState currentState;
 
-  /// Additional routing information parsed from a deep link URI.
-  final TreeStateRoutingState routingState;
-}
+  /// The URI that was provided by the platform, if following a deep link.
+  final Uri? platformUri;
 
-/// TBD: This will contain routing information parsed from a deep link URI.
-class TreeStateRoutingState {}
+  /// Unmodifiable map of the query parameters from the URI provided by the
+  /// platform, when following a deep link.
+  ///
+  /// The map is empty if there were no query parameters, or if a deep link is
+  /// not being followed.
+  Map<String, String> get queryParams =>
+      platformUri?.queryParameters ?? const {};
+
+  // Provide value equality, because StateMachineRoutingInfoProvider needs to
+  // detect when to values are different.
+  @override
+  bool operator ==(Object other) {
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is StateRoutingContext &&
+        other.currentState == currentState &&
+        other.platformUri == platformUri;
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, currentState, platformUri);
+}
 
 /// Provides support for building a [StateRouteInfo] that describes a route in
 /// a [TreeStateRouter].
@@ -103,8 +129,6 @@ class StateRouteInfo {
         // Child routes are populated in two stages, so use UnmodifiableListView
         // here
         childRoutes = UnmodifiableListView(childRoutes),
-        // TODO: decide what to do about DataStateKey. It has an ugly toString()
-        // output.
         path = path ?? RoutePath(stateKey.toString());
 
   /// The state key identifying the tree state associated with this route.

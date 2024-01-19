@@ -44,62 +44,75 @@ StateTree dataStateTree() {
   );
 }
 
+List<StateRouteInfoBuilder> _dataRoutes({required bool parameterize}) {
+  return [
+    DataStateRoute<String>.shell(
+      DataStates.state_r,
+      routeBuilder: emptyShellDataRouteBuilder,
+      path: parameterize
+          ? DataRoutePath.parameterized(
+              'r/:val',
+              pathArgs: (data) => {'val': data},
+            )
+          : DataRoutePath('r'),
+      routes: [
+        DataStateRoute<String>.shell(
+          DataStates.state_r_2,
+          routeBuilder: emptyShellDataRouteBuilder,
+          path: parameterize
+              ? DataRoutePath.parameterized(
+                  '2/:val',
+                  enableDeepLink: true,
+                  pathArgs: (data) => {'val': data},
+                  initialData: (pathArgs) => pathArgs['val']!,
+                )
+              : DataRoutePath('2', enableDeepLink: true),
+          routes: [
+            DataStateRoute<String>(
+              DataStates.state_r_2_1,
+              routeBuilder: emptyDataRouteBuilder,
+              path: parameterize
+                  ? DataRoutePath.parameterized(
+                      '1/:val',
+                      pathArgs: (data) => {'val': data},
+                    )
+                  : DataRoutePath('1'),
+            ),
+            DataStateRoute<String>(
+              DataStates.state_r_2_2,
+              routeBuilder: emptyDataRouteBuilder,
+              path: parameterize
+                  ? DataRoutePath.parameterized(
+                      '2/:val',
+                      enableDeepLink: true,
+                      pathArgs: (data) => {'val': data},
+                      initialData: (pathArgs) => pathArgs['val']!,
+                    )
+                  : DataRoutePath('2', enableDeepLink: true),
+            )
+          ],
+        )
+      ],
+    ),
+  ];
+}
+
 TreeStateRouter dataRouter(
   TreeStateMachine stateMachine, {
   bool parameterize = false,
 }) {
   return TreeStateRouter(
     stateMachine: stateMachine,
-    routes: [
-      DataStateRoute<String>.shell(
-        DataStates.state_r,
-        routeBuilder: emptyShellDataRouteBuilder,
-        path: parameterize
-            ? DataRoutePath.parameterized(
-                'r/:val',
-                pathArgs: (data) => {'val': data},
-              )
-            : DataRoutePath('r'),
-        routes: [
-          DataStateRoute<String>.shell(
-            DataStates.state_r_2,
-            routeBuilder: emptyShellDataRouteBuilder,
-            path: parameterize
-                ? DataRoutePath.parameterized(
-                    '2/:val',
-                    enableDeepLink: true,
-                    pathArgs: (data) => {'val': data},
-                    initialData: (pathArgs) => pathArgs['val']!,
-                  )
-                : DataRoutePath('2', enableDeepLink: true),
-            routes: [
-              DataStateRoute<String>(
-                DataStates.state_r_2_1,
-                routeBuilder: emptyDataRouteBuilder,
-                path: parameterize
-                    ? DataRoutePath.parameterized(
-                        '1/:val',
-                        pathArgs: (data) => {'val': data},
-                      )
-                    : DataRoutePath('1'),
-              ),
-              DataStateRoute<String>(
-                DataStates.state_r_2_2,
-                routeBuilder: emptyDataRouteBuilder,
-                path: parameterize
-                    ? DataRoutePath.parameterized(
-                        '2/:val',
-                        enableDeepLink: true,
-                        pathArgs: (data) => {'val': data},
-                        initialData: (pathArgs) => pathArgs['val']!,
-                      )
-                    : DataRoutePath('2', enableDeepLink: true),
-              )
-            ],
-          ),
-        ],
-      )
-    ],
+    routes: _dataRoutes(parameterize: parameterize),
+  );
+}
+
+TreeStateRouter platformDataRouter({
+  bool parameterize = false,
+}) {
+  return TreeStateRouter.platformRouting(
+    stateTree: dataStateTree(),
+    routes: _dataRoutes(parameterize: parameterize),
   );
 }
 

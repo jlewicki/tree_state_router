@@ -190,7 +190,7 @@ class DataTreeStateBuilderState extends State<BaseDataTreeStateBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    var stateMachineContext = TreeStateMachineProvider.of(context);
+    var stateMachineContext = StateRoutingContextProvider.of(context);
     assert(stateMachineContext != null);
     assert(_stateDataList != null);
     return _error != null
@@ -200,7 +200,7 @@ class DataTreeStateBuilderState extends State<BaseDataTreeStateBuilder> {
   }
 
   void _subscribe() {
-    var stateMachineContext = TreeStateMachineProvider.of(context);
+    var stateMachineContext = StateRoutingContextProvider.of(context);
     assert(stateMachineContext != null);
 
     var currentState = stateMachineContext!.currentState;

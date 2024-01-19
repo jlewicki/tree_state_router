@@ -82,8 +82,8 @@ abstract class TreeStateRouterDelegateBase
 
   Widget _buildNavigatorWidget(
     List<Page> pages,
-    CurrentState? currentState, {
-    required bool provideCurrentState,
+    StateRoutingContext? routingInfo, {
+    required bool provideRoutingInfo,
     StateKey? transitionEventRootState,
   }) {
     Widget widget = Navigator(
@@ -95,7 +95,7 @@ abstract class TreeStateRouterDelegateBase
           : const _NoTransitionsTransitionDelegate(),
     );
 
-    if (currentState != null) {
+    if (routingInfo != null) {
       widget = TreeStateMachineEvents(
         onTransition: _onTransition,
         transitionsRootKey: transitionEventRootState,
@@ -108,9 +108,9 @@ abstract class TreeStateRouterDelegateBase
       );
     }
 
-    if (provideCurrentState && currentState != null) {
-      widget = TreeStateMachineProvider(
-        currentState: currentState,
+    if (provideRoutingInfo && routingInfo != null) {
+      widget = StateRoutingContextProvider(
+        routingContext: routingInfo,
         child: widget,
       );
     }
@@ -127,8 +127,9 @@ abstract class TreeStateRouterDelegateBase
   @protected
   Iterable<Page<void>> _buildActivePages(
     BuildContext context,
-    CurrentState currentState,
+    StateRoutingContext routingInfo,
   ) {
+    var currentState = routingInfo.currentState;
     _log.fine(() => 'Creating pages for active states: '
         '${currentState.activeStates.join(', ')}');
 
@@ -161,8 +162,7 @@ abstract class TreeStateRouterDelegateBase
       navigatorRoutes = belowPopupRoutes.followedBy(navigatorRoutes);
     }
 
-    return navigatorRoutes
-        .map((r) => _buildRoutePage(r, context, currentState));
+    return navigatorRoutes.map((r) => _buildRoutePage(r, context, routingInfo));
   }
 
   /// Return the deepest route that maps to an active state. By deepest, we mean
@@ -218,11 +218,14 @@ abstract class TreeStateRouterDelegateBase
   Page<void> _buildRoutePage(
     StateRouteInfo route,
     BuildContext context,
-    CurrentState currentState,
+    StateRoutingContext routingInfo,
   ) {
+    var currentState = routingInfo.currentState;
     var buildFor = BuildForRoute(route.stateKey, route.isPopup);
-    var routingContext =
-        StateRoutingContext(currentState, TreeStateRoutingState());
+    var routingContext = StateRoutingContext(
+      currentState,
+      platformUri: routingInfo.platformUri,
+    );
 
     // Note that whether page content is generated with routePageBuilder or
     // routeBuilder, the page content is wrapped in a Builder widged. This
@@ -292,7 +295,6 @@ abstract class TreeStateRouterDelegateBase
     );
   }
 
-  // TODO: move to RouteTable
   Iterable<StateRouteInfo> _findRoutesFor(Iterable<StateKey> keys) sync* {
     for (var key in keys) {
       var info = _routeMap[key];
@@ -300,7 +302,6 @@ abstract class TreeStateRouterDelegateBase
     }
   }
 
-  // TODO: move to RouteTable
   Map<StateKey, StateRouteInfo> _mapRoutes(List<StateRouteInfo> routes) {
     var map = <StateKey, StateRouteInfo>{};
     for (var route in routes) {
@@ -398,6 +399,11 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   // deep linking or browser URI)
   @override
   Future<void> setNewRoutePath(TreeStateRoutePath configuration) {
+    // Note that when receiving the initial configuration when the app is
+    // started, _setCurrentConfiguration will get called twice. Once from this
+    // callsite, but also once from the transitions listener which is notified
+    // of the initial transition when starting the state machine.  Can we
+    // eliminate one of those?
     return currentConfiguration != configuration
         ? _setCurrentConfiguration(configuration)
         : _done;
@@ -418,7 +424,12 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     var currentState = stateMachine.currentState;
     try {
       pages = currentState != null
-          ? _buildActivePages(context, currentState).toList()
+          ? _buildActivePages(
+              context,
+              StateRoutingContext(
+                currentState,
+                platformUri: _currentConfiguration?.platformUri,
+              )).toList()
           : [
               // build() may be called before the setNewRoutePath future
               // completes, so we display a loading indicator while that is in
@@ -448,8 +459,11 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
     return _buildNavigatorWidget(
       pages,
-      currentState,
-      provideCurrentState: currentState != null,
+      currentState != null
+          ? StateRoutingContext(currentState,
+              platformUri: _currentConfiguration?.platformUri)
+          : null,
+      provideRoutingInfo: currentState != null,
     );
   }
 
@@ -483,6 +497,15 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     }
     return super._onPopPage(route, result);
   }
+
+  // @override
+  // StateRoutingContext _createStateRoutingContext(CurrentState currentState) {
+  //   return StateRoutingContext(
+  //     currentState,
+  //     queryParams:
+  //         _currentConfiguration?.platformUri?.queryParameters ?? const {},
+  //   );
+  // }
 
   Future<void> _setCurrentConfiguration(TreeStateRoutePath configuration) {
     return _startOrUpdateStateMachine(configuration).then((config) {
@@ -518,7 +541,10 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         stateMachine.start(at: startAt, withData: withData);
         return initTransFuture.then((initTrans) {
           _log.fine("Started state machine. Current state: '${initTrans.to}'");
-          return _routeTable.routePathForTransition(initTrans);
+          return _routeTable.routePathForTransition(
+            initTrans,
+            platformUri: configuration.platformUri,
+          );
         });
       }
 
@@ -527,7 +553,8 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     }
 
     Future<TreeStateRoutePath> updateStateMachine(
-        TreeStateRoutePath configuration) {
+      TreeStateRoutePath configuration,
+    ) {
       var currentState = stateMachine.currentState!;
       var activeStates = currentState.activeStates;
       var allRoutesActive =
@@ -549,7 +576,10 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
           if (value case HandledMessage(transition: var t) when t != null) {
             _log.fine('Transitioned state machine to ${t.to} for deep link: '
                 '${configuration.pathTemplate}');
-            return _routeTable.routePathForTransition(t);
+            return _routeTable.routePathForTransition(
+              t,
+              platformUri: configuration.platformUri,
+            );
           }
           throw _errors.deepLinkFailure(currentState.key, deepLinkTarget);
         });
@@ -594,7 +624,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 /// [anchorKey].
 ///
 /// This router requires that an inherited state machine be available in the
-/// widget tree via [TreeStateMachineProvider].
+/// widget tree via [StateRoutingContextProvider].
 class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
   DescendantStatesRouterDelegate({
     required super.config,
@@ -639,20 +669,19 @@ class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
     CurrentState? currentState;
 
     try {
-      var stateMachineInfo = TreeStateMachineProvider.of(context);
-      if (stateMachineInfo == null) {
+      var routingInfo = StateRoutingContextProvider.of(context);
+      if (routingInfo == null) {
         throw _errors.missingStateMachine();
       }
 
       // Verify that routed states are all descendant states of parentKey
       if (!_nestedRoutesValidated) {
-        _validateNestedRoutes(
-            stateMachineInfo.currentState.stateMachine.rootNode);
+        _validateNestedRoutes(routingInfo.currentState.stateMachine.rootNode);
         _nestedRoutesValidated = true;
       }
 
-      currentState = stateMachineInfo.currentState;
-      pages = _buildActivePages(context, currentState).toList();
+      currentState = routingInfo.currentState;
+      pages = _buildActivePages(context, routingInfo).toList();
       if (pages.isEmpty) {
         if (currentState.stateMachine.isDone && !supportsFinalRoute) {
           // If the current state machine is running as a nested machine, then
@@ -673,8 +702,8 @@ class DescendantStatesRouterDelegate extends TreeStateRouterDelegateBase {
 
     return _buildNavigatorWidget(
       pages,
-      currentState,
-      provideCurrentState: false,
+      currentState != null ? StateRoutingContext(currentState) : null,
+      provideRoutingInfo: false,
       transitionEventRootState: anchorKey,
     );
   }
@@ -741,7 +770,7 @@ class NestedMachineRouterDelegate extends TreeStateRouterDelegateBase {
     List<Page> pages = [];
     CurrentState? currentState;
     try {
-      var stateMachineInfo = TreeStateMachineProvider.of(context);
+      var stateMachineInfo = StateRoutingContextProvider.of(context);
       if (stateMachineInfo == null) {
         throw _errors.missingStateMachine();
       }
@@ -753,15 +782,15 @@ class NestedMachineRouterDelegate extends TreeStateRouterDelegateBase {
       }
 
       currentState = nestedMachineData.nestedCurrentState;
-      pages = _buildActivePages(context, currentState).toList();
+      pages = _buildActivePages(context, stateMachineInfo).toList();
     } catch (ex) {
       pages = [_createErrorPage(context, ex)];
     }
 
     return _buildNavigatorWidget(
       pages,
-      currentState,
-      provideCurrentState: true,
+      currentState != null ? StateRoutingContext(currentState) : null,
+      provideRoutingInfo: true,
     );
   }
 

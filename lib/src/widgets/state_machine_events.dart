@@ -6,13 +6,14 @@ import 'package:tree_state_router/tree_state_router.dart';
 
 /// A widget for receiving notifications from a [TreeStateMachine].
 ///
-/// The state machine providing the events is obtained using [TreeStateMachineProvider.of].
+/// The state machine providing the events is obtained using [StateRoutingContextProvider.of].
 class TreeStateMachineEvents extends StatefulWidget {
   const TreeStateMachineEvents({
     super.key,
     required this.child,
     this.transitionsRootKey,
     this.onTransition,
+    //this.onTransitionsSubscribe,
     this.onFailedMessage,
   });
 
@@ -67,7 +68,7 @@ class _TreeStateMachineEventsState extends State<TreeStateMachineEvents> {
   Widget build(BuildContext context) => widget.child;
 
   void _subscribe() {
-    var stateMachineContext = TreeStateMachineProvider.of(context);
+    var stateMachineContext = StateRoutingContextProvider.of(context);
     if (stateMachineContext == null) {
       return;
     }

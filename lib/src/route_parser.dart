@@ -10,6 +10,7 @@ import 'package:tree_state_router/tree_state_router.dart';
 class TreeStateRoutePath {
   TreeStateRoutePath(
     List<StateRouteInfo> routes, {
+    this.platformUri,
     Map<DataStateKey, Object> initialStateData = const {},
     this.isPush = false,
   })  : routes = List.unmodifiable(routes),
@@ -19,8 +20,16 @@ class TreeStateRoutePath {
   static final empty = TreeStateRoutePath(const []);
 
   /// Creates a copy of this route path, but with [isPush] set to `true`.
-  TreeStateRoutePath asPush() {
-    return TreeStateRoutePath(routes, isPush: true);
+  TreeStateRoutePath asPush(bool isPush) {
+    return isPush != this.isPush
+        ? TreeStateRoutePath(routes, isPush: isPush)
+        : this;
+  }
+
+  TreeStateRoutePath withUri(Uri? platformUri) {
+    return platformUri != null
+        ? TreeStateRoutePath(routes, platformUri: platformUri)
+        : this;
   }
 
   /// The routes to displayed, based on route information provided by the
@@ -29,8 +38,11 @@ class TreeStateRoutePath {
   final List<StateRouteInfo> routes;
 
   /// Unmodifiable map of initial data values for data state in the path, for
-  /// use when initializing a state machine from a URI.
+  /// use when initializing a state machine when following a deep link.
   final Map<DataStateKey, Object> initialStateData;
+
+  /// The URI provided by the platform when following a deep link.
+  final Uri? platformUri;
 
   /// Indicates if this route path is empty. That is, if contains no routes.
   late bool isEmpty = routes.isEmpty;
@@ -113,19 +125,19 @@ class TreeStateRoutePath {
 /// [TreeStateRoutePath] representing the active states of a [TreeStateMachine].
 class TreeStateRouteInformationParser
     extends RouteInformationParser<TreeStateRoutePath> {
-  TreeStateRouteInformationParser(this.rootKey, this._routeTable);
+  TreeStateRouteInformationParser(this.rootKey, this.routeTable);
 
   final StateKey rootKey;
-  final RouteTable _routeTable;
+  final RouteTable routeTable;
   final Logger _log = Logger('$rootLoggerName.RouteParser');
 
   @override
   Future<TreeStateRoutePath> parseRouteInformation(
     RouteInformation routeInformation,
   ) {
-    _log.fine('Parsing route information: ${routeInformation.uri.path}');
+    _log.fine('Parsing route information: ${routeInformation.uri.toString()}');
 
-    var parsed = _routeTable.parseRouteInformation(
+    var parsed = routeTable.parseRouteInformation(
       routeInformation,
       linkableRoutes: true,
     );
@@ -147,6 +159,6 @@ class TreeStateRouteInformationParser
       return null;
     }
     _log.fine('Restoring route information.');
-    return _routeTable.toRouteInformation(configuration);
+    return routeTable.toRouteInformation(configuration);
   }
 }

@@ -17,7 +17,14 @@ Widget rootPage(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            child: const Text('Root'),
+            child: Column(
+              children: [
+                const Text('Root'),
+                if (stateContext.queryParams.isNotEmpty)
+                  Text('Query Parameters: '
+                      '${stateContext.queryParams.entries.map((e) => '${e.key}:${e.value}').join(' ')}'),
+              ],
+            ),
           ),
           Expanded(child: nestedRouter),
         ],
@@ -86,6 +93,9 @@ Widget child1Page(
         crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 8,
         children: <Widget>[
+          if (stateContext.queryParams.isNotEmpty)
+            Text('Query Parameters: '
+                '${stateContext.queryParams.entries.map((e) => '${e.key}:${e.value}').join(' ')}'),
           Container(
             padding: const EdgeInsets.all(8),
             child: Text('Child 1 - ID: ${data.id} Value: ${data.value}'),

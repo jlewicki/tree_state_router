@@ -4,7 +4,7 @@ import 'package:tree_state_router/tree_state_router.dart';
 
 /// A widget that displays diagnostic information about a tree state machine.
 ///
-/// The state machine is obtained with [TreeStateMachineProvider.of], and consequently find the
+/// The state machine is obtained with [StateRoutingContextProvider.of], and consequently find the
 /// closest machine in the ancestor hierarchy.
 class StateTreeInspector extends StatefulWidget {
   const StateTreeInspector({super.key, required this.child});
@@ -19,10 +19,12 @@ class StateTreeInspector extends StatefulWidget {
 class _StateTreeInspectorState extends State<StateTreeInspector> {
   @override
   Widget build(BuildContext context) {
-    var info = TreeStateMachineProvider.of(context);
+    var info = StateRoutingContextProvider.of(context);
     return info != null
         ? TreeStateMachineEvents(
             // Re-render on transitions, so that correct active states are displayed
+            // onTransitionsSubscribe: (stream) =>
+            //     stream.listen((_) => setState(() {})),
             onTransition: (_, __) => setState(() {}),
             child: Stack(
               children: [

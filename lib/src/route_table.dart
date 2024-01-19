@@ -68,18 +68,22 @@ class RouteTable {
   RouteInformation? toRouteInformation(TreeStateRoutePath path) {
     var uriPath =
         path.isEmpty ? '/' : '/${path.generateUriPath(_getDataValue)}';
-    var uri = Uri.parse(uriPath);
+    //var uri = Uri.parse(uriPath);
+    var uri = Uri(
+        path: uriPath,
+        queryParameters: path.platformUri?.queryParameters ?? const {});
     return RouteInformation(uri: uri);
   }
 
   TreeStateRoutePath routePathForTransition(
-    Transition transition,
-  ) {
+    Transition transition, {
+    Uri? platformUri,
+  }) {
     var routeForTarget = _routePathsByEndState[transition.to];
     if (routeForTarget != null) {
-      return transition.isPushTransition
-          ? routeForTarget.asPush()
-          : routeForTarget;
+      return routeForTarget
+          .asPush(transition.isPushTransition)
+          .withUri(platformUri);
     }
     return TreeStateRoutePath.empty;
   }
@@ -97,7 +101,11 @@ class RouteTable {
     return routePaths.map((routePath) {
       var matched = routePath.matchUriPath(path);
       return matched != null
-          ? TreeStateRoutePath(routePath.routes, initialStateData: matched)
+          ? TreeStateRoutePath(
+              routePath.routes,
+              initialStateData: matched,
+              platformUri: routeInformation.uri,
+            )
           : null;
     }).firstWhereOrNull(
       (routePath) => routePath != null,

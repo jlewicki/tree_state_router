@@ -107,6 +107,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     DefaultPageBuilder? defaultPageBuilder,
     bool enableTransitions = true,
     bool enableDeveloperLogging = false,
+    bool enableStateMachineDeveloperLogging = false,
   }) {
     var routeConfigs = routes.map((e) => e.buildRouteInfo(null)).toList();
     // Find data routes that have route parameters. These routes will have
@@ -137,7 +138,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     return TreeStateRouter._(
       stateMachine: TreeStateMachine.withBuilder(
         builder,
-        developerLoggingEnabled: enableDeveloperLogging,
+        developerLoggingEnabled: enableStateMachineDeveloperLogging,
       ),
       routes: routeConfigs,
       defaultScaffolding: defaultScaffolding,

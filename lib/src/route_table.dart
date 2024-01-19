@@ -76,7 +76,12 @@ class RouteTable {
     Transition transition,
   ) {
     var routeForTarget = _routePathsByEndState[transition.to];
-    return routeForTarget ?? TreeStateRoutePath.empty;
+    if (routeForTarget != null) {
+      return transition.isPushTransition
+          ? routeForTarget.asPush()
+          : routeForTarget;
+    }
+    return TreeStateRoutePath.empty;
   }
 
   TreeStateRoutePath? parseRouteInformation(
@@ -92,7 +97,7 @@ class RouteTable {
     return routePaths.map((routePath) {
       var matched = routePath.matchUriPath(path);
       return matched != null
-          ? TreeStateRoutePath(routePath.routes, matched)
+          ? TreeStateRoutePath(routePath.routes, initialStateData: matched)
           : null;
     }).firstWhereOrNull(
       (routePath) => routePath != null,

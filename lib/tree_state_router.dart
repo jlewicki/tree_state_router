@@ -17,6 +17,7 @@ export 'src/routes/routes.dart' hide CreateRouteConfig;
 export 'src/widgets/descendant_states_router.dart';
 export 'src/widgets/inspector.dart';
 export 'src/widgets/state_machine_provider.dart';
+export 'src/extensions.dart';
 export 'src/route_parser.dart';
 export 'src/router_config.dart' hide GoToDeepLink, InitializeStateDataFilter;
 

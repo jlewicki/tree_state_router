@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
@@ -120,7 +121,7 @@ abstract class TreeStateRouterDelegateBase
   /// Calculates the stack of routes that should display the current state of
   /// the state tree.
   ///
-  /// Currently this returns a collection of 0 or 1 pages, but once a history
+  /// Currently this returns a collection of 0 or 1 pages, but once(?) a history
   /// feature is added to tree_state_machine, this will return a history stack
   /// which can be popped by the navigator.
   @protected
@@ -132,11 +133,10 @@ abstract class TreeStateRouterDelegateBase
         '${currentState.activeStates.join(', ')}');
 
     Iterable<StateRouteInfo> navigatorRoutes = _activeRoutes(currentState);
-
-    // If we have a popup route, attempt to find a route for one of the exiting
-    // states. This route will be pushed on to the navigator below the popup
-    // route, so that the popup looks like it appears over something.
     if (navigatorRoutes.isNotEmpty && navigatorRoutes.first.isPopup) {
+      // If we have a popup route, attempt to find a route for one of the
+      // exiting states. This route will be pushed on to the navigator below the
+      // popup route, so that the popup looks like it appears over something.
       assert(_transition != null);
       var belowPopupRoutes = _findRoutesFor(_transition!.exitPath)
           .where((r) {
@@ -170,7 +170,7 @@ abstract class TreeStateRouterDelegateBase
   /// This gives the current leaf state priority in determining the route to
   /// display, followed by its parent state, etc.
   List<StateRouteInfo> _activeRoutes(CurrentState currentState) {
-    // Is the order right here?
+    // Visit active states from root state to leaf
     var activeRoutes = _findRoutesFor(currentState.activeStates.reversed);
     return activeRoutes.take(1).toList();
   }
@@ -275,14 +275,32 @@ abstract class TreeStateRouterDelegateBase
         appPageBuilder(buildFor, pageContent);
   }
 
-  Iterable<StateRouteInfo> _findRoutesFor(Iterable<StateKey> keys) {
-    return keys
-        .map((stateKey) =>
-            MapEntry<StateKey, StateRouteInfo?>(stateKey, _routeMap[stateKey]))
-        .where((entry) => entry.value != null)
-        .map((entry) => entry.value!);
+  Page<void> _createPushOverPage(
+      BuildContext context, StateKey sourceStateKey) {
+    var appPageBuilder = _pageBuilderForAppType(context);
+    Widget content = const Text('');
+    assert(() {
+      content = const Text('Bottom Page for PushGoTo');
+      return true;
+    }());
+
+    return appPageBuilder(
+      BuildForRoute(sourceStateKey, false),
+      Scaffold(
+        body: content,
+      ),
+    );
   }
 
+  // TODO: move to RouteTable
+  Iterable<StateRouteInfo> _findRoutesFor(Iterable<StateKey> keys) sync* {
+    for (var key in keys) {
+      var info = _routeMap[key];
+      if (info != null) yield info;
+    }
+  }
+
+  // TODO: move to RouteTable
   Map<StateKey, StateRouteInfo> _mapRoutes(List<StateRouteInfo> routes) {
     var map = <StateKey, StateRouteInfo>{};
     for (var route in routes) {
@@ -314,6 +332,14 @@ abstract class TreeStateRouterDelegateBase
   }
 }
 
+/// Records information about a transition that was sourced from pushGoTo
+class _TransitionPushRecord {
+  _TransitionPushRecord(this.transition);
+
+  /// The transition that was sourced from a call to pushGoTo
+  final Transition transition;
+}
+
 /// A [RouterDelegate] that receives routing information from the state
 /// transitions of a [TreeStateMachine].
 ///
@@ -337,9 +363,7 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       // dependency on state data values. We need to detect when state data
       // changes (perhaps without an accompanying state transition), so that
       // accurate route information can be reported.
-      // I don't *think* we need to unsubscribe here, since RouteTable and this
-      // delegate should share the same lifetime.
-      _routeTable.routeArgsUpdated.listen((_) {
+      _routeArgsUpdatedSubscription = _routeTable.routeArgsUpdated.listen((_) {
         notifyListeners();
       });
     } else {
@@ -350,11 +374,14 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     }
   }
 
+  final RouteTable _routeTable;
+  TreeStateRoutePath? _currentConfiguration;
+  StreamSubscription<dynamic>? _routeArgsUpdatedSubscription;
+  final _pushedTransitionStack = Queue<_TransitionPushRecord>();
+
   /// The [TreeStateMachine] that provides the state transition notifications to
   /// this router.
   final TreeStateMachine stateMachine;
-
-  final RouteTable _routeTable;
 
   /// The key used for retrieving the current navigator.
   @override
@@ -367,17 +394,19 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   TreeStateRoutePath? get currentConfiguration =>
       config.enablePlatformRouting ? _currentConfiguration : null;
 
-  TreeStateRoutePath? _currentConfiguration;
-
   // Called when new route information has been provided by the platform (via
   // deep linking or browser URI)
   @override
-  Future<void> setNewRoutePath(TreeStateRoutePath configuration) async {
-    if (currentConfiguration == configuration) {
-      return done;
-    }
+  Future<void> setNewRoutePath(TreeStateRoutePath configuration) {
+    return currentConfiguration != configuration
+        ? _setCurrentConfiguration(configuration)
+        : _done;
+  }
 
-    return _setCurrentConfiguration(configuration);
+  @override
+  void dispose() {
+    _routeArgsUpdatedSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -404,6 +433,19 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       pages = [_createErrorPage(context, ex)];
     }
 
+    if (_pushedTransitionStack.isNotEmpty) {
+      // If there is a push transition in progress, insert an empty page at
+      // the bottom of the stack. This will enable UX that infers the presence
+      // of a push (e.g. transition animations, or the AppBar back button) to
+      // work as expected.
+      // This somewhat assumes that the page that appears above the empty page
+      // is opaque and fills the entire navigation overlay, otherwise the
+      // illusion of a route page 'pushed' on top of a previous route page will
+      // be dispelled.
+      var key = _pushedTransitionStack.first.transition.from;
+      pages.insert(0, _createPushOverPage(context, key));
+    }
+
     return _buildNavigatorWidget(
       pages,
       currentState,
@@ -413,14 +455,40 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
 
   @override
   void _onTransition(CurrentState currentState, Transition transition) {
+    if (transition.isRedirect) {
+      // If a redirect occured during the transition, that invalidated any
+      // push transitions, since the redirect target state likely is not
+      // intended to be a push target.
+      _pushedTransitionStack.clear();
+    } else if (transition.isPushTransition) {
+      _log.info('Notified of push transition to ${transition.to}');
+      _pushedTransitionStack.addFirst(_TransitionPushRecord(
+        transition,
+      ));
+    }
     _transition = transition;
-    var routeMatches = _routeTable.routePathForTransition(transition);
-    _setCurrentConfiguration(routeMatches);
+    var config = _routeTable.routePathForTransition(transition);
+    _setCurrentConfiguration(config);
+  }
+
+  @override
+  bool _onPopPage(Route<dynamic> route, dynamic result) {
+    if (_pushedTransitionStack.isNotEmpty) {
+      if (!route.didPop(result)) return false;
+      var record = _pushedTransitionStack.removeFirst();
+      var popMessage = record.transition.popMessage;
+      assert(popMessage != null);
+      stateMachine.currentState?.post(popMessage!);
+      return true;
+    }
+    return super._onPopPage(route, result);
   }
 
   Future<void> _setCurrentConfiguration(TreeStateRoutePath configuration) {
     return _startOrUpdateStateMachine(configuration).then((config) {
       _currentConfiguration = config;
+      _log.info(
+          "Updated router configuration with path to '${config.end.stateKey}'");
       notifyListeners();
     });
   }
@@ -428,7 +496,38 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
   Future<TreeStateRoutePath> _startOrUpdateStateMachine(
     TreeStateRoutePath configuration,
   ) {
-    if (stateMachine.lifecycle.isStarted && stateMachine.currentState != null) {
+    Future<TreeStateRoutePath> startStateMachine(
+        TreeStateRoutePath configuration) {
+      var isStartable = stateMachine.lifecycle.isConstructed ||
+          stateMachine.lifecycle.isStopped;
+
+      if (isStartable) {
+        var cfg = configuration;
+        var intialDataMap = cfg.initialStateData;
+        var startAt = cfg.isDeepLinkable ? cfg.end.stateKey : null;
+        var withData = cfg.isDeepLinkable && intialDataMap.isNotEmpty
+            ? (InitialStateDataBuilder builder) {
+                for (var forState in intialDataMap.keys) {
+                  builder.initialData(forState, intialDataMap[forState]!);
+                }
+              }
+            : null;
+        _log.fine(
+            "Starting state machine ${startAt != null ? "at: '$startAt'" : ''}");
+        var initTransFuture = stateMachine.transitions.first;
+        stateMachine.start(at: startAt, withData: withData);
+        return initTransFuture.then((initTrans) {
+          _log.fine("Started state machine. Current state: '${initTrans.to}'");
+          return _routeTable.routePathForTransition(initTrans);
+        });
+      }
+
+      _log.warning('_startOrUpdateStateMachine with null configuration');
+      return SynchronousFuture(configuration);
+    }
+
+    Future<TreeStateRoutePath> updateStateMachine(
+        TreeStateRoutePath configuration) {
       var currentState = stateMachine.currentState!;
       var activeStates = currentState.activeStates;
       var allRoutesActive =
@@ -461,44 +560,33 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
       }
     }
 
-    var isStartable = stateMachine.lifecycle.isConstructed ||
-        stateMachine.lifecycle.isStopped;
-
-    if (isStartable) {
-      var cfg = configuration;
-      var intialDataMap = cfg.initialStateData;
-      var startAt = cfg.isDeepLinkable ? cfg.end.stateKey : null;
-      var withData = cfg.isDeepLinkable && intialDataMap.isNotEmpty
-          ? (InitialStateDataBuilder builder) {
-              for (var forState in intialDataMap.keys) {
-                builder.initialData(forState, intialDataMap[forState]!);
-              }
-            }
-          : null;
-      _log.fine(
-          "Starting state machine ${startAt != null ? "at: '$startAt'" : ''}");
-      var initTransFuture = stateMachine.transitions.first;
-      stateMachine.start(at: startAt, withData: withData);
-      return initTransFuture.then((initTrans) {
-        _log.fine("Started state machine. Current state: '${initTrans.to}'");
-        return _routeTable.routePathForTransition(initTrans);
-      });
-    }
-
-    _log.warning('_startOrUpdateStateMachine with null configuration');
-    return SynchronousFuture(configuration);
+    return stateMachine.lifecycle.isStarted && stateMachine.currentState != null
+        ? updateStateMachine(configuration)
+        : startStateMachine(configuration);
   }
 
   Page _createLoadingPage(BuildContext context) {
-    var pageBuilder = _pageBuilderForAppType(context);
-    return pageBuilder.call(
+    var loadingContent = const Material(
+      child: Center(
+        child: CircularProgressIndicator.adaptive(),
+      ),
+    );
+
+    Page? loadingPage;
+    if (config.defaultPageBuilder != null) {
+      loadingPage = config.defaultPageBuilder!(
         const BuildForLoading(),
-        const Center(
-          child: Text('Loading'),
-        ));
+        loadingContent,
+      );
+    }
+    return loadingPage ??
+        _pageBuilderForAppType(context).call(
+          const BuildForLoading(),
+          loadingContent,
+        );
   }
 
-  static final done = SynchronousFuture<void>(null);
+  static final _done = SynchronousFuture<void>(null);
 }
 
 /// The [RouterDelegate] used by [DescendantStatesRouter]. The routes provided

@@ -9,13 +9,19 @@ import 'package:tree_state_router/tree_state_router.dart';
 /// from [RouteInformation] provided by the system.
 class TreeStateRoutePath {
   TreeStateRoutePath(
-    List<StateRouteInfo> routes, [
+    List<StateRouteInfo> routes, {
     Map<DataStateKey, Object> initialStateData = const {},
-  ])  : routes = List.unmodifiable(routes),
+    this.isPush = false,
+  })  : routes = List.unmodifiable(routes),
         initialStateData = Map.unmodifiable(initialStateData);
 
   /// An empty [TreeStateRoutePath], containing no routes
   static final empty = TreeStateRoutePath(const []);
+
+  /// Creates a copy of this route path, but with [isPush] set to `true`.
+  TreeStateRoutePath asPush() {
+    return TreeStateRoutePath(routes, isPush: true);
+  }
 
   /// The routes to displayed, based on route information provided by the
   /// platform. Routes are ordered in a descending fashion, such that the leaf
@@ -26,7 +32,7 @@ class TreeStateRoutePath {
   /// use when initializing a state machine from a URI.
   final Map<DataStateKey, Object> initialStateData;
 
-  /// Indicatates if this route path is empty. That is, if contains no routes.
+  /// Indicates if this route path is empty. That is, if contains no routes.
   late bool isEmpty = routes.isEmpty;
 
   /// The complete path template for this route path, combining the
@@ -48,7 +54,13 @@ class TreeStateRoutePath {
   late final List<String> parameters =
       routes.expand((e) => e.path.parameters).toList();
 
+  /// Indicates if the leaf state for this route path is deep-linkable.
   late final isDeepLinkable = routes.isNotEmpty && end.path.enableDeepLink;
+
+  /// Indicates if this route path was sourced from a 'push' transition. That
+  /// is, one that should simulate [Navigator.push] from an end user
+  /// perspective.
+  final bool isPush;
 
   /// Generates a path appropriate for a URI representing all the routes in
   /// this route path.
@@ -105,7 +117,7 @@ class TreeStateRouteInformationParser
 
   final StateKey rootKey;
   final RouteTable _routeTable;
-  final Logger _log = Logger('TreeStateRouteInformationParser');
+  final Logger _log = Logger('$rootLoggerName.RouteParser');
 
   @override
   Future<TreeStateRoutePath> parseRouteInformation(
@@ -118,8 +130,8 @@ class TreeStateRouteInformationParser
       linkableRoutes: true,
     );
     if (parsed != null) {
-      _log.fine(() =>
-          'Parsed route information to deep linkable route path  ${parsed.routes.map((e) => e.stateKey).join(', ')}');
+      _log.fine(() => 'Parsed route information to deep linkable route path '
+          '${parsed.routes.map((e) => e.stateKey).join(', ')}');
       return SynchronousFuture(parsed);
     }
 
@@ -129,6 +141,11 @@ class TreeStateRouteInformationParser
 
   @override
   RouteInformation? restoreRouteInformation(TreeStateRoutePath configuration) {
+    if (configuration.isPush) {
+      _log.fine('Restoring route information for push route path. '
+          'Reporting null to platform, URI will not change.');
+      return null;
+    }
     _log.fine('Restoring route information.');
     return _routeTable.toRouteInformation(configuration);
   }

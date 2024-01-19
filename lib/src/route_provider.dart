@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
+import 'package:tree_state_router/src/logging.dart';
 
 enum SystemNavigatorHistoryMode {
   singleEntry,
@@ -35,7 +36,7 @@ class TreeStateRouteInformationProvider extends RouteInformationProvider
 
   final SystemNavigatorHistoryMode historyMode;
 
-  final Logger _log = Logger('TreeStateRouteInformationProvider');
+  final Logger _log = Logger('$rootLoggerName.RouteProvider');
 
   @override
   void routerReportsNewRouteInformation(

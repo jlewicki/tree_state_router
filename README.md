@@ -346,9 +346,11 @@ When using `DataStateRoute.withParams`, a `pathArgs` function is required to gen
 `Map<String, String>` containing the path value for each parameter to be included in the URI. The 
 function is provided the current data value of the data route as input.
 
-
 ### History and the Back Button
-TODO: 
+In general, `TreeStateRouter` will not generate browser history entries. As state transitions occur
+the router will report new URLs to the platform, and therefore update the URL in the browser address
+bar, but only a single history entry is maintained. Consequently the browser back button shoud not
+be enabled, and the user will not be able to return to earlier states. 
 
 ## Deep Linking
 A route can be enabled for deep-linking by setting `enableDeepLink` to `true` when specifying the 

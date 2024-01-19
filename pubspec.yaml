@@ -1,6 +1,6 @@
 name: tree_state_router
 description: "Flutter navigation and routing based on hierarchical state machines"
-version: 0.0.1-dev.3
+version: 0.0.2
 homepage: https://github.com/jlewicki/tree_state_router
 publish_to: 'none'
 

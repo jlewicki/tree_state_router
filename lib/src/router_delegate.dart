@@ -498,20 +498,13 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
     return super._onPopPage(route, result);
   }
 
-  // @override
-  // StateRoutingContext _createStateRoutingContext(CurrentState currentState) {
-  //   return StateRoutingContext(
-  //     currentState,
-  //     queryParams:
-  //         _currentConfiguration?.platformUri?.queryParameters ?? const {},
-  //   );
-  // }
-
   Future<void> _setCurrentConfiguration(TreeStateRoutePath configuration) {
     return _startOrUpdateStateMachine(configuration).then((config) {
       _currentConfiguration = config;
-      _log.info(
-          "Updated router configuration with path to '${config.end.stateKey}'");
+      if (!config.isEmpty) {
+        _log.info(
+            "Updated router configuration with path to '${config.end.stateKey}'");
+      }
       notifyListeners();
     });
   }

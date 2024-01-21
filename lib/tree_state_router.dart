@@ -21,7 +21,6 @@ export 'src/extensions.dart';
 export 'src/route_parser.dart' hide TreeStateRouteInformationParser;
 export 'src/router_config.dart' hide GoToDeepLink, InitializeStateDataFilter;
 
-
 // To publish:
 // dart pub publish --dry-run
 // git tag -a vX.X.X -m "Publish vX.X.X"

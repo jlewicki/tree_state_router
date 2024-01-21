@@ -1,0 +1,19 @@
+dartdoc:
+  categories:
+    "Getting Started":
+      markdown: doc/getting_started.md
+    "Routes":
+      markdown: doc/routes.md
+    "Web Apps":
+      markdown: doc/web_apps.md
+    "Deep Linking":
+      markdown: doc/deep_linking.md
+  categoryOrder:
+    - "Getting Started"
+    - "Routes"
+    - "Web Apps"
+    - "Deep Linking"
+  showUndocumentedCategories: true
+  ignore:
+    - broken-link
+    - missing-from-search-index

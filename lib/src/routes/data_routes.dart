@@ -84,6 +84,8 @@ typedef ShellDataStateRoutePageBuilder<D> = Page<void> Function(
 ///     ),
 ///   ]);
 /// ```
+///
+/// {@category Routes}
 class DataStateRoute<D> implements StateRouteInfoBuilder {
   DataStateRoute._(this._createRouteConfig);
 

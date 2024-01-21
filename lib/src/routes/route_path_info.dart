@@ -160,6 +160,9 @@ sealed class RoutePathInfo {
 
 /// Describes how a [StateRoute] integrates with platform (i.e. Navigator 2.0)
 /// routing.
+///
+/// {@category Web Apps}
+/// {@category Deep Linking}
 class RoutePath extends RoutePathInfo {
   RoutePath._(
     super.pathTemplate,
@@ -207,6 +210,9 @@ class RoutePath extends RoutePathInfo {
 
 /// Describes how a [DataStateRoute] integrates with platform (i.e. Navigator
 /// 2.0) routing.
+///
+/// {@category Web Apps}
+/// {@category Deep Linking}
 class DataRoutePath<D> extends RoutePathInfo {
   DataRoutePath._(
     super.pathTemplate,

@@ -42,6 +42,8 @@ typedef CreateRouteConfig = StateRouteInfo Function(StateRouteInfo? parent);
 ///       }),
 ///   ]);
 /// ```
+///
+/// {@category Routes}
 class StateRoute implements StateRouteInfoBuilder {
   StateRoute._(this._createRouteConfig);
 

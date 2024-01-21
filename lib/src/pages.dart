@@ -96,7 +96,7 @@ class _PopupPage extends Page<void> {
 ///
 /// See [ModalRoute.buildTransitions] for further details on this function is
 /// used.
-/// {@endtemplate
+/// {@endtemplate}
 typedef TransitionsBuilder = Widget Function(
   BuildContext context,
   Animation<double> animation,

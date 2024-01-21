@@ -43,6 +43,8 @@ typedef DefaultPageBuilder = Page<void>? Function(
 /// Routing information that describes how to display states in a
 /// [TreeStateMachine], and triggers routing navigation in response to state
 /// transitions within the state machine.
+///
+/// {@category Getting Started}
 class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
   TreeStateRouter._({
     required this.stateMachine,

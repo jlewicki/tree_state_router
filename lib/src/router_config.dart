@@ -141,7 +141,7 @@ class TreeStateRouter implements RouterConfig<TreeStateRoutePath> {
     return TreeStateRouter._(
       stateMachine: TreeStateMachine.withBuilder(
         builder,
-        developerLoggingEnabled: enableStateMachineDeveloperLogging,
+        enableDeveloperLogging: enableStateMachineDeveloperLogging,
       ),
       routes: routeConfigs,
       defaultScaffolding: defaultScaffolding,

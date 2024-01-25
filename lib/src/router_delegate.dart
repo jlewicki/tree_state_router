@@ -531,6 +531,8 @@ class TreeStateRouterDelegate extends TreeStateRouterDelegateBase {
         _log.fine(
             "Starting state machine ${startAt != null ? "at: '$startAt'" : ''}");
         var initTransFuture = stateMachine.transitions.first;
+        // TODO: figure out how to display error widget if start has an error,
+        // instead of the current behavior of just showing loading indicator
         stateMachine.start(at: startAt, withData: withData);
         return initTransFuture.then((initTrans) {
           _log.fine("Started state machine. Current state: '${initTrans.to}'");
